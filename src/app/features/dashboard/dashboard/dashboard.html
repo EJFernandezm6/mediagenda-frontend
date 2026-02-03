@@ -1,0 +1,54 @@
+<div class="space-y-8">
+    <!-- Header -->
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+        <p class="text-gray-500">Resumen de actividad de la clínica</p>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div *ngFor="let kpi of kpis"
+            class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start justify-between transition-transform hover:-translate-y-1">
+            <div>
+                <p class="text-sm font-medium text-gray-500">{{ kpi.label }}</p>
+                <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ kpi.value }}</h3>
+                <p class="text-xs text-gray-400 mt-1">{{ kpi.subtext }}</p>
+            </div>
+            <div [class]="'p-3 rounded-xl ' + kpi.bg">
+                <lucide-icon [img]="kpi.icon" [class]="'w-6 h-6 ' + kpi.color"></lucide-icon>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section Placeholder (Charts disabled due to environment issues) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Patients by Status -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">Estado de Pacientes</h3>
+            <div
+                class="h-80 w-full flex items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <div class="text-center">
+                    <lucide-icon [img]="icons.Activity"
+                        class="items-center w-10 h-10 text-gray-300 mx-auto mb-2"></lucide-icon>
+                    <p class="text-gray-500 font-medium">Visualización no disponible</p>
+                    <p class="text-xs text-gray-400">Las gráficas requieren dependencias adicionales.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visits by Specialty -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">Visitas por Especialidad</h3>
+            <div
+                class="h-80 w-full flex items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <div class="text-center">
+                    <lucide-icon [img]="icons.Activity"
+                        class="items-center w-10 h-10 text-gray-300 mx-auto mb-2"></lucide-icon>
+                    <p class="text-gray-500 font-medium">Visualización no disponible</p>
+                    <p class="text-xs text-gray-400">Las gráficas requieren dependencias adicionales.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

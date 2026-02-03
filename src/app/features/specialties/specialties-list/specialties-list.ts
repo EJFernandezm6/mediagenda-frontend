@@ -1,0 +1,63 @@
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SpecialtiesService, Specialty } from '../../../core/services/specialties';
+import { LucideAngularModule, Plus, Pencil, Trash2, Search } from 'lucide-angular';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-specialties-list',
+  standalone: true,
+  imports: [CommonModule, LucideAngularModule, FormsModule],
+  templateUrl: './specialties-list.html',
+  styleUrl: './specialties-list.css'
+})
+export class SpecialtiesListComponent {
+  private service = inject(SpecialtiesService);
+
+  // Icons
+  readonly icons = { Plus, Pencil, Trash2, Search };
+
+  specialties = this.service.specialties;
+  searchTerm = '';
+
+  // Simple Modal State
+  isModalOpen = false;
+  editingId: string | null = null;
+  form = { name: '', description: '', active: true };
+
+  get filteredSpecialties() {
+    return this.specialties().filter(s =>
+      s.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+    );
+  }
+
+  openModal(specialty?: Specialty) {
+    if (specialty) {
+      this.editingId = specialty.id;
+      this.form = { ...specialty };
+    } else {
+      this.editingId = null;
+      this.form = { name: '', description: '', active: true };
+    }
+    this.isModalOpen = true;
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
+  }
+
+  save() {
+    if (this.editingId) {
+      this.service.updateSpecialty(this.editingId, this.form);
+    } else {
+      this.service.addSpecialty(this.form);
+    }
+    this.closeModal();
+  }
+
+  delete(id: string) {
+    if (confirm('¿Estás seguro de eliminar esta especialidad?')) {
+      this.service.deleteSpecialty(id);
+    }
+  }
+}

@@ -1,0 +1,149 @@
+<div class="px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-xl font-semibold text-gray-900">Médicos</h1>
+            <p class="mt-2 text-sm text-gray-700">Gestión del personal médico, colegiatura y estado.</p>
+        </div>
+        <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <button (click)="openModal()"
+                class="block rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 flex items-center gap-2">
+                <lucide-icon [img]="icons.Plus" class="w-4 h-4"></lucide-icon>
+                Nuevo Médico
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-8 flow-root">
+        <!-- Search Bar -->
+        <div class="mb-6 relative max-w-sm">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <lucide-icon [img]="icons.Search" class="h-5 w-5 text-gray-400"></lucide-icon>
+            </div>
+            <input [(ngModel)]="searchTerm" type="text"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Buscar por nombre o CMP...">
+        </div>
+
+        <!-- Doctor Cards Grid (More visual than just a table) -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div *ngFor="let doctor of filteredDoctors"
+                class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow border border-gray-100 transition-all hover:shadow-md">
+                <div class="flex w-full items-center justify-between space-x-6 p-6">
+                    <div class="flex-1 truncate">
+                        <div class="flex items-center space-x-3">
+                            <h3 class="truncate text-sm font-medium text-gray-900">{{ doctor.fullName }}</h3>
+                            <span *ngIf="doctor.active"
+                                class="inline-flex flex-shrink-0 items-center rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Activo</span>
+                            <span *ngIf="!doctor.active"
+                                class="inline-flex flex-shrink-0 items-center rounded-full bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Inactivo</span>
+                        </div>
+                        <p class="mt-1 truncate text-sm text-gray-500 flex items-center gap-1"><lucide-icon
+                                [img]="icons.FileBadge" class="w-3 h-3"></lucide-icon> CMP: {{ doctor.cmp }}</p>
+                        <div class="mt-2 flex items-center text-sm text-yellow-500">
+                            <lucide-icon [img]="icons.Star" class="w-4 h-4 fill-current"></lucide-icon>
+                            <span class="ml-1 text-gray-900 font-semibold">{{ doctor.rating }}</span>
+                            <span class="ml-1 text-gray-400">({{ doctor.reviewsCount }} reviews)</span>
+                        </div>
+                    </div>
+                    <img class="h-14 w-14 flex-shrink-0 rounded-full bg-gray-300" [src]="doctor.photoUrl" alt="">
+                </div>
+                <div>
+                    <div class="-mt-px flex divide-x divide-gray-200">
+                        <div class="flex w-0 flex-1">
+                            <a [href]="'tel:' + doctor.phone"
+                                class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-4 text-sm font-semibold text-gray-900 hover:text-gray-600">
+                                <lucide-icon [img]="icons.Phone" class="h-5 w-5 text-gray-400"></lucide-icon>
+                                Llamar
+                            </a>
+                        </div>
+                        <div class="-ml-px flex w-0 flex-1">
+                            <a [href]="'mailto:' + doctor.email"
+                                class="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-4 text-sm font-semibold text-gray-900 hover:text-gray-600">
+                                <lucide-icon [img]="icons.Mail" class="h-5 w-5 text-gray-400"></lucide-icon>
+                                Email
+                            </a>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 flex">
+                        <button (click)="openModal(doctor)"
+                            class="flex-1 py-3 text-sm text-blue-600 font-medium hover:bg-blue-50 transition-colors">Editar</button>
+                        <div class="w-px bg-gray-100"></div>
+                        <button (click)="delete(doctor.id)"
+                            class="flex-1 py-3 text-sm text-red-600 font-medium hover:bg-red-50 transition-colors">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Overlay -->
+<div *ngIf="isModalOpen" class="fixed inset-0 z-20 w-screen overflow-y-auto">
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeModal()"></div>
+
+        <div
+            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+            <div class="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
+                <button type="button" class="rounded-md bg-white text-gray-400 hover:text-gray-500"
+                    (click)="closeModal()">
+                    <span class="sr-only">Cerrar</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mt-3 w-full">
+                <h3 class="text-base font-semibold leading-6 text-gray-900 text-center sm:text-left">{{ editingId ?
+                    'Editar' : 'Nuevo' }} Médico</h3>
+                <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
+                    <div class="sm:col-span-6">
+                        <label class="block text-sm font-medium leading-6 text-gray-900">Nombre Completo</label>
+                        <div class="mt-2">
+                            <input [(ngModel)]="form.fullName" type="text"
+                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <label class="block text-sm font-medium leading-6 text-gray-900">CMP / Colegiatura</label>
+                        <div class="mt-2">
+                            <input [(ngModel)]="form.cmp" type="text"
+                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <label class="block text-sm font-medium leading-6 text-gray-900">Teléfono</label>
+                        <div class="mt-2">
+                            <input [(ngModel)]="form.phone" type="text"
+                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-6">
+                        <label class="block text-sm font-medium leading-6 text-gray-900">Email</label>
+                        <div class="mt-2">
+                            <input [(ngModel)]="form.email" type="email"
+                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-6 flex items-center">
+                        <input [(ngModel)]="form.active" type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600">
+                        <label class="ml-2 block text-sm text-gray-900">Activo (Disponible para turnos)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
+                <button (click)="save()" type="button"
+                    class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">Guardar</button>
+                <button (click)="closeModal()" type="button"
+                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>

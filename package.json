@@ -1,0 +1,52 @@
+{
+    "name": "medi-agenda",
+    "version": "0.0.0",
+    "scripts": {
+        "ng": "ng",
+        "start": "ng serve",
+        "build": "ng build",
+        "watch": "ng build --watch --configuration development",
+        "test": "ng test"
+    },
+    "prettier": {
+        "printWidth": 100,
+        "singleQuote": true,
+        "overrides": [
+            {
+                "files": "*.html",
+                "options": {
+                    "parser": "angular"
+                }
+            }
+        ]
+    },
+    "private": true,
+    "packageManager": "npm@11.8.0",
+    "dependencies": {
+        "@angular/animations": "^20.3.16",
+        "@angular/cdk": "^20.2.14",
+        "@angular/common": "^20.3.16",
+        "@angular/compiler": "^20.3.16",
+        "@angular/core": "^20.3.16",
+        "@angular/forms": "^20.3.16",
+        "@angular/platform-browser": "^20.3.16",
+        "@angular/router": "^20.3.16",
+        "@swimlane/ngx-charts": "^23.1.0",
+        "lucide-angular": "^0.563.0",
+        "rxjs": "~7.8.0",
+        "tslib": "^2.3.0",
+        "zone.js": "^0.15.1"
+    },
+    "devDependencies": {
+        "@angular-devkit/build-angular": "^20.3.15",
+        "@angular/cli": "^20.3.15",
+        "@angular/compiler-cli": "^20.3.16",
+        "angular-cli-ghpages": "^3.0.2",
+        "autoprefixer": "^10.4.23",
+        "jsdom": "^27.1.0",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^3.4.17",
+        "typescript": "~5.9.2",
+        "vitest": "^4.0.8"
+    }
+}
