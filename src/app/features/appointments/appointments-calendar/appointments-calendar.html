@@ -4,51 +4,105 @@
         class="bg-white border-b border-gray-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-xl font-bold text-gray-900">Agenda de Citas</h1>
-            <p class="text-sm text-gray-500">Gestiona los turnos y citas médicas.</p>
+            <p class="text-sm text-gray-500">Gestiona los turnos y citas médicas globales.</p>
         </div>
 
-        <div class="flex items-center gap-3">
-            <!-- Doctor Filter -->
-            <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
-                class="block w-48 rounded-md border-gray-300 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 border px-2">
-                <option value="" disabled selected>Filtrar por Médico</option>
-                <option *ngFor="let doctor of doctors()" [value]="doctor.id">{{ doctor.fullName }}</option>
-            </select>
-
-            <!-- Specialty Filter -->
-            <select [ngModel]="selectedSpecialtyId()" (ngModelChange)="selectedSpecialtyId.set($event)"
-                class="block w-48 rounded-md border-gray-300 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 border px-2">
-                <option value="" disabled selected>Filtrar por Especialidad</option>
-                <option *ngFor="let specialty of specialties()" [value]="specialty.id">{{ specialty.name }}</option>
-            </select>
-        </div>
-
-        <!-- Date Navigation -->
-        <div class="flex items-center bg-gray-100 rounded-lg p-1">
-            <button (click)="changeWeek(-1)"
-                class="p-1 hover:bg-white hover:shadow rounded-md transition-all text-gray-600">
-                <lucide-icon [img]="icons.ChevronLeft" class="w-5 h-5"></lucide-icon>
+        <!-- Action & Navigation -->
+        <div class="flex items-center gap-4">
+            <button (click)="openGenericBooking()"
+                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-200 transition-all active:scale-95">
+                <lucide-icon [img]="icons.Plus" class="w-5 h-5"></lucide-icon>
+                Agendar Nueva Cita
             </button>
-            <span class="px-3 text-sm font-medium text-gray-900 min-w-[140px] text-center">
-                {{ weekDays()[0].dayName }} {{ weekDays()[0].dayNum }} - {{ weekDays()[6].dayName }} {{
-                weekDays()[6].dayNum }}
-            </span>
-            <button (click)="changeWeek(1)"
-                class="p-1 hover:bg-white hover:shadow rounded-md transition-all text-gray-600">
-                <lucide-icon [img]="icons.ChevronRight" class="w-5 h-5"></lucide-icon>
-            </button>
+
+            <!-- Date Navigation (For Calendar View if needed, or just context) -->
+            <div class="flex items-center bg-gray-100 rounded-xl p-1">
+                <button (click)="changeWeek(-1)"
+                    class="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
+                    <lucide-icon [img]="icons.ChevronLeft" class="w-5 h-5"></lucide-icon>
+                </button>
+                <span class="px-4 text-xs font-bold text-gray-900 min-w-[140px] text-center uppercase tracking-wide">
+                    {{ weekDays()[0].dayName }} {{ weekDays()[0].dayNum }} - {{ weekDays()[6].dayName }} {{
+                    weekDays()[6].dayNum }}
+                </span>
+                <button (click)="changeWeek(1)"
+                    class="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
+                    <lucide-icon [img]="icons.ChevronRight" class="w-5 h-5"></lucide-icon>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Calendar Grid -->
+    <!-- Calendar Grid / Global View -->
     <div class="flex-1 overflow-auto bg-gray-50 p-6">
-        <div *ngIf="!selectedDoctorId() || !selectedSpecialtyId()"
-            class="h-full flex flex-col items-center justify-center text-gray-400">
-            <lucide-icon [img]="icons.Calendar" class="w-16 h-16 mb-4 opacity-50"></lucide-icon>
-            <p class="text-lg font-medium">Selecciona un Médico y una Especialidad</p>
-            <p class="text-sm">Para ver la disponibilidad y agendar citas.</p>
+
+        <!-- Global View (No filters) -->
+        <div *ngIf="!selectedDoctorId() || !selectedSpecialtyId()" class="space-y-6">
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-blue-900">Vista General del Día</h2>
+                    <p class="text-sm text-blue-700">Visualizando todas las citas programadas para hoy across todos los
+                        médicos.</p>
+                </div>
+                <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
+                    <lucide-icon [img]="icons.Calendar" class="w-5 h-5 text-blue-600"></lucide-icon>
+                    <span class="font-bold text-gray-900">{{ currentDateStr() }}</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Hora</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Paciente</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Médico</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Estado</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr *ngFor="let app of globalAppointments()" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <lucide-icon [img]="icons.Clock" class="w-4 h-4 text-gray-400"></lucide-icon>
+                                    <span class="text-sm font-medium text-gray-900">{{ app.startTime }} - {{ app.endTime
+                                        }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm font-bold text-gray-900">{{ app.patientName }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {{ getDoctorName(app.doctorId) }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span
+                                    [class]="'px-2 py-1 rounded-full text-[10px] font-bold ' + 
+                                    (app.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700')">
+                                    {{ app.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button (click)="openAppointmentDetails(app)"
+                                    class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline">
+                                    Ver Detalles
+                                </button>
+                            </td>
+                        </tr>
+                        <tr *ngIf="globalAppointments().length === 0">
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                                <lucide-icon [img]="icons.AlertCircle"
+                                    class="w-12 h-12 mx-auto mb-2 opacity-20"></lucide-icon>
+                                <p>No hay citas programadas para hoy.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- Filtered Calendar View -->
         <div *ngIf="selectedDoctorId() && selectedSpecialtyId()"
             class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden min-w-[800px]">
             <!-- Header Row -->
@@ -78,7 +132,7 @@
 
                         <!-- Booker -->
                         <button *ngSwitchCase="'available'" (click)="openBookingModal(day.iso, time)"
-                            class="w-full h-full rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-blue-600">
+                            class="w-full h-full rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50 flex items-center justify-center opacity-30 group-hover:opacity-100 transition-all text-blue-600">
                             <lucide-icon [img]="icons.Plus" class="w-5 h-5"></lucide-icon>
                         </button>
 
@@ -101,66 +155,365 @@
     </div>
 </div>
 
-<!-- Modal -->
-<div *ngIf="isModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 transition-opacity" (click)="closeModal()"></div>
+<!-- Booking Modal -->
+<div *ngIf="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Agendar Nueva Cita</h2>
+                    <p class="text-blue-100 text-sm mt-1">Selecciona los detalles de tu consulta</p>
+                </div>
+                <button (click)="closeModal()"
+                    class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                    <lucide-icon [img]="icons.AlertCircle" class="w-6 h-6 rotate-45"></lucide-icon>
+                </button>
+            </div>
+        </div>
 
-        <div
-            class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-            <div class="bg-blue-600 px-4 py-3 sm:px-6">
-                <h3 class="text-base font-semibold leading-6 text-white flex items-center gap-2">
-                    <lucide-icon [img]="icons.Calendar" class="w-5 h-5"></lucide-icon>
-                    Agendar Cita
-                </h3>
+        <!-- Modal Body -->
+        <div class="p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left Column: Form Details -->
+                <div class="space-y-5">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">Detalles de la
+                            Cita</h3>
+                        <p class="text-xs text-gray-500 mb-4">Selecciona los detalles de tu consulta</p>
+                    </div>
+
+                    <!-- Specialty -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            Especialidad
+                        </label>
+                        <select [ngModel]="modalSpecialtyId()"
+                            (ngModelChange)="modalSpecialtyId.set($event); modalDoctorId.set('')"
+                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none">
+                            <option value="" disabled>Seleccionar Especialidad</option>
+                            <option *ngFor="let s of specialties()" [value]="s.id">{{ s.name }}</option>
+                        </select>
+                    </div>
+
+                    <!-- Doctor -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            Médico
+                        </label>
+                        <select [ngModel]="modalDoctorId()" (ngModelChange)="modalDoctorId.set($event)"
+                            [disabled]="!modalSpecialtyId()"
+                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none disabled:bg-gray-50 disabled:text-gray-400">
+                            <option value="" disabled>Seleccionar Médico</option>
+                            <option *ngFor="let d of filteredDoctorsForModal()" [value]="d.id">{{ d.fullName }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Date -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            Fecha
+                        </label>
+                        <input type="date" [ngModel]="modalDate()" (ngModelChange)="modalDate.set($event)"
+                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none">
+                    </div>
+
+                    <!-- Patient -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            Seleccionar Paciente
+                        </label>
+                        <select [ngModel]="modalPatientId()" (ngModelChange)="modalPatientId.set($event)"
+                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none">
+                            <option value="" disabled>Seleccionar Paciente</option>
+                            <option *ngFor="let p of patients()" [value]="p.id">{{ p.fullName }} ({{ p.dni }})
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Right Column: Time Slots -->
+                <div class="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 border-2 border-gray-100">
+                    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 text-center">
+                        Horarios Disponibles
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-4 text-center">Elige una hora disponible</p>
+
+                    <div *ngIf="availableSlotsForModal().length > 0"
+                        class="grid grid-cols-3 gap-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
+                        <button *ngFor="let slot of availableSlotsForModal()" (click)="modalTime.set(slot)"
+                            [class]="'py-3 px-2 text-sm font-bold rounded-xl border-2 transition-all duration-200 ' + 
+                                (modalTime() === slot 
+                                    ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200 scale-105' 
+                                    : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:shadow-md hover:scale-102')">
+                            {{ slot }}
+                        </button>
+                    </div>
+
+                    <div *ngIf="availableSlotsForModal().length === 0"
+                        class="h-[320px] flex flex-col items-center justify-center text-center text-gray-400">
+                        <lucide-icon [img]="icons.Clock" class="w-16 h-16 mb-4 opacity-20"></lucide-icon>
+                        <p class="text-sm font-medium px-6">Selecciona médico y fecha para ver disponibilidad
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <div class="px-4 py-5 sm:p-6">
-                <div class="mb-4 bg-blue-50 p-3 rounded-md border border-blue-100">
-                    <p class="text-sm text-blue-800">
-                        <strong>Fecha:</strong> {{ selectedSlot?.date }} <br>
-                        <strong>Hora:</strong> {{ selectedSlot?.time }}
+            <!-- Payment Method & Notes -->
+            <div class="mt-8 pt-8 border-t-2 border-gray-100">
+                <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-5">Método de Pago</h3>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <button type="button" (click)="modalPaymentMethod.set('CASH')" [class]="'relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ' + 
+                            (modalPaymentMethod() === 'CASH' 
+                                ? 'border-blue-600 bg-blue-50 shadow-md' 
+                                : 'border-gray-200 bg-white hover:border-blue-300')">
+                        <lucide-icon [img]="icons.User" class="w-6 h-6 mb-2"
+                            [class]="modalPaymentMethod() === 'CASH' ? 'text-blue-600' : 'text-gray-400'"></lucide-icon>
+                        <span
+                            [class]="'text-xs font-bold ' + (modalPaymentMethod() === 'CASH' ? 'text-blue-600' : 'text-gray-600')">
+                            Efectivo
+                        </span>
+                        <span class="text-xs text-gray-500 mt-1">En clínica</span>
+                    </button>
+
+                    <button type="button" (click)="modalPaymentMethod.set('YAPE')" [class]="'relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ' + 
+                            (modalPaymentMethod() === 'YAPE' 
+                                ? 'border-blue-600 bg-blue-50 shadow-md' 
+                                : 'border-gray-200 bg-white hover:border-blue-300')">
+                        <lucide-icon [img]="icons.User" class="w-6 h-6 mb-2"
+                            [class]="modalPaymentMethod() === 'YAPE' ? 'text-blue-600' : 'text-gray-400'"></lucide-icon>
+                        <span
+                            [class]="'text-xs font-bold ' + (modalPaymentMethod() === 'YAPE' ? 'text-blue-600' : 'text-gray-600')">
+                            Yape
+                        </span>
+                    </button>
+
+                    <button type="button" (click)="modalPaymentMethod.set('PLIN')" [class]="'relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ' + 
+                            (modalPaymentMethod() === 'PLIN' 
+                                ? 'border-blue-600 bg-blue-50 shadow-md' 
+                                : 'border-gray-200 bg-white hover:border-blue-300')">
+                        <lucide-icon [img]="icons.User" class="w-6 h-6 mb-2"
+                            [class]="modalPaymentMethod() === 'PLIN' ? 'text-blue-600' : 'text-gray-400'"></lucide-icon>
+                        <span
+                            [class]="'text-xs font-bold ' + (modalPaymentMethod() === 'PLIN' ? 'text-blue-600' : 'text-gray-600')">
+                            Plin
+                        </span>
+                    </button>
+
+                    <button type="button" (click)="modalPaymentMethod.set('CARD')" [class]="'relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ' + 
+                            (modalPaymentMethod() === 'CARD' 
+                                ? 'border-blue-600 bg-blue-50 shadow-md' 
+                                : 'border-gray-200 bg-white hover:border-blue-300')">
+                        <lucide-icon [img]="icons.User" class="w-6 h-6 mb-2"
+                            [class]="modalPaymentMethod() === 'CARD' ? 'text-blue-600' : 'text-gray-400'"></lucide-icon>
+                        <span
+                            [class]="'text-xs font-bold ' + (modalPaymentMethod() === 'CARD' ? 'text-blue-600' : 'text-gray-600')">
+                            Tarjeta
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                        Notas Adicionales
+                    </label>
+                    <textarea [ngModel]="modalNotes()" (ngModelChange)="modalNotes.set($event)"
+                        placeholder="Escribe cualquier nota relevante para el médico..." rows="3"
+                        class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none resize-none"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div
+            class="bg-gray-50 px-8 py-5 flex flex-col-reverse sm:flex-row gap-3 border-t-2 border-gray-100 rounded-b-2xl">
+            <button (click)="closeModal()" type="button"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-xl bg-white border-2 border-gray-300 px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">
+                <lucide-icon [img]="icons.AlertCircle" class="w-5 h-5 rotate-45"></lucide-icon>
+                Cancelar
+            </button>
+            <button (click)="saveAppointment()" [disabled]="!modalPatientId() || !modalTime() || !modalDoctorId()"
+                type="button"
+                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                <lucide-icon [img]="icons.CheckCircle" class="w-5 h-5"></lucide-icon>
+                Confirmar Cita
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div *ngIf="isDetailsModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-700 px-8 py-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Detalles de la Cita</h2>
+                    <p class="text-indigo-100 text-sm mt-1">Información completa de la consulta</p>
+                </div>
+                <button (click)="closeDetailsModal()"
+                    class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                    <lucide-icon [img]="icons.AlertCircle" class="w-6 h-6 rotate-45"></lucide-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body - Details View -->
+        <div class="p-8" *ngIf="selectedAppointment && !isRescheduling && !isConfirmingCancel">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 border-2 border-blue-100">
+                <div class="flex items-center gap-3">
+                    <lucide-icon [img]="icons.User" class="w-8 h-8 text-blue-600"></lucide-icon>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">{{ selectedAppointment.patientName }}</h3>
+                        <p class="text-sm text-gray-600">Paciente</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Médico</label>
+                    <p class="text-sm font-medium text-gray-900">{{ getDoctorName(selectedAppointment.doctorId) }}</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Especialidad</label>
+                    <p class="text-sm font-medium text-gray-900">{{ getSpecialtyName(selectedAppointment.specialtyId) }}
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Fecha</label>
+                    <p class="text-sm font-medium text-gray-900">{{ selectedAppointment.date }}</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Horario</label>
+                    <p class="text-sm font-medium text-gray-900">{{ selectedAppointment.startTime }} - {{
+                        selectedAppointment.endTime }}</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Estado</label>
+                    <span [class]="'inline-block px-3 py-1 rounded-full text-xs font-bold ' + 
+                        (selectedAppointment.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 
+                         selectedAppointment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
+                         selectedAppointment.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                         'bg-yellow-100 text-yellow-700')">
+                        {{ selectedAppointment.status }}
+                    </span>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Método de Pago</label>
+                    <p class="text-sm font-medium text-gray-900">{{ selectedAppointment.paymentMethod || 'N/A' }}</p>
+                </div>
+            </div>
+
+            <div *ngIf="selectedAppointment.notes" class="bg-gray-50 rounded-xl p-4">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Notas</label>
+                <p class="text-sm text-gray-700">{{ selectedAppointment.notes }}</p>
+            </div>
+        </div>
+
+        <!-- Modal Body - Rescheduling View -->
+        <div class="p-8" *ngIf="isRescheduling">
+            <div class="space-y-5">
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                    <p class="text-sm text-yellow-700 italic">
+                        Solo puedes cambiar el médico y el horario para esta especialidad.
                     </p>
                 </div>
 
-                <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Paciente</label>
-                        <select [(ngModel)]="newApp.patientId"
-                            class="mt-1 block w-full rounded-md border-gray-300 py-2 border px-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <option value="" disabled selected>Seleccionar paciente</option>
-                            <option *ngFor="let p of patients()" [value]="p.id">{{ p.fullName }} ({{ p.dni }})</option>
+                        <label
+                            class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Especialidad</label>
+                        <div
+                            class="w-full rounded-xl border-2 border-gray-100 bg-gray-50 py-3 px-4 text-sm font-bold text-gray-500 italic">
+                            {{ getSpecialtyName(modalSpecialtyId()) }}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Médico</label>
+                        <select [ngModel]="modalDoctorId()" (ngModelChange)="modalDoctorId.set($event)"
+                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 outline-none transition-all">
+                            <option *ngFor="let doctor of doctorsInCurrentSpecialty()" [value]="doctor.id">
+                                {{ doctor.fullName }}
+                            </option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Método de Pago</label>
-                        <select [(ngModel)]="newApp.paymentMethod"
-                            class="mt-1 block w-full rounded-md border-gray-300 py-2 border px-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            <option value="CASH">Efectivo (En Clínica)</option>
-                            <option value="YAPE">Yape</option>
-                            <option value="PLIN">Plin</option>
-                            <option value="CARD">Tarjeta de Crédito</option>
-                        </select>
-                    </div>
-                    <div *ngIf="newApp.paymentMethod !== 'CASH'">
-                        <label class="block text-sm font-medium text-gray-700">ID de Transacción / Comprobante</label>
-                        <input [(ngModel)]="newApp.transactionId" type="text" placeholder="Ej: 12345678"
-                            class="mt-1 block w-full rounded-md border-gray-300 py-2 border px-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Notas / Motivo</label>
-                        <textarea [(ngModel)]="newApp.notes" rows="3"
-                            class="mt-1 block w-full rounded-md border-gray-300 py-2 border px-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Nueva
+                        Fecha</label>
+                    <input type="date" [ngModel]="modalDate()" (ngModelChange)="modalDate.set($event)"
+                        class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Nuevo
+                        Horario</label>
+                    <div class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                        <button *ngFor="let slot of availableSlotsForModal()" (click)="modalTime.set(slot)" [class]="'py-2 px-2 text-sm font-bold rounded-lg border-2 transition-all ' + 
+                            (modalTime() === slot 
+                                ? 'bg-blue-600 border-blue-600 text-white' 
+                                : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400')">
+                            {{ slot }}
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                <button (click)="saveAppointment()" [disabled]="!newApp.patientId" type="button"
-                    class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto disabled:opacity-50">Confirmar
-                    Cita</button>
-                <button (click)="closeModal()" type="button"
-                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancelar</button>
+        <!-- Modal Body - Confirmation Cancel View -->
+        <div class="p-12 text-center" *ngIf="isConfirmingCancel">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <lucide-icon [img]="icons.AlertCircle" class="w-10 h-10 text-red-600"></lucide-icon>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">¿Confirmar Cancelación?</h3>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                ¿Estás seguro de que deseas cancelar la cita de **{{ selectedAppointment?.patientName }}**? Esta acción
+                no se puede deshacer.
+            </p>
+            <div class="flex gap-4">
+                <button (click)="cancelCancelConfirmation()"
+                    class="flex-1 py-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-all">
+                    No, mantener cita
+                </button>
+                <button (click)="confirmCancel()"
+                    class="flex-1 py-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-200">
+                    Sí, cancelar cita
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div *ngIf="!isConfirmingCancel"
+            class="bg-gray-50 px-8 py-5 flex flex-col-reverse sm:flex-row gap-3 border-t-2 border-gray-100 rounded-b-2xl">
+            <button (click)="closeDetailsModal()" type="button"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-xl bg-white border-2 border-gray-300 px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">
+                Cerrar
+            </button>
+            <div class="flex-1 flex gap-3">
+                <button *ngIf="!isRescheduling && selectedAppointment?.status !== 'CANCELLED'"
+                    (click)="showCancelConfirmation()" type="button"
+                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-bold text-white hover:bg-red-700 transition-all">
+                    <lucide-icon [img]="icons.AlertCircle" class="w-5 h-5"></lucide-icon>
+                    Cancelar Cita
+                </button>
+                <button *ngIf="!isRescheduling && selectedAppointment?.status !== 'CANCELLED'"
+                    (click)="startRescheduling()" type="button"
+                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">
+                    <lucide-icon [img]="icons.Calendar" class="w-5 h-5"></lucide-icon>
+                    Reprogramar
+                </button>
+                <button *ngIf="isRescheduling" (click)="saveRescheduledAppointment()"
+                    [disabled]="!modalTime() || !modalDate() || !modalDoctorId()" type="button"
+                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <lucide-icon [img]="icons.CheckCircle" class="w-5 h-5"></lucide-icon>
+                    Guardar Cambios
+                </button>
             </div>
         </div>
     </div>

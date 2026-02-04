@@ -6,7 +6,8 @@ import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { SchedulesService } from '../../../core/services/schedules';
 import { PatientsService } from '../../../core/services/patients';
-import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus } from 'lucide-angular';
+import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
+import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle } from 'lucide-angular';
 
 @Component({
   selector: 'app-appointments-calendar',
@@ -21,8 +22,9 @@ export class AppointmentsCalendarComponent {
   private specialtyService = inject(SpecialtiesService);
   private scheduleService = inject(SchedulesService);
   private patientsService = inject(PatientsService);
+  private doctorSpecialtyService = inject(DoctorSpecialtyService);
 
-  readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus };
+  readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle };
 
   // Data Sources
   doctors = this.doctorService.doctors;
@@ -36,11 +38,89 @@ export class AppointmentsCalendarComponent {
 
   // Calendar State
   currentDate = signal<Date>(new Date());
+  currentDateStr = computed(() => {
+    return this.currentDate().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  });
 
   // Modal State
   isModalOpen = false;
   selectedSlot: { date: string, time: string } | null = null;
-  newApp = { patientId: '', notes: '', paymentMethod: 'CASH', transactionId: '' };
+
+  // Reactive Modal State
+  modalPatientId = signal('');
+  modalSpecialtyId = signal('');
+  modalDoctorId = signal('');
+  modalDate = signal(new Date().toISOString().split('T')[0]);
+  modalTime = signal('');
+  modalNotes = signal('');
+  modalPaymentMethod = signal('CASH');
+  modalTransactionId = signal('');
+
+  // Details Modal State
+  isDetailsModalOpen = false;
+  selectedAppointment: Appointment | null = null;
+  isRescheduling = false;
+  isConfirmingCancel = false;
+
+  doctorsInCurrentSpecialty = computed(() => {
+    const specialtyId = this.isRescheduling ? this.modalSpecialtyId() : this.selectedSpecialtyId();
+    if (!specialtyId) return this.doctors();
+
+    const associations = this.doctorSpecialtyService.associations();
+    const doctorIds = associations
+      .filter(a => a.specialtyId === specialtyId)
+      .map(a => a.doctorId);
+
+    return this.doctors().filter(d => doctorIds.includes(d.id));
+  });
+
+  // Appointments for All Doctors (Today)
+  globalAppointments = computed(() => {
+    const today = this.currentDate().toISOString().split('T')[0];
+    return this.appointments().filter(a => a.date === today && a.status !== 'CANCELLED');
+  });
+
+  // Dynamic values for Modal
+  filteredDoctorsForModal = computed(() => {
+    const specialtyId = this.modalSpecialtyId();
+    if (!specialtyId) return [];
+    const associations = this.doctorSpecialtyService.associations();
+    const doctorIds = associations
+      .filter(a => a.specialtyId === specialtyId)
+      .map(a => a.doctorId);
+    return this.doctors().filter(d => doctorIds.includes(d.id));
+  });
+
+  availableSlotsForModal = computed(() => {
+    const doctorId = this.modalDoctorId();
+    const specialtyId = this.modalSpecialtyId();
+    const date = this.modalDate();
+
+    if (!doctorId || !specialtyId || !date) return [];
+
+    const schedules = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId);
+    let dayOfWeek = new Date(date).getUTCDay();
+
+    const daySchedules = schedules.filter(s => s.dayOfWeek === dayOfWeek);
+
+    return this.timeSlots.filter(time => {
+      const isWorking = daySchedules.some(s => time >= s.startTime && time < s.endTime);
+      if (!isWorking) return false;
+
+      const isBooked = this.appointments().some(a =>
+        a.doctorId === doctorId &&
+        a.date === date &&
+        a.startTime === time &&
+        a.status !== 'CANCELLED'
+      );
+      return !isBooked;
+    });
+  });
 
   weekDays = computed(() => {
     const start = this.getStartOfWeek(this.currentDate());
@@ -112,7 +192,14 @@ export class AppointmentsCalendarComponent {
 
   openBookingModal(dateIso: string, time: string) {
     this.selectedSlot = { date: dateIso, time };
-    this.newApp = { patientId: '', notes: '', paymentMethod: 'CASH', transactionId: '' };
+    this.modalPatientId.set('');
+    this.modalSpecialtyId.set(this.selectedSpecialtyId() || '');
+    this.modalDoctorId.set(this.selectedDoctorId() || '');
+    this.modalDate.set(dateIso);
+    this.modalTime.set(time);
+    this.modalNotes.set('');
+    this.modalPaymentMethod.set('CASH');
+    this.modalTransactionId.set('');
     this.isModalOpen = true;
   }
 
@@ -121,20 +208,26 @@ export class AppointmentsCalendarComponent {
   }
 
   saveAppointment() {
-    if (this.selectedSlot && this.newApp.patientId) {
-      const patient = this.patients().find(p => p.id === this.newApp.patientId);
+    const doctorId = this.modalDoctorId();
+    const specialtyId = this.modalSpecialtyId();
+    const date = this.modalDate();
+    const time = this.modalTime();
+    const patientId = this.modalPatientId();
+
+    if (doctorId && specialtyId && date && time && patientId) {
+      const patient = this.patients().find(p => p.id === patientId);
       this.appointmentsService.addAppointment({
-        doctorId: this.selectedDoctorId(),
-        specialtyId: this.selectedSpecialtyId(),
-        patientId: this.newApp.patientId,
+        doctorId,
+        specialtyId,
+        patientId,
         patientName: patient?.fullName || 'Desconocido',
-        date: this.selectedSlot.date,
-        startTime: this.selectedSlot.time,
-        endTime: this.addMinutes(this.selectedSlot.time, 30), // Default 30 min
-        notes: this.newApp.notes,
-        paymentMethod: this.newApp.paymentMethod as any,
-        paymentStatus: this.newApp.paymentMethod === 'CASH' ? 'PENDING' : 'PAID', // Auto-assume PAID for wallets for now
-        transactionId: this.newApp.transactionId
+        date,
+        startTime: time,
+        endTime: this.addMinutes(time, 30),
+        notes: this.modalNotes(),
+        paymentMethod: this.modalPaymentMethod() as any,
+        paymentStatus: this.modalPaymentMethod() === 'CASH' ? 'PENDING' : 'PAID',
+        transactionId: this.modalTransactionId()
       });
       this.closeModal();
     }
@@ -145,5 +238,103 @@ export class AppointmentsCalendarComponent {
     const date = new Date();
     date.setHours(h, m + mins);
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  getDoctorName(id: string) {
+    return this.doctors().find(d => d.id === id)?.fullName || 'Desconocido';
+  }
+
+  getSpecialtyName(id: string) {
+    return this.specialties().find(s => s.id === id)?.name || 'Desconocido';
+  }
+
+  openGenericBooking() {
+    // Find first available slot today or in the week
+    const today = new Date().toISOString().split('T')[0];
+    const firstAvailable = this.timeSlots.find(slot => this.getSlotStatus(today, slot, 0) === 'available');
+
+    if (firstAvailable) {
+      this.openBookingModal(today, firstAvailable);
+    } else {
+      // Just open with today and first slot if none found
+      this.openBookingModal(today, this.timeSlots[0]);
+    }
+  }
+
+  openAppointmentDetails(appointment: Appointment) {
+    this.selectedAppointment = appointment;
+    this.isDetailsModalOpen = true;
+    this.isRescheduling = false;
+  }
+
+  closeDetailsModal() {
+    this.isDetailsModalOpen = false;
+    this.selectedAppointment = null;
+    this.isRescheduling = false;
+    this.isConfirmingCancel = false;
+  }
+
+  startRescheduling() {
+    if (this.selectedAppointment) {
+      this.isRescheduling = true;
+      this.isConfirmingCancel = false;
+      this.modalSpecialtyId.set(this.selectedAppointment.specialtyId);
+      this.modalDoctorId.set(this.selectedAppointment.doctorId);
+      this.modalDate.set(this.selectedAppointment.date);
+      this.modalTime.set(this.selectedAppointment.startTime);
+      this.modalPatientId.set(this.selectedAppointment.patientId);
+      this.modalNotes.set(this.selectedAppointment.notes || '');
+      this.modalPaymentMethod.set(this.selectedAppointment.paymentMethod || 'CASH');
+      this.modalTransactionId.set(this.selectedAppointment.transactionId || '');
+    }
+  }
+
+  showCancelConfirmation() {
+    this.isConfirmingCancel = true;
+    this.isRescheduling = false;
+  }
+
+  cancelCancelConfirmation() {
+    this.isConfirmingCancel = false;
+  }
+
+  confirmCancel() {
+    if (this.selectedAppointment) {
+      this.appointmentsService.updatestatus(this.selectedAppointment.id, 'CANCELLED');
+      this.closeDetailsModal();
+      this.isConfirmingCancel = false;
+    }
+  }
+
+  saveRescheduledAppointment() {
+    if (this.selectedAppointment && this.modalTime() && this.modalDate()) {
+      // Update the existing appointment
+      const updatedAppointment: Appointment = {
+        ...this.selectedAppointment,
+        date: this.modalDate(),
+        startTime: this.modalTime(),
+        endTime: this.addMinutes(this.modalTime(), 30),
+        notes: this.modalNotes(),
+        paymentMethod: this.modalPaymentMethod() as any,
+        transactionId: this.modalTransactionId()
+      };
+
+      // Update in service (you'll need to add this method to the service)
+      const appointments = this.appointments();
+      const index = appointments.findIndex(a => a.id === this.selectedAppointment!.id);
+      if (index !== -1) {
+        appointments[index] = updatedAppointment;
+        this.appointmentsService.appointments.set([...appointments]);
+      }
+
+      this.closeDetailsModal();
+    }
+  }
+
+  cancelAppointment() {
+    if (this.selectedAppointment) {
+      this.appointmentsService.updatestatus(this.selectedAppointment.id, 'CANCELLED');
+      this.closeDetailsModal();
+    }
   }
 }
