@@ -9,145 +9,304 @@
 
         <!-- Action & Navigation -->
         <div class="flex items-center gap-4">
+            <!-- Specialty Filter -->
+            <div class="relative">
+                <select [ngModel]="selectedSpecialtyId()" (ngModelChange)="selectedSpecialtyId.set($event)"
+                    class="appearance-none bg-white border border-gray-300 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-3 pr-8 py-2.5 shadow-sm hover:border-gray-400 transition-colors cursor-pointer font-medium">
+                    <option value="" disabled>Filtrar Especialidad</option>
+                    <option *ngFor="let spec of specialties()" [value]="spec.id">{{ spec.name }}</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                    <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4 rotate-90"></lucide-icon>
+                </div>
+            </div>
             <button (click)="openGenericBooking()"
                 class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-200 transition-all active:scale-95">
                 <lucide-icon [img]="icons.Plus" class="w-5 h-5"></lucide-icon>
                 Agendar Nueva Cita
             </button>
 
-            <!-- Date Navigation (For Calendar View if needed, or just context) -->
-            <div class="flex items-center bg-gray-100 rounded-xl p-1">
+            <!-- Date Navigation -->
+            <div class="flex items-center bg-gray-100 rounded-xl p-1 shadow-inner">
                 <button (click)="changeWeek(-1)"
-                    class="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
+                    class="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
                     <lucide-icon [img]="icons.ChevronLeft" class="w-5 h-5"></lucide-icon>
                 </button>
-                <span class="px-4 text-xs font-bold text-gray-900 min-w-[140px] text-center uppercase tracking-wide">
-                    {{ weekDays()[0].dayName }} {{ weekDays()[0].dayNum }} - {{ weekDays()[6].dayName }} {{
-                    weekDays()[6].dayNum }}
-                </span>
+                <div class="px-4 text-center min-w-[180px]">
+                    <span class="block text-sm font-bold text-gray-900 capitalize leading-none mb-1">
+                        {{ currentDateStr() | titlecase }}
+                    </span>
+                    <span class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        {{ weekDays()[0].dayNum }} - {{ weekDays()[6].dayNum }} {{ weekDays()[6].dayName }}
+                    </span>
+                </div>
                 <button (click)="changeWeek(1)"
-                    class="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
+                    class="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
                     <lucide-icon [img]="icons.ChevronRight" class="w-5 h-5"></lucide-icon>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Calendar Grid / Global View -->
+    <!-- Calendar Grid -->
     <div class="flex-1 overflow-auto bg-gray-50 p-6">
 
-        <!-- Global View (No filters) -->
-        <div *ngIf="!selectedDoctorId() || !selectedSpecialtyId()" class="space-y-6">
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-bold text-blue-900">Vista General del Día</h2>
-                    <p class="text-sm text-blue-700">Visualizando todas las citas programadas para hoy across todos los
-                        médicos.</p>
-                </div>
-                <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                    <lucide-icon [img]="icons.Calendar" class="w-5 h-5 text-blue-600"></lucide-icon>
-                    <span class="font-bold text-gray-900">{{ currentDateStr() }}</span>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Hora</th>
-                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Paciente</th>
-                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Médico</th>
-                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Estado</th>
-                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase text-right">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr *ngFor="let app of globalAppointments()" class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-2">
-                                    <lucide-icon [img]="icons.Clock" class="w-4 h-4 text-gray-400"></lucide-icon>
-                                    <span class="text-sm font-medium text-gray-900">{{ app.startTime }} - {{ app.endTime
-                                        }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="text-sm font-bold text-gray-900">{{ app.patientName }}</span>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                {{ getDoctorName(app.doctorId) }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <span
-                                    [class]="'px-2 py-1 rounded-full text-[10px] font-bold ' + 
-                                    (app.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700')">
-                                    {{ app.status }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <button (click)="openAppointmentDetails(app)"
-                                    class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline">
-                                    Ver Detalles
-                                </button>
-                            </td>
-                        </tr>
-                        <tr *ngIf="globalAppointments().length === 0">
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-400">
-                                <lucide-icon [img]="icons.AlertCircle"
-                                    class="w-12 h-12 mx-auto mb-2 opacity-20"></lucide-icon>
-                                <p>No hay citas programadas para hoy.</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- View Controls (Day/Week Toggle) -->
+        <div class="flex items-center justify-end mb-4 px-1">
+            <div class="bg-gray-200 p-1 rounded-lg inline-flex">
+                <button (click)="toggleView('day')"
+                    [class]="'px-4 py-1.5 text-sm font-bold rounded-md transition-all ' + (viewMode() === 'day' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800')">
+                    Día
+                </button>
+                <button (click)="toggleView('week')"
+                    [class]="'px-4 py-1.5 text-sm font-bold rounded-md transition-all ' + (viewMode() === 'week' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800')">
+                    Semana
+                </button>
             </div>
         </div>
 
-        <!-- Filtered Calendar View -->
-        <div *ngIf="selectedDoctorId() && selectedSpecialtyId()"
-            class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden min-w-[800px]">
+        <!-- Weekly & Daily View Container -->
+        <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden min-w-[800px]">
+
             <!-- Header Row -->
-            <div class="grid grid-cols-8 border-b border-gray-200 bg-gray-50">
+            <div class="grid border-b border-gray-200 bg-gray-50 sticky top-0 z-10"
+                [class]="viewMode() === 'week' ? 'grid-cols-8' : 'grid-cols-[auto_1fr]'">
+
+                <!-- Time Label Header -->
                 <div
-                    class="p-4 text-xs font-semibold text-gray-400 uppercase tracking-wider text-center border-r border-gray-200">
-                    Hora</div>
-                <div *ngFor="let day of weekDays()" class="p-4 text-center border-r border-gray-200 last:border-r-0">
-                    <p class="text-xs font-semibold text-gray-500 uppercase">{{ day.dayName }}</p>
-                    <p class="text-lg font-bold text-gray-900">{{ day.dayNum }}</p>
+                    class="p-4 text-xs font-semibold text-gray-400 uppercase tracking-wider text-center border-r border-gray-200 w-20 flex items-center justify-center">
+                    Hora
                 </div>
+
+                <!-- Week View Headers -->
+                <ng-container *ngIf="viewMode() === 'week'">
+                    <div *ngFor="let day of weekDays()"
+                        class="p-4 text-center border-r border-gray-200 last:border-r-0">
+                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">{{ day.dayName }}</p>
+                        <div class="flex flex-col items-center leading-none">
+                            <span class="text-lg font-bold text-gray-900">{{ day.dayNum }}</span>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase mt-0.5">{{ day.monthName
+                                }}</span>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <!-- Day View Header -->
+                <ng-container *ngIf="viewMode() === 'day'">
+                    <div class="p-4 text-center">
+                        <p class="text-xs font-semibold text-gray-500 uppercase">{{ currentDateStr() }}</p>
+                    </div>
+                </ng-container>
             </div>
 
-            <!-- Time Slots -->
-            <div *ngFor="let time of timeSlots" class="grid grid-cols-8 border-b border-gray-100 last:border-b-0 h-20">
-                <!-- Time Label -->
-                <div
-                    class="p-2 text-xs font-medium text-gray-500 text-center border-r border-gray-100 flex items-center justify-center bg-gray-50/50">
-                    {{ time }}
-                </div>
+            <!-- Time Slots Body -->
+            <div class="relative">
+                <div *ngFor="let time of this.timeSlots"
+                    class="grid border-b border-gray-100 last:border-b-0 min-h-[5rem]"
+                    [class]="(viewMode() === 'week' ? 'grid-cols-8' : 'grid-cols-[auto_1fr]') + (isBreakTime(time) ? ' bg-gray-100' : '')">
 
-                <!-- Days Columns -->
-                <div *ngFor="let day of weekDays(); let i = index"
-                    class="border-r border-gray-100 last:border-r-0 relative group p-1">
-                    <!-- Logic to determine slot content -->
-                    <ng-container [ngSwitch]="getSlotStatus(day.iso, time, i)">
+                    <!-- Time Label -->
+                    <div
+                        class="w-20 p-2 text-xs font-medium text-gray-500 text-center border-r border-gray-100 flex items-center justify-center bg-gray-50/50">
+                        {{ time }}
+                    </div>
 
-                        <!-- Booker -->
-                        <button *ngSwitchCase="'available'" (click)="openBookingModal(day.iso, time)"
-                            class="w-full h-full rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50 flex items-center justify-center opacity-30 group-hover:opacity-100 transition-all text-blue-600">
-                            <lucide-icon [img]="icons.Plus" class="w-5 h-5"></lucide-icon>
-                        </button>
+                    <!-- Week View Columns -->
+                    <ng-container *ngIf="viewMode() === 'week'">
+                        <div *ngFor="let day of weekDays(); let i = index"
+                            [class]="(!isWorkingDay(i) ? 'bg-gray-100/50 ' : '') + 'border-r border-gray-100 last:border-r-0 relative p-1 min-h-[80px]'">
 
-                        <!-- Appointment Card -->
-                        <div *ngSwitchCase="'booked'"
-                            class="w-full h-full bg-blue-100 border-l-4 border-blue-600 rounded p-2 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
-                            <p class="text-xs font-bold text-blue-800 truncate">{{ getAppointment(day.iso,
-                                time)?.patientName }}</p>
-                            <p class="text-[10px] text-blue-600 truncate mt-0.5">{{ getAppointment(day.iso,
-                                time)?.status }}</p>
+                            <!-- Logic to determine slot content -->
+                            <ng-container *ngIf="getSlotStatus(day.iso, time, i) as items">
+
+                                <!-- Unavailable BG -->
+                                <div *ngIf="items.length === 0" class="absolute inset-0 bg-gray-50/50 -z-10"></div>
+
+                                <!-- Items Loop -->
+                                <div class="w-full h-full relative z-10"
+                                    [ngClass]="items.length >= 3 ? 'flex flex-row flex-wrap content-start gap-1 p-1' : 'flex flex-col gap-1'">
+                                    <ng-container *ngFor="let item of items">
+
+                                        <!-- Available Card -->
+                                        <button *ngIf="item.type === 'available'"
+                                            (click)="openBookingModal(day.iso, time)"
+                                            [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center' : 'w-full min-h-[40px] p-1'"
+                                            class="rounded bg-blue-50 border border-blue-200 border-dashed hover:bg-blue-100 hover:border-solid hover:shadow-md transition-all group flex flex-col justify-center items-center gap-0.5 cursor-pointer relative">
+
+                                            <!-- Normal View -->
+                                            <ng-container *ngIf="items.length < 3">
+                                                <span
+                                                    class="text-[9px] font-medium text-blue-600 truncate w-full text-center">{{
+                                                    item.doctorName }}</span>
+                                                <span
+                                                    class="text-[9px] text-blue-500 opacity-80 truncate w-full text-center pb-0.5">{{
+                                                    getSpecialtyName(item.specialtyId) }}</span>
+                                            </ng-container>
+
+                                            <!-- Condensed View (Icon) -->
+                                            <lucide-icon *ngIf="items.length >= 3" [img]="icons.Plus"
+                                                class="w-4 h-4 text-blue-500"></lucide-icon>
+
+                                            <!-- Tooltip -->
+                                            <div
+                                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] bg-gray-900 text-white text-[10px] rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg text-center">
+                                                <div>{{ item.doctorName }}</div>
+                                                <div class="opacity-75">{{ getSpecialtyName(item.specialtyId) }}</div>
+                                            </div>
+                                        </button>
+
+                                        <!-- Booked Card -->
+                                        <button *ngIf="item.type === 'booked'"
+                                            (click)="openAppointmentDetails(item.appointment); $event.stopPropagation()"
+                                            [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center items-center' : 'w-full min-h-[40px] p-1.5 text-left'"
+                                            [class]="'rounded border-l-4 shadow-sm cursor-pointer hover:shadow-md transition-all relative group flex flex-col justify-center ' + getAppointmentColorClass(item.appointment)">
+
+                                            <!-- Normal View -->
+                                            <ng-container *ngIf="items.length < 3">
+                                                <div class="font-bold text-[10px] truncate w-full">{{
+                                                    item.appointment.patientName }}</div>
+                                                <div class="truncate text-[9px] opacity-80 w-full">{{
+                                                    getDoctorName(item.appointment.doctorId) }}</div>
+                                            </ng-container>
+
+                                            <!-- Condensed View -->
+                                            <div *ngIf="items.length >= 3"
+                                                class="w-full h-full flex items-center justify-center">
+                                                <!-- Paid -> Check (Green) -->
+                                                <lucide-icon *ngIf="item.appointment.paymentStatus === 'PAID'"
+                                                    [img]="icons.CheckCircle"
+                                                    class="w-4 h-4 text-green-600"></lucide-icon>
+
+                                                <!-- Pending -> Help (Yellow) -->
+                                                <lucide-icon
+                                                    *ngIf="item.appointment.status === 'CONFIRMED' && item.appointment.paymentStatus === 'PENDING'"
+                                                    [img]="icons.HelpCircle"
+                                                    class="w-4 h-4 text-yellow-600"></lucide-icon>
+
+                                                <!-- Default -> Initials -->
+                                                <div *ngIf="!(item.appointment.paymentStatus === 'PAID') && !(item.appointment.status === 'CONFIRMED' && item.appointment.paymentStatus === 'PENDING')"
+                                                    class="text-[9px] font-bold">
+                                                    {{ item.appointment.patientName.charAt(0) }}
+                                                </div>
+                                            </div>
+
+                                            <!-- Tooltip -->
+                                            <div
+                                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] bg-gray-900 text-white text-[10px] rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg text-left">
+                                                <div class="font-bold">{{ item.appointment.patientName }}</div>
+                                                <div>{{ getDoctorName(item.appointment.doctorId) }}</div>
+                                                <div class="opacity-75">{{ getAppointmentStatusLabel(item.appointment)
+                                                    }}</div>
+                                            </div>
+                                        </button>
+
+                                    </ng-container>
+                                </div>
+                            </ng-container>
                         </div>
+                    </ng-container>
 
-                        <!-- Unavailable (Blank) -->
-                        <div *ngSwitchDefault class="w-full h-full bg-gray-50/30"></div>
+                    <!-- Day View Column -->
+                    <ng-container *ngIf="viewMode() === 'day'">
+                        <div class="relative p-2 bg-white">
+                            <!-- Show Current Day (Today) -->
+                            <!-- Reusing getSlotStatus logic with current date -->
+                            <ng-container
+                                *ngIf="getSlotStatus(currentDate().toISOString().split('T')[0], time, 0) as items">
 
+                                <!-- Unavailable BG -->
+                                <div *ngIf="items.length === 0"
+                                    class="absolute inset-0 bg-gray-50/40 pattern-diagonal-lines"></div>
+
+                                <!-- Cards Container (Horizontal layout for concurrent) -->
+                                <div class="w-full h-full relative z-10"
+                                    [ngClass]="items.length >= 3 ? 'flex flex-wrap content-start gap-1 p-1' : 'flex gap-2'">
+
+                                    <ng-container *ngFor="let item of items">
+
+                                        <!-- Available (Programado) -->
+                                        <button *ngIf="item.type === 'available'"
+                                            (click)="openBookingModal(currentDate().toISOString().split('T')[0], time)"
+                                            [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center' : 'flex-1 p-2 justify-between min-w-[140px]'"
+                                            class="rounded-lg bg-blue-50 border border-blue-200 border-dashed hover:bg-blue-100 hover:border-solid hover:shadow-md transition-all flex items-center gap-2 group/card cursor-pointer relative">
+
+                                            <!-- Normal View Content -->
+                                            <div *ngIf="items.length < 3" class="text-left overflow-hidden">
+                                                <div
+                                                    class="text-xs font-bold text-blue-600 truncate group-hover/card:text-blue-700">
+                                                    {{ item.doctorName }}</div>
+                                                <div class="text-[10px] text-blue-500 font-medium truncate">{{
+                                                    getSpecialtyName(item.specialtyId) }}</div>
+                                            </div>
+                                            <div *ngIf="items.length < 3"
+                                                class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover/card:bg-blue-200 transition-colors">
+                                                <lucide-icon [img]="icons.Plus"
+                                                    class="w-3 h-3 text-blue-600"></lucide-icon>
+                                            </div>
+
+                                            <!-- Condensed View Content (Icon Only) -->
+                                            <lucide-icon *ngIf="items.length >= 3" [img]="icons.Plus"
+                                                class="w-4 h-4 text-blue-500"></lucide-icon>
+
+                                            <!-- Tooltip (Hover) -->
+                                            <div
+                                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                                                <div>{{ item.doctorName }}</div>
+                                                <div class="opacity-75">{{ getSpecialtyName(item.specialtyId) }}</div>
+                                            </div>
+                                        </button>
+
+                                        <!-- Booked Card -->
+                                        <div *ngIf="item.type === 'booked'"
+                                            (click)="openAppointmentDetails(item.appointment)"
+                                            [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center' : 'flex-1 p-2 min-w-[140px]'"
+                                            [class]="'rounded-lg border-l-4 shadow-sm cursor-pointer hover:shadow hover:scale-[1.01] transition-all relative group/card flex items-center ' + getAppointmentColorClass(item.appointment)">
+
+                                            <!-- Normal View Content -->
+                                            <div *ngIf="items.length < 3" class="overflow-hidden w-full">
+                                                <div class="font-bold text-xs truncate">{{ item.appointment.patientName
+                                                    }}</div>
+                                                <div class="text-[10px] opacity-90 truncate">{{
+                                                    getDoctorName(item.appointment.doctorId) }}</div>
+                                            </div>
+
+                                            <!-- Condensed View Content -->
+                                            <div *ngIf="items.length >= 3"
+                                                class="w-full h-full flex items-center justify-center">
+                                                <!-- Paid -> Check (Green) -->
+                                                <lucide-icon *ngIf="item.appointment.paymentStatus === 'PAID'"
+                                                    [img]="icons.CheckCircle"
+                                                    class="w-4 h-4 text-green-600"></lucide-icon>
+
+                                                <!-- Pending -> Help (Yellow) -->
+                                                <lucide-icon
+                                                    *ngIf="item.appointment.status === 'CONFIRMED' && item.appointment.paymentStatus === 'PENDING'"
+                                                    [img]="icons.HelpCircle"
+                                                    class="w-4 h-4 text-yellow-600"></lucide-icon>
+
+                                                <!-- Default -> Initials -->
+                                                <div *ngIf="!(item.appointment.paymentStatus === 'PAID') && !(item.appointment.status === 'CONFIRMED' && item.appointment.paymentStatus === 'PENDING')"
+                                                    class="text-[10px] font-bold text-center">
+                                                    {{ item.appointment.patientName.charAt(0) }}{{
+                                                    item.appointment.patientName.split(' ')[1]?.charAt(0) || '' }}
+                                                </div>
+                                            </div>
+
+                                            <!-- Tooltip -->
+                                            <div
+                                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg text-left">
+                                                <div class="font-bold">{{ item.appointment.patientName }}</div>
+                                                <div>{{ getDoctorName(item.appointment.doctorId) }}</div>
+                                                <div class="opacity-75">{{ getAppointmentStatusLabel(item.appointment)
+                                                    }}</div>
+                                            </div>
+                                        </div>
+
+                                    </ng-container>
+                                </div>
+
+                            </ng-container>
+                        </div>
                     </ng-container>
                 </div>
             </div>

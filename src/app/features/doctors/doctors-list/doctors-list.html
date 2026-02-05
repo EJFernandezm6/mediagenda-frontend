@@ -1,14 +1,14 @@
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-semibold text-gray-900">Médicos</h1>
-            <p class="mt-2 text-sm text-gray-700">Gestión del personal médico, colegiatura y estado.</p>
+            <h1 class="text-xl font-semibold text-gray-900">Especialistas</h1>
+            <p class="mt-2 text-sm text-gray-700">Gestión de especialistas, colegiatura y estado.</p>
         </div>
         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
             <button (click)="openModal()"
                 class="block rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 flex items-center gap-2">
                 <lucide-icon [img]="icons.Plus" class="w-4 h-4"></lucide-icon>
-                Nuevo Médico
+                Nuevo Especialista
             </button>
         </div>
     </div>
@@ -96,7 +96,7 @@
 
             <div class="mt-3 w-full">
                 <h3 class="text-base font-semibold leading-6 text-gray-900 text-center sm:text-left">{{ editingId ?
-                    'Editar' : 'Nuevo' }} Médico</h3>
+                    'Editar' : 'Nuevo' }} Especialista</h3>
                 <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
                     <div class="sm:col-span-6">
                         <label class="block text-sm font-medium leading-6 text-gray-900">Nombre Completo</label>

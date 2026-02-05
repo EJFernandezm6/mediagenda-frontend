@@ -47,6 +47,8 @@
             </div>
         </div>
 
+
+
         <!-- Clinic Schedule Settings -->
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
@@ -54,10 +56,18 @@
                 <h3 class="text-lg font-medium text-gray-900">Horarios Generales de Atención</h3>
             </div>
             <div class="p-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Duración Cita (min)</label>
-                    <input [(ngModel)]="settings.defaultAppointmentDuration" type="number" min="5" step="5"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
+                <div class="col-span-1 sm:col-span-2 lg:col-span-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Días Laborables</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button *ngFor="let day of availableDays" (click)="toggleDay(day.id)"
+                            [class]="settings.workingDays.includes(day.id) ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'"
+                            class="px-3 py-1.5 rounded-lg border text-sm font-medium transition-all">
+                            {{ day.name }}
+                        </button>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Los días no seleccionados aparecerán deshabilitados (color
+                        plomo) en el
+                        calendario.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Hora Apertura</label>
@@ -78,6 +88,62 @@
                     <label class="block text-sm font-medium text-gray-700">Fin de Break/Refrigerio</label>
                     <input [(ngModel)]="settings.breakEndTime" type="time"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Section -->
+        <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+                <lucide-icon [img]="icons.Zap" class="w-5 h-5 text-gray-500"></lucide-icon>
+                <h3 class="text-lg font-medium text-gray-900">Suscripción y Plan</h3>
+            </div>
+            <div class="p-6">
+                <!-- Current Plan Status -->
+                <div class="mb-6 flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <div>
+                        <p class="text-sm text-blue-700 font-medium">Plan Actual</p>
+                        <h4 class="text-xl font-bold text-blue-900">{{ settings.subscriptionPlan === 'BASIC' ? 'Plan
+                            Básico' : (settings.subscriptionPlan === 'PRO' ? 'Plan Profesional' : 'Plan
+                            Empresarial') }}
+                        </h4>
+                    </div>
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-200 text-blue-800">
+                        Activo
+                    </span>
+                </div>
+
+                <!-- Plans Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div *ngFor="let plan of subscriptionPlans" (click)="selectPlan(plan.id)"
+                        [class]="settings.subscriptionPlan === plan.id ? 'ring-2 ring-blue-500 bg-blue-50/30' : 'hover:border-blue-300'"
+                        class="relative rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col cursor-pointer transition-all">
+
+                        <div *ngIf="plan.recommended"
+                            class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wide rounded-full shadow-sm">
+                            Recomendado
+                        </div>
+
+                        <h3 class="text-lg font-semibold text-gray-900">{{ plan.name }}</h3>
+                        <div class="mt-4 flex items-baseline text-gray-900">
+                            <span class="text-3xl font-bold tracking-tight">{{ plan.price }}</span>
+                            <span *ngIf="plan.period" class="ml-1 text-sm font-semibold text-gray-500">/{{
+                                plan.period
+                                }}</span>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">{{ plan.id === 'BASIC' ? 'Funciones esenciales' :
+                            (plan.id
+                            === 'PRO' ? 'Para crecer sin límites' : 'Solución a medida') }}</p>
+
+                        <ul role="list" class="mt-6 space-y-4 flex-1">
+                            <li *ngFor="let feature of plan.features" class="flex items-start">
+                                <lucide-icon [img]="icons.Check"
+                                    class="h-5 w-5 flex-shrink-0 text-green-500"></lucide-icon>
+                                <span class="ml-3 text-sm text-gray-700">{{ feature }}</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -109,7 +175,9 @@
                             </div>
                             <div class="ml-3 text-sm">
                                 <label class="font-medium text-gray-700">Email</label>
-                                <p class="text-gray-500">Enviar recordatorios por correo a pacientes y médicos.</p>
+                                <p class="text-gray-500">Enviar recordatorios por correo a pacientes y
+                                    especialistas.
+                                </p>
                             </div>
                         </div>
                         <div class="flex items-start">

@@ -14,6 +14,7 @@ export interface GlobalSettings {
   clinicCloseTime: string; // "20:00"
   breakStartTime: string; // "13:00"
   breakEndTime: string; // "14:00"
+  subscriptionPlan: 'BASIC' | 'PRO' | 'ENTERPRISE';
 }
 
 @Injectable({
@@ -33,7 +34,8 @@ export class ConfigurationService {
     clinicOpenTime: '08:00',
     clinicCloseTime: '20:00',
     breakStartTime: '13:00',
-    breakEndTime: '14:00'
+    breakEndTime: '14:00',
+    subscriptionPlan: 'PRO'
   };
 
   settings = signal<GlobalSettings>(this.defaultSettings);

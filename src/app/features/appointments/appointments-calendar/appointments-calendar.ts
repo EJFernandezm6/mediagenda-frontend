@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppointmentsService, Appointment } from '../../../core/services/appointments';
@@ -6,8 +6,9 @@ import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { SchedulesService } from '../../../core/services/schedules';
 import { PatientsService } from '../../../core/services/patients';
+import { ConfigurationService } from '../../../core/services/configuration';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
-import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle } from 'lucide-angular';
+import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle } from 'lucide-angular';
 
 @Component({
   selector: 'app-appointments-calendar',
@@ -23,8 +24,34 @@ export class AppointmentsCalendarComponent {
   private scheduleService = inject(SchedulesService);
   private patientsService = inject(PatientsService);
   private doctorSpecialtyService = inject(DoctorSpecialtyService);
+  private configService = inject(ConfigurationService);
 
-  readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle };
+  readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle };
+
+  config = this.configService.settings;
+
+  // Helpers for Template
+  isWorkingDay(weekDayIndex: number): boolean {
+    // weekDayIndex is 0..6 (Monday..Sunday) because weekDays() generates Mon start.
+    // settings.workingDays uses 1=Mon...6=Sat, 0=Sun.
+    // Map weekDayIndex to JS Day (0=Sun, 1=Mon).
+    // 0 (Mon) -> 1
+    // 5 (Sat) -> 6
+    // 6 (Sun) -> 0
+    const jsDay = (weekDayIndex + 1) % 7;
+    return this.config().workingDays.includes(jsDay);
+  }
+
+  isBreakTime(time: string): boolean {
+    const start = this.config().breakStartTime; // e.g. "13:00"
+    const end = this.config().breakEndTime; // e.g. "14:00"
+    if (!start || !end) return false;
+    // Assuming time slots align perfectly or simply Check if time >= start && time < end
+    return time >= start && time < end;
+  }
+
+  // View State
+  viewMode = signal<'day' | 'week'>('week'); // Default to week per requirements? Or Day? User didn't specify default, but asked for "version semanal Y version diaria".
 
   // Data Sources
   doctors = this.doctorService.doctors;
@@ -35,6 +62,16 @@ export class AppointmentsCalendarComponent {
   // Filters
   selectedDoctorId = signal<string>('');
   selectedSpecialtyId = signal<string>('');
+
+  constructor() {
+    // Auto-select first specialty when available to ensure data visibility
+    effect(() => {
+      const specs = this.specialties();
+      if (specs.length > 0 && !this.selectedSpecialtyId()) {
+        this.selectedSpecialtyId.set(specs[0].id);
+      }
+    }, { allowSignalWrites: true });
+  }
 
   // Calendar State
   currentDate = signal<Date>(new Date());
@@ -79,7 +116,7 @@ export class AppointmentsCalendarComponent {
     return this.doctors().filter(d => doctorIds.includes(d.id));
   });
 
-  // Appointments for All Doctors (Today)
+  // Appointments for All Doctors (Today) - Used for Daily View logic mostly
   globalAppointments = computed(() => {
     const today = this.currentDate().toISOString().split('T')[0];
     return this.appointments().filter(a => a.date === today && a.status !== 'CANCELLED');
@@ -104,12 +141,18 @@ export class AppointmentsCalendarComponent {
     if (!doctorId || !specialtyId || !date) return [];
 
     const schedules = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId);
-    let dayOfWeek = new Date(date).getUTCDay();
 
-    const daySchedules = schedules.filter(s => s.dayOfWeek === dayOfWeek);
+    // Safer Day Calculation
+    const [y, m, d] = date.split('-').map(Number);
+    const dayOfWeek = new Date(y, m - 1, d).getDay(); // Local Day 0-6
 
     return this.timeSlots.filter(time => {
-      const isWorking = daySchedules.some(s => time >= s.startTime && time < s.endTime);
+      const isWorking = schedules.some(s => {
+        // Specific Date Match
+        if (s.date) return s.date === date && time >= s.startTime && time < s.endTime;
+        // Recurring Match (fallback)
+        return s.dayOfWeek === dayOfWeek && time >= s.startTime && time < s.endTime;
+      });
       if (!isWorking) return false;
 
       const isBooked = this.appointments().some(a =>
@@ -128,11 +171,18 @@ export class AppointmentsCalendarComponent {
     for (let i = 0; i < 7; i++) {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
+      const iso = [
+        d.getFullYear(),
+        (d.getMonth() + 1).toString().padStart(2, '0'),
+        d.getDate().toString().padStart(2, '0')
+      ].join('-');
+
       days.push({
         date: d,
-        iso: d.toISOString().split('T')[0],
-        dayName: d.toLocaleDateString('es-ES', { weekday: 'short' }),
-        dayNum: d.getDate()
+        iso: iso,
+        dayName: d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', ''), // Remove dot if present
+        dayNum: d.getDate(),
+        monthName: d.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '')
       });
     }
     return days;
@@ -153,41 +203,90 @@ export class AppointmentsCalendarComponent {
 
   changeWeek(offset: number) {
     const newDate = new Date(this.currentDate());
-    newDate.setDate(newDate.getDate() + (offset * 7));
+    if (this.viewMode() === 'week') {
+      newDate.setDate(newDate.getDate() + (offset * 7));
+    } else {
+      newDate.setDate(newDate.getDate() + offset);
+    }
     this.currentDate.set(newDate);
   }
 
-  // Helper to check availability
-  getSlotStatus(dateIso: string, time: string, dayIndex: number): 'unavailable' | 'available' | 'booked' {
-    if (!this.selectedDoctorId() || !this.selectedSpecialtyId()) return 'unavailable';
-
-    // 1. Check Schedule (Work Hours)
-    // JS getDay(): 0=Sun, 1=Mon. Our Schedule: 1=Mon...0=Sun
-    let dayOfWeek = new Date(dateIso).getDay(); // 0-6 (Sun-Sat)
-
-    const schedules = this.scheduleService.getSchedulesForDoctor(this.selectedDoctorId(), this.selectedSpecialtyId());
-    const workingHour = schedules.find(s => s.dayOfWeek === dayOfWeek && time >= s.startTime && time < s.endTime);
-
-    if (!workingHour) return 'unavailable';
-
-    // 2. Check Existing Appointments
-    const existing = this.appointments().find(a =>
-      a.doctorId === this.selectedDoctorId() &&
-      a.date === dateIso &&
-      a.startTime === time &&
-      a.status !== 'CANCELLED'
-    );
-
-    return existing ? 'booked' : 'available';
+  toggleView(mode: 'day' | 'week') {
+    this.viewMode.set(mode);
   }
 
-  getAppointment(dateIso: string, time: string) {
-    return this.appointments().find(a =>
-      a.doctorId === this.selectedDoctorId() &&
-      a.date === dateIso &&
-      a.startTime === time &&
-      a.status !== 'CANCELLED'
-    );
+  // Helper to check availability for Week View
+  getSlotStatus(dateIso: string, time: string, dayOfWeekIndex: number): any[] {
+    if (!this.selectedSpecialtyId()) return [];
+    // dayOfWeekIndex from 0 (Monday in my loop) to 6 (Sunday)
+    // Actually weekDays() logic: 0=Mon, 6=Sun.
+    // My weekDays loop: d.getDay() is correct?
+    // Wait, weekDays array is generated. data.dayNum.
+    // Let's rely on dateIso to get the day of matching schedules.
+
+    // Check availability for ANY doctor in the specialty if none selected, OR specific doctor
+    const doctorsToCheck = this.selectedDoctorId() ? [this.selectedDoctorId()] : this.doctorsInCurrentSpecialty().map(d => d.id);
+
+    const items: any[] = [];
+
+    for (const docId of doctorsToCheck) {
+      const docName = this.getDoctorName(docId);
+
+      // 1. Check Appointment
+      const matchingApp = this.appointments().find(a =>
+        a.doctorId === docId &&
+        a.specialtyId === this.selectedSpecialtyId() &&
+        a.date === dateIso &&
+        a.startTime === time &&
+        a.status !== 'CANCELLED'
+      );
+
+      if (matchingApp) {
+        items.push({ type: 'booked', appointment: matchingApp });
+        continue;
+      }
+
+      // 2. Check Schedule (if no appointment)
+      const schedules = this.scheduleService.getSchedulesForDoctor(docId, this.selectedSpecialtyId());
+      // Calculate dayOfWeek from dateIso for recurring check
+      const d = new Date(dateIso + 'T00:00:00'); // Local midnight approx
+      // Careful with timezone again.
+      // Using the passed dayOfWeekIndex might be safer if it aligns with the column index 0..6
+      // weekDays()[0] is Monday? index 0.
+      // weekDays() generation: "1=Mon to 6=Sat, 0=Sun".
+      // dayOfWeekIndex 0 (Mon) -> 1.
+
+      // Let's use the date from ISO string to be sure
+      // We need to match the 'dayOfWeek' format in Mock Data (1=Mon, ..., 0=Sun?)
+      // My previous fix used strict local date matching for Schedules.
+
+      // Re-implement IsWorking Logic logic per doctor
+      const isWorking = schedules.some(s => {
+        // Date specific match
+        if (s.date) return s.date === dateIso && time >= s.startTime && time < s.endTime;
+
+        // Recurring match (fallback if no specific date on schedule)
+        // We need accurate dayOfWeek.
+        // Let's parse dateIso: YYYY-MM-DD
+        const [y, m, day] = dateIso.split('-').map(Number);
+        const localDate = new Date(y, m - 1, day);
+        const dow = localDate.getDay(); // 0=Sun, 1=Mon
+
+        return s.dayOfWeek === dow && time >= s.startTime && time < s.endTime;
+      });
+
+      if (isWorking) {
+        items.push({ type: 'available', doctorId: docId, doctorName: docName, date: dateIso, time: time, specialtyId: this.selectedSpecialtyId() });
+      }
+    }
+
+    return items;
+  }
+
+  // Renamed to getAppointmentsForSlot to reflect it returns an array now
+  getAppointmentsForSlot(dateIso: string, time: string): Appointment[] {
+    const res = this.getSlotStatus(dateIso, time, 0); // dayIndex irrelevant for this logic now
+    return res.filter((item: any) => item.type === 'booked').map((item: any) => item.appointment);
   }
 
   openBookingModal(dateIso: string, time: string) {
@@ -248,10 +347,21 @@ export class AppointmentsCalendarComponent {
     return this.specialties().find(s => s.id === id)?.name || 'Desconocido';
   }
 
+  getAppointmentColorClass(app: Appointment): string {
+    // Green: Confirmado / Pagado
+    if (app.paymentStatus === 'PAID') {
+      return 'bg-green-100 border-green-600 text-green-800';
+    }
+    // Yellow: Pendiente (Default for any booking not paid)
+    return 'bg-yellow-100 border-yellow-500 text-yellow-800';
+  }
+
   openGenericBooking() {
     // Find first available slot today or in the week
     const today = new Date().toISOString().split('T')[0];
-    const firstAvailable = this.timeSlots.find(slot => this.getSlotStatus(today, slot, 0) === 'available');
+    const firstAvailable = this.timeSlots.find(slot =>
+      this.getSlotStatus(today, slot, 0).some((item: any) => item.type === 'available')
+    );
 
     if (firstAvailable) {
       this.openBookingModal(today, firstAvailable);
@@ -336,5 +446,16 @@ export class AppointmentsCalendarComponent {
       this.appointmentsService.updatestatus(this.selectedAppointment.id, 'CANCELLED');
       this.closeDetailsModal();
     }
+  }
+
+  getAppointmentStatusLabel(app: Appointment): string {
+    if (app.paymentStatus === 'PAID') {
+      return 'Pagada';
+    }
+    if (app.status === 'CONFIRMED' && app.paymentStatus === 'PENDING') {
+      return 'Reservada'; // Yellow
+    }
+    // Fallback logic
+    return 'Reservada';
   }
 }

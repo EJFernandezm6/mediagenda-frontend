@@ -77,20 +77,13 @@ export class ScheduleConfigComponent {
   isModalOpen = false;
   modalData = {
     dayOfWeek: 1,
+    date: '', // specific date
     startTime: '09:00',
-    endTime: '09:30',
+    endTime: '',
     specialtyId: ''
   };
 
-  viewMode: 'list' | 'calendar' = 'calendar'; // Default to calendar
-
-  // Time Slots (30 min intervals)
-  timeSlots = Array.from({ length: 26 }, (_, i) => {
-    const totalMinutes = (7 * 60) + (i * 30); // Start at 07:00
-    const h = Math.floor(totalMinutes / 60);
-    const m = totalMinutes % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-  });
+  viewMode: 'list' = 'list';
 
   get availableSpecialtiesForDoctor() {
     const docId = this.selectedDoctorId();
@@ -112,51 +105,117 @@ export class ScheduleConfigComponent {
     return this.specialtyService.specialties().find(s => s.id === id)?.name || '';
   }
 
-  // Auto-Update End Time
-  onStartTimeChange() {
-    if (this.modalData.startTime) {
-      this.modalData.endTime = this.addMinutes(this.modalData.startTime, 30);
+  // Auto-Update Day of Week from Date
+  onDateChange(date: string) {
+    if (date) {
+      const d = new Date(date);
+      // getUTCDay or getDay depending on timezone handling. Usually for simplistic "YYYY-MM-DD" local input:
+      // We need to be careful with timezones. 
+      // Let's create a date object treating input as local midnight.
+      const [y, m, day] = date.split('-').map(Number);
+      const localDate = new Date(y, m - 1, day);
+      this.modalData.dayOfWeek = localDate.getDay();
     }
   }
 
-  // Check if a slot is occupied
-  getScheduleForSlot(dayId: number, time: string): Schedule | undefined {
-    // We can rely on currentSchedules() which is computed and filtered
-    return this.currentSchedules().find(s =>
-      s.dayOfWeek === dayId &&
-      time >= s.startTime &&
-      time < s.endTime
-    );
+  getScheduleDisplay(schedule: Schedule) {
+    if (schedule.date) {
+      // Format specific date
+      const [y, m, d] = schedule.date.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      return `${this.getDayName(dateObj.getDay())} ${d}/${m}/${y}`;
+    }
+    return `Todos los ${this.getDayName(schedule.dayOfWeek)}s`; // Recurring
   }
 
-  onSlotClick(dayId: number, time: string) {
-    const docId = this.selectedDoctorId();
-    if (!docId) return;
+  // Duration Logic
+  validEndTimes = signal<string[]>([]);
 
-    // If slot is already taken, maybe edit? For now, just ignore or log
-    const existing = this.getScheduleForSlot(dayId, time);
-    if (existing) {
-      // Optional: Edit flow
+  updateValidEndTimes() {
+    const docId = this.selectedDoctorId();
+    const specId = this.modalData.specialtyId;
+    const startTime = this.modalData.startTime;
+
+    if (!docId || !specId || !startTime) {
+      this.validEndTimes.set([]);
       return;
     }
 
-    // Open Modal
+    // Find duration
+    const assoc = this.associationService.associations().find(a => a.doctorId === docId && a.specialtyId === specId);
+    const duration = assoc?.durationMinutes || 30; // Default 30 if not found
+
+    const times: string[] = [];
+    let current = this.dateFromTime(startTime);
+    // Limit to next 12 hours or end of day (e.g. 23:59)
+    const endLimit = new Date(current);
+    endLimit.setHours(23, 59, 0, 0);
+
+    // Generate at least one slot
+    current.setMinutes(current.getMinutes() + duration);
+
+    // Add next 8 hours of slots
+    for (let i = 0; i < 16; i++) { // 16 * 30min = 8 hours approx, or calculate until end of day
+      if (current > endLimit) break;
+      times.push(this.timeFromDate(current));
+      current.setMinutes(current.getMinutes() + duration);
+    }
+
+    this.validEndTimes.set(times);
+
+    // Auto-select first valid end time if current is invalid
+    if (!times.includes(this.modalData.endTime)) {
+      this.modalData.endTime = times[0];
+    }
+  }
+
+  dateFromTime(time: string): Date {
+    const [h, m] = time.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  }
+
+  timeFromDate(date: Date): string {
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  // Auto-Update End Time
+  onStartTimeChange() {
+    this.updateValidEndTimes();
+  }
+
+  onSpecialtyChange(specId: string) {
+    this.modalData.specialtyId = specId;
+    this.updateValidEndTimes();
+  }
+
+  openAddModal() {
+    if (!this.selectedDoctorId()) return;
+
+    const specId = this.availableSpecialtiesForDoctor[0]?.id || '';
+    const today = new Date().toISOString().split('T')[0];
+
     this.modalData = {
-      dayOfWeek: dayId,
-      startTime: time,
-      endTime: this.addMinutes(time, 30), // Default +30 min
-      specialtyId: this.availableSpecialtiesForDoctor[0]?.id || '' // Default to first specialty
+      dayOfWeek: new Date().getDay(),
+      date: today,
+      startTime: '09:00',
+      endTime: '', // Will be set by updateValidEndTimes
+      specialtyId: specId
     };
+
+    this.updateValidEndTimes();
     this.isModalOpen = true;
   }
 
   saveSchedule() {
     const docId = this.selectedDoctorId();
-    if (docId && this.modalData.specialtyId) {
+    if (docId && this.modalData.specialtyId && this.modalData.endTime) {
       this.scheduleService.addSchedule({
         doctorId: docId,
         specialtyId: this.modalData.specialtyId,
         dayOfWeek: this.modalData.dayOfWeek,
+        date: this.modalData.date, // Pass specific date
         startTime: this.modalData.startTime,
         endTime: this.modalData.endTime
       });
@@ -170,12 +229,5 @@ export class ScheduleConfigComponent {
 
   remove(schedule: Schedule) {
     this.scheduleService.removeSchedule(schedule);
-  }
-
-  private addMinutes(time: string, minutes: number): string {
-    const [h, m] = time.split(':').map(Number);
-    const date = new Date();
-    date.setHours(h, m + minutes);
-    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   }
 }

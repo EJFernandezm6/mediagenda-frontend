@@ -1,108 +1,72 @@
 <div class="px-4 py-6 sm:px-6 lg:px-8">
     <div class="mb-8">
         <h1 class="text-xl font-semibold text-gray-900">Turnos de Atención</h1>
-        <p class="mt-2 text-sm text-gray-700">Define los días y horas de atención por médico y especialidad.</p>
+        <p class="mt-2 text-sm text-gray-700">Define los días y horas de atención por especialista y especialidad.</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 h-[calc(100vh-140px)]">
+    <div class="flex flex-col gap-8 h-[calc(100vh-140px)]">
 
-        <!-- Sidebar: Context & List -->
-        <div class="lg:col-span-1 flex flex-col gap-6">
-            <!-- Context Selection -->
-            <div class="bg-white shadow rounded-lg p-6 border border-gray-100">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Seleccionar Contexto</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Médico</label>
-                        <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
-                            class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
-                            <option value="" disabled selected>Seleccionar médico</option>
-                            <option *ngFor="let doctor of doctors()" [value]="doctor.id">{{ doctor.fullName }}</option>
-                        </select>
-                    </div>
-                </div>
+        <!-- Context Selection -->
+        <div class="bg-white shadow rounded-lg p-6 border border-gray-100 flex items-center gap-6">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Especialista</label>
+                <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
+                    class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
+                    <option value="" disabled selected>Seleccionar especialista</option>
+                    <option *ngFor="let doctor of doctors()" [value]="doctor.id">{{ doctor.fullName }}</option>
+                </select>
             </div>
-
-            <!-- List View (Read-Only Summary) -->
-            <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100 flex-1 overflow-y-auto">
-                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                    <h3 class="text-sm font-medium leading-6 text-gray-900">Resumen de Turnos</h3>
-                </div>
-                <ul role="list" class="divide-y divide-gray-200">
-                    <li *ngFor="let schedule of currentSchedules()"
-                        class="px-4 py-3 hover:bg-gray-50 flex justify-between items-center text-sm">
-                        <div>
-                            <span class="font-bold text-gray-900 block">{{ getDayName(schedule.dayOfWeek) }}</span>
-                            <span class="text-gray-500">{{ schedule.startTime }} - {{ schedule.endTime }}</span>
-                            <span class="block text-xs text-blue-600 font-medium">{{
-                                getSpecialtyName(schedule.specialtyId) }}</span>
-                        </div>
-                        <button (click)="remove(schedule)" class="text-gray-400 hover:text-red-600"><lucide-icon
-                                [img]="icons.Trash2" class="w-4 h-4"></lucide-icon></button>
-                    </li>
-                    <li *ngIf="currentSchedules().length === 0" class="px-4 py-8 text-center text-gray-400 text-xs">
-                        No hay turnos asignados. Haz clic en el calendario para agregar.
-                    </li>
-                </ul>
+            <div class="flex-none pt-6">
+                <button (click)="openAddModal()" [disabled]="!selectedDoctorId()"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
+                    Agregar Turno
+                </button>
             </div>
         </div>
 
-        <!-- Main: Interactive Calendar -->
-        <div
-            class="lg:col-span-3 bg-white shadow rounded-lg border border-gray-100 flex flex-col h-full overflow-hidden">
-
-            <!-- Empty State -->
-            <div *ngIf="!selectedDoctorId()"
-                class="flex flex-col items-center justify-center h-full text-gray-400 bg-gray-50">
-                <lucide-icon [img]="icons.Clock" class="w-16 h-16 mb-4 opacity-50"></lucide-icon>
-                <p class="text-lg font-medium">Selecciona un médico para gestionar su agenda</p>
+        <!-- List View (Main Content now) -->
+        <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100 flex-1 overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">Horarios Configurados</h3>
+                <span class="text-sm text-gray-500" *ngIf="selectedDoctorId()">
+                    {{ currentSchedules().length }} turnos asignados
+                </span>
             </div>
 
-            <!-- Calendar Grid -->
-            <div *ngIf="selectedDoctorId()" class="flex-1 overflow-auto relative">
-                <div class="min-w-[800px] h-full flex flex-col">
-                    <!-- Header -->
-                    <div class="grid grid-cols-8 border-b border-gray-200 bg-gray-50 sticky top-0 z-10 shadow-sm">
-                        <div
-                            class="p-3 text-xs font-semibold text-gray-400 text-center border-r border-gray-200 flex items-center justify-center">
-                            Hora</div>
-                        <div *ngFor="let day of weekDays()"
-                            class="p-2 text-center border-r border-gray-200 last:border-r-0">
-                            <div class="text-xs font-bold text-gray-700 uppercase tracking-wide">{{ day.name }}</div>
-                            <div class="text-[10px] text-gray-500 font-mono mt-0.5">{{ day.dateLabel }}</div>
+            <ul role="list" class="divide-y divide-gray-200">
+                <li *ngFor="let schedule of currentSchedules()"
+                    class="px-6 py-4 hover:bg-gray-50 flex justify-between items-center transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-blue-100 p-2 rounded-lg text-blue-600 font-bold w-32 text-center text-sm">
+                            {{ getScheduleDisplay(schedule) }}
+                        </div>
+                        <div>
+                            <span class="text-gray-900 font-medium text-lg block">{{ schedule.startTime }} - {{
+                                schedule.endTime }}</span>
+                            <span class="block text-sm text-gray-500">{{ getSpecialtyName(schedule.specialtyId)
+                                }}</span>
                         </div>
                     </div>
+                    <button (click)="remove(schedule)"
+                        class="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-all"
+                        title="Eliminar turno">
+                        <lucide-icon [img]="icons.Trash2" class="w-5 h-5"></lucide-icon>
+                    </button>
+                </li>
 
-                    <!-- Body -->
-                    <div class="flex-1 relative">
-                        <!-- Grid Lines -->
-                        <div *ngFor="let time of timeSlots"
-                            class="grid grid-cols-8 h-12 border-b border-gray-100 hover:bg-gray-50/50 transition-colors group">
-                            <!-- Time Label -->
-                            <div
-                                class="p-1 px-2 text-xs text-gray-500 text-right border-r border-gray-200 bg-gray-50 flex items-center justify-end font-mono">
-                                {{ time }}
-                            </div>
-
-                            <!-- Day Columns -->
-                            <div *ngFor="let day of weekDays()" (click)="onSlotClick(day.id, time)"
-                                class="border-r border-gray-100 last:border-r-0 relative cursor-pointer hover:bg-blue-50 transition-colors p-0.5">
-
-                                <!-- Render Existing Slot -->
-                                <div *ngIf="getScheduleForSlot(day.id, time) as slot"
-                                    class="w-full h-full bg-blue-600 rounded text-white text-[10px] flex flex-col items-center justify-center shadow-sm overflow-hidden p-1 leading-tight hover:bg-blue-700 transition-colors"
-                                    [title]="slot.startTime + ' - ' + slot.endTime + ' (' + getSpecialtyName(slot.specialtyId) + ')'">
-                                    <span class="font-bold truncate w-full text-center">{{
-                                        getSpecialtyName(slot.specialtyId) }}</span>
-                                    <span class="opacity-90">{{ slot.startTime }} - {{ slot.endTime }}</span>
-                                </div>
-
-                                <!-- Ghost/Placeholder on Hover (handled by CSS hover:bg-blue-50 above) -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <!-- Empty States -->
+                <li *ngIf="!selectedDoctorId()" class="px-6 py-12 text-center text-gray-400">
+                    <lucide-icon [img]="icons.Clock" class="w-12 h-12 mx-auto mb-3 opacity-20"></lucide-icon>
+                    <p>Selecciona un especialista para ver y configurar sus horarios de atención.</p>
+                </li>
+                <li *ngIf="selectedDoctorId() && currentSchedules().length === 0"
+                    class="px-6 py-12 text-center text-gray-400">
+                    <p>No hay turnos asignados para este especialista.</p>
+                    <button (click)="openAddModal()" class="mt-2 text-blue-600 hover:underline font-medium">Agregar el
+                        primer turno</button>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -138,16 +102,17 @@
                             Atención</h3>
                         <div class="mt-4 space-y-4">
 
-                            <!-- Info Display -->
-                            <div class="bg-gray-50 p-3 rounded-md text-sm text-gray-600 flex gap-4">
-                                <span><strong>Día:</strong> {{ getDayName(modalData.dayOfWeek) }}</span>
-                                <span><strong>Inicio:</strong> {{ modalData.startTime }}</span>
+                            <!-- Date Selection -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Fecha del Turno</label>
+                                <input [(ngModel)]="modalData.date" (ngModelChange)="onDateChange($event)" type="date"
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             </div>
 
                             <!-- Specialty Selector -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Especialidad</label>
-                                <select [(ngModel)]="modalData.specialtyId"
+                                <select [ngModel]="modalData.specialtyId" (ngModelChange)="onSpecialtyChange($event)"
                                     class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border">
                                     <option *ngFor="let spec of availableSpecialtiesForDoctor" [value]="spec.id">{{
                                         spec.name }}</option>
@@ -164,8 +129,11 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Hora Fin</label>
-                                    <input [(ngModel)]="modalData.endTime" type="time"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <select [(ngModel)]="modalData.endTime"
+                                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border bg-white">
+                                        <option *ngFor="let time of validEndTimes()" [value]="time">{{ time }}</option>
+                                    </select>
+                                    <p class="mt-1 text-xs text-gray-500">Según duración de cita</p>
                                 </div>
                             </div>
 

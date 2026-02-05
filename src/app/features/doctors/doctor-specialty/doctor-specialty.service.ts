@@ -14,6 +14,8 @@ export class DoctorSpecialtyService {
     // Mock Relationships
     private mockAssociations: DoctorSpecialty[] = [
         { doctorId: 'd1', specialtyId: '1', cost: 150, durationMinutes: 30 }, // Juan - Cardio
+        { doctorId: 'd2', specialtyId: '1', cost: 150, durationMinutes: 30 }, // Maria - Cardio
+        { doctorId: 'd3', specialtyId: '1', cost: 150, durationMinutes: 30 }, // Carlos - Cardio
         { doctorId: 'd2', specialtyId: '2', cost: 120, durationMinutes: 20 }, // Maria - Pedia
     ];
 

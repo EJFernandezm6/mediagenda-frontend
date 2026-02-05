@@ -1,7 +1,7 @@
 <div class="px-4 py-6 sm:px-6 lg:px-8">
     <div class="mb-8">
         <h1 class="text-xl font-semibold text-gray-900">Asignación de Especialidades</h1>
-        <p class="mt-2 text-sm text-gray-700">Vincula especialidades a médicos y define el costo y duración de la
+        <p class="mt-2 text-sm text-gray-700">Vincula especialidades a especialistas y define el costo y duración de la
             consulta.</p>
     </div>
 
@@ -12,10 +12,10 @@
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Médico</label>
+                    <label class="block text-sm font-medium text-gray-700">Especialista</label>
                     <select [(ngModel)]="selectedDoctorId"
                         class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
-                        <option value="" disabled selected>Seleccionar médico</option>
+                        <option value="" disabled selected>Seleccionar especialista</option>
                         <option *ngFor="let doctor of doctors()" [value]="doctor.id">{{ doctor.fullName }}</option>
                     </select>
                 </div>
@@ -92,7 +92,8 @@
                     </div>
                 </li>
                 <li *ngIf="filteredAssociations.length === 0" class="px-4 py-8 text-center text-gray-500 text-sm">
-                    No hay asignaciones para mostrar. Selecciona un médico para filtrar o agrega una nueva asignación.
+                    No hay asignaciones para mostrar. Selecciona un especialista para filtrar o agrega una nueva
+                    asignación.
                 </li>
             </ul>
         </div>
