@@ -7,8 +7,9 @@
     <div class="flex flex-col gap-8 h-[calc(100vh-140px)]">
 
         <!-- Context Selection -->
-        <div class="bg-white shadow rounded-lg p-6 border border-gray-100 flex items-center gap-6">
-            <div class="flex-1">
+        <div
+            class="bg-white shadow rounded-lg p-6 border border-gray-100 flex flex-col sm:flex-row sm:items-center gap-6">
+            <div class="flex-1 w-full">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Especialista</label>
                 <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
                     class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
@@ -16,9 +17,9 @@
                     <option *ngFor="let doctor of doctors()" [value]="doctor.id">{{ doctor.fullName }}</option>
                 </select>
             </div>
-            <div class="flex-none pt-6">
+            <div class="flex-none pt-0 sm:pt-6 w-full sm:w-auto">
                 <button (click)="openAddModal()" [disabled]="!selectedDoctorId()"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
                     <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
                     Agregar Turno
                 </button>

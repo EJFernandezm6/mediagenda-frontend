@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X } from 'lucide-angular';
 
 @Component({
   selector: 'app-main-layout',
@@ -20,8 +20,16 @@ export class MainLayoutComponent {
     Clock,
     LogOut,
     Settings,
-    Shield
+    Shield,
+    Menu,
+    X
   };
+
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 
   navItems = [
     { label: 'Dashboard', icon: this.icons.LayoutDashboard, route: '/app/dashboard' },

@@ -3,9 +3,11 @@ import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout';
 import { LoginComponent } from './features/auth/login/login';
 import { DashboardComponent } from './features/dashboard/dashboard/dashboard';
+import { LandingComponent } from './features/landing/landing';
 
 export const routes: Routes = [
-    { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+    { path: '', redirectTo: 'landing', pathMatch: 'full' },
+    { path: 'landing', component: LandingComponent },
     {
         path: 'auth',
         component: AuthLayoutComponent,

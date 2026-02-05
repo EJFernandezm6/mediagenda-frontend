@@ -1,0 +1,308 @@
+<div class="min-h-screen bg-white font-sans text-[#1d1d1f] antialiased">
+  <!-- Navigation -->
+  <nav class="glass-nav fixed top-0 left-0 right-0 z-50 h-[44px] flex items-center">
+    <div
+      class="max-w-[1000px] mx-auto w-full px-4 flex justify-between items-center text-[12px] font-normal tracking-tight">
+      <div class="flex items-center space-x-8">
+        <a href="#" class="opacity-80 hover:opacity-100 transition-opacity">
+          <lucide-icon [name]="Calendar" class="w-4 h-4"></lucide-icon>
+        </a>
+        <div class="hidden md:flex space-x-6">
+          <a (click)="scrollToSection('features')"
+            class="cursor-pointer opacity-80 hover:opacity-100 transition-opacity">Características</a>
+          <a (click)="scrollToSection('contact')"
+            class="cursor-pointer opacity-80 hover:opacity-100 transition-opacity">Contacto</a>
+        </div>
+      </div>
+      <div class="flex items-center space-x-6">
+        <a routerLink="/auth/login" class="opacity-80 hover:opacity-100 transition-opacity">Iniciar Sesión</a>
+        <button (click)="scrollToSection('contact')"
+          class="bg-[#0071e3] text-white px-3 py-1 rounded-full text-[11px] font-medium apple-button">Agendar
+          Cita</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section
+    class="relative overflow-hidden min-h-screen flex flex-col items-center justify-center text-center px-4 pt-32 pb-20">
+    <!-- Background Gradient/Image -->
+    <div class="absolute inset-0 z-0">
+      <div class="absolute inset-0 bg-gradient-to-b from-blue-50/50 via-white to-white"></div>
+    </div>
+
+    <div class="relative z-10 max-w-5xl mx-auto">
+      <div class="mb-6 inline-flex items-center bg-gray-100 rounded-full px-4 py-1.5 animate-fade-in">
+        <span class="text-[#1d1d1f] text-xs font-medium tracking-wide">Nuevo: Gestión avanzada para clínicas</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-semibold tracking-tight hero-text animate-fade-in mb-6">
+        La plataforma definitiva para<br>
+        profesionales de la salud.
+      </h1>
+      <p
+        class="mt-4 text-xl md:text-2xl font-normal text-[#86868b] max-w-3xl mx-auto animate-fade-in animate-delay-1 leading-relaxed">
+        Médicos, Psicólogos, Nutricionistas y Enfermeras. <br>
+        Simplifica tu práctica, digitaliza tus pacientes y recupera tu tiempo.
+      </p>
+      <div class="mt-10 flex flex-col md:flex-row gap-4 justify-center animate-fade-in animate-delay-2">
+        <button (click)="scrollToSection('contact')"
+          class="bg-[#0071e3] text-white px-8 py-4 rounded-full text-lg font-medium apple-button shadow-lg shadow-blue-500/30">
+          Empezar prueba gratis
+        </button>
+        <button (click)="scrollToSection('showcase')"
+          class="text-[#0066cc] hover:underline px-8 py-4 text-lg font-normal flex items-center justify-center bg-white/50 backdrop-blur rounded-full border border-gray-200 apple-button">
+          Ver cómo funciona <lucide-icon [name]="ArrowRight" class="w-4 h-4 ml-1"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Hero Image/Dashboard Preview -->
+      <div class="mt-16 relative z-10 animate-fade-in animate-delay-2">
+        <div class="rounded-t-[30px] overflow-hidden mx-4 md:mx-0 shadow-lg">
+          <img src="assets/images/dashboard_screen.png" alt="Mediagenda Dashboard"
+            class="w-full h-auto object-cover transform hover:scale-[1.01] transition-transform duration-700">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Commercial Features Showcase -->
+  <section id="showcase" class="bg-white py-24">
+    <div class="max-w-[1200px] mx-auto px-6 space-y-32">
+
+      <!-- Feature 1: Calendar -->
+      <div class="flex flex-col md:flex-row items-center gap-16">
+        <div class="w-full md:w-1/2 space-y-6">
+          <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#0071e3] mb-4">
+            <lucide-icon [name]="Calendar" class="w-6 h-6"></lucide-icon>
+          </div>
+          <h2 class="text-4xl md:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
+            Tu tiempo, <span class="text-[#86868b]">bajo control absoluto.</span>
+          </h2>
+          <p class="text-xl text-[#424245] leading-relaxed">
+            Nuestra agenda inteligente está diseñada para el flujo real de una consulta. Evita citas duplicadas,
+            automatiza recordatorios y visualiza tu día con claridad cristalina. Adaptable a consultas de 15 minutos o
+            sesiones de terapia de una hora.
+          </p>
+          <ul class="space-y-3 mt-4">
+            <li class="flex items-center text-[#424245] text-lg">
+              <lucide-icon [name]="CheckCircle2" class="w-5 h-5 text-green-500 mr-3"></lucide-icon> Recordatorios
+              automáticos por WhatsApp
+            </li>
+            <li class="flex items-center text-[#424245] text-lg">
+              <lucide-icon [name]="CheckCircle2" class="w-5 h-5 text-green-500 mr-3"></lucide-icon> Sincronización en
+              tiempo real
+            </li>
+          </ul>
+        </div>
+        <div class="w-full md:w-1/2">
+          <div class="rounded-[30px] overflow-hidden shadow-lg mx-auto">
+            <img src="assets/images/calendar_screen.png" alt="Agenda Calendario" class="w-full h-auto">
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2: Patient Tracking (Reversed) -->
+      <div class="flex flex-col md:flex-row-reverse items-center gap-16">
+        <div class="w-full md:w-1/2 space-y-6">
+          <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 mb-4">
+            <lucide-icon [name]="Users" class="w-6 h-6"></lucide-icon>
+          </div>
+          <h2 class="text-4xl md:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
+            Seguimiento detallado <span class="text-[#86868b]">de cada paciente.</span>
+          </h2>
+          <p class="text-xl text-[#424245] leading-relaxed">
+            Mantén un registro claro de todas las atenciones. Visualiza el historial de citas, estados (confirmadas,
+            canceladas) y pagos en una línea de tiempo intuitiva. Sin complicaciones clínicas, solo la gestión
+            administrativa que necesitas.
+          </p>
+          <div class="flex gap-4 mt-6">
+            <div class="bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-600">Historial de Citas</div>
+            <div class="bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-600">Pagos</div>
+            <div class="bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-600">Estados</div>
+          </div>
+        </div>
+        <div class="w-full md:w-1/2">
+          <div class="rounded-[30px] overflow-hidden shadow-lg mx-auto">
+            <img src="assets/images/patient_tracking.png" alt="Seguimiento de Pacientes"
+              class="w-full h-auto object-contain">
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3: Medical Team (Regular) -->
+      <div class="flex flex-col md:flex-row items-center gap-16">
+        <div class="w-full md:w-1/2 space-y-6">
+          <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#0071e3] mb-4">
+            <lucide-icon [name]="Users" class="w-6 h-6"></lucide-icon>
+          </div>
+          <h2 class="text-4xl md:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
+            Tu equipo médico, <span class="text-[#86868b]">en perfecta sincronía.</span>
+          </h2>
+          <p class="text-xl text-[#424245] leading-relaxed">
+            Centraliza la información de todos tus especialistas (CMP, RNE, Datos de contacto). Asigna colores
+            distintivos para una identificación rápida en el calendario y gestiona sus perfiles con facilidad.
+          </p>
+          <ul class="space-y-3 mt-4">
+            <li class="flex items-center text-[#424245] text-lg">
+              <lucide-icon [name]="CheckCircle2" class="w-5 h-5 text-green-500 mr-3"></lucide-icon> Directorio completo
+              de especialistas
+            </li>
+            <li class="flex items-center text-[#424245] text-lg">
+              <lucide-icon [name]="CheckCircle2" class="w-5 h-5 text-green-500 mr-3"></lucide-icon> Personalización de
+              perfiles
+            </li>
+          </ul>
+        </div>
+        <div class="w-full md:w-1/2">
+          <div class="rounded-[30px] overflow-hidden shadow-lg mx-auto">
+            <img src="assets/images/doctors_real.png" alt="Gestión de Doctores" class="w-full h-auto">
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 4: Clinic Configuration (Reversed) -->
+      <div class="flex flex-col md:flex-row-reverse items-center gap-16">
+        <div class="w-full md:w-1/2 space-y-6">
+          <div class="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-600 mb-4">
+            <lucide-icon [name]="Menu" class="w-6 h-6"></lucide-icon>
+          </div>
+          <h2 class="text-4xl md:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
+            Control total <span class="text-[#86868b]">de tu clínica.</span>
+          </h2>
+          <p class="text-xl text-[#424245] leading-relaxed">
+            Configura cada aspecto de tu operación: desde el nombre y logo de tu clínica hasta la moneda y los horarios
+            globales de atención. Una plataforma que se adapta a tu marca, no al revés.
+          </p>
+        </div>
+        <div class="w-full md:w-1/2">
+          <div class="rounded-[30px] overflow-hidden shadow-lg mx-auto">
+            <img src="assets/images/configuration_real.png" alt="Configuración General" class="w-full h-auto">
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Feature Grid -->
+      <div class="mt-24">
+        <h3 class="text-3xl md:text-4xl font-semibold text-center mb-16 text-[#1d1d1f]">Todo lo que necesitas para
+          crecer</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Roles -->
+          <div
+            class="bg-[#f5f5f7] rounded-[30px] p-6 hover:scale-[1.02] transition-transform duration-300 overflow-hidden flex flex-col">
+            <div class="mb-4">
+              <h4 class="text-xl font-semibold mb-2">Roles y Permisos</h4>
+              <p class="text-gray-600 text-sm">Define quién accede a qué. Control granular para administradores y
+                médicos.</p>
+            </div>
+            <div class="rounded-xl overflow-hidden shadow-sm border border-gray-200 mt-auto">
+              <img src="assets/images/roles_real.png" class="w-full h-48 object-cover object-top" alt="Roles">
+            </div>
+          </div>
+
+          <!-- Schedule Config -->
+          <div
+            class="bg-[#f5f5f7] rounded-[30px] p-6 hover:scale-[1.02] transition-transform duration-300 overflow-hidden flex flex-col">
+            <div class="mb-4">
+              <h4 class="text-xl font-semibold mb-2">Horarios Flexibles</h4>
+              <p class="text-gray-600 text-sm">Configura turnos rotativos, descansos y horarios específicos por médico.
+              </p>
+            </div>
+            <div class="rounded-xl overflow-hidden shadow-sm border border-gray-200 mt-auto">
+              <img src="assets/images/schedule_config_real.png" class="w-full h-48 object-cover object-top"
+                alt="Configuración de Horarios">
+            </div>
+          </div>
+
+          <!-- Specialties -->
+          <div
+            class="bg-[#f5f5f7] rounded-[30px] p-6 hover:scale-[1.02] transition-transform duration-300 overflow-hidden flex flex-col">
+            <div class="mb-4">
+              <h4 class="text-xl font-semibold mb-2">Multi-Especialidad</h4>
+              <p class="text-gray-600 text-sm">Gestiona múltiples disciplinas en un solo lugar. Cardiología, Pediatría,
+                Nutrición y más.</p>
+            </div>
+            <div class="rounded-xl overflow-hidden shadow-sm border border-gray-200 mt-auto">
+              <img src="assets/images/specialties_real.png" class="w-full h-48 object-cover object-top"
+                alt="Especialidades">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Lead Capture Section -->
+  <section id="contact" class="bg-[#f5f5f7] py-24">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <h2 class="text-4xl md:text-5xl font-semibold tracking-tight mb-6">Empieza a transformar tu consulta hoy.</h2>
+      <p class="text-[#86868b] text-xl mb-12 max-w-2xl mx-auto">
+        Únete a cientos de profesionales de la salud que ya usan Mediagenda. Déjanos tus datos para una demo
+        personalizada.
+      </p>
+
+      <div *ngIf="!submitted"
+        class="bg-white rounded-[30px] p-8 md:p-12 text-left shadow-lg animate-fade-in max-w-2xl mx-auto">
+        <form (ngSubmit)="onSubmit()" #leadForm="ngForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-[#1d1d1f] mb-2">Nombre Completo</label>
+              <input type="text" name="name" [(ngModel)]="contactForm.name" required placeholder="Dr. Juan Pérez"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[#1d1d1f] mb-2">Especialidad</label>
+              <input type="text" name="role" [(ngModel)]="contactForm.role" placeholder="Ej. Cardiólogo"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none transition-all">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#1d1d1f] mb-2">Correo Electrónico</label>
+            <input type="email" name="email" [(ngModel)]="contactForm.email" required email
+              placeholder="hola@tucorreo.com"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#1d1d1f] mb-2">Mensaje (Opcional)</label>
+            <textarea name="message" [(ngModel)]="contactForm.message" rows="3"
+              placeholder="¿Tienes alguna duda específica?"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none transition-all"></textarea>
+          </div>
+          <button type="submit" [disabled]="!leadForm.form.valid"
+            class="w-full bg-[#0071e3] text-white py-4 rounded-xl font-semibold hover:bg-[#0077ED] transition-colors disabled:opacity-50 shadow-md">
+            Solicitar Demo Gratuita
+          </button>
+        </form>
+      </div>
+
+      <div *ngIf="submitted"
+        class="bg-white rounded-[30px] p-16 text-center shadow-lg animate-fade-in max-w-2xl mx-auto">
+        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <lucide-icon [name]="CheckCircle2" class="w-10 h-10 text-green-600"></lucide-icon>
+        </div>
+        <h3 class="text-3xl font-semibold mb-4 text-[#1d1d1f]">¡Todo listo!</h3>
+        <p class="text-[#86868b] text-lg">Hemos recibido tu solicitud. Uno de nuestros especialistas te contactará en
+          breve.</p>
+        <button (click)="submitted = false" class="mt-8 text-[#0071e3] font-medium hover:underline">Volver al
+          inicio</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 py-12 text-[#86868b] text-xs">
+    <div class="max-w-[1000px] mx-auto px-4">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div class="text-center md:text-left">
+          <p class="font-semibold text-[#1d1d1f] mb-1">Mediagenda</p>
+          <p>&copy; 2026 Mediagenda Inc. Todos los derechos reservados.</p>
+        </div>
+        <div class="flex space-x-6">
+          <a href="#" class="hover:text-[#1d1d1f] transition-colors">Privacidad</a>
+          <a href="#" class="hover:text-[#1d1d1f] transition-colors">Términos</a>
+          <a href="#" class="hover:text-[#1d1d1f] transition-colors">Soporte</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
