@@ -1,51 +1,66 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
-export interface GlobalSettings {
+export interface SystemSettings {
   clinicName: string;
   clinicAddress: string;
   clinicPhone: string;
-  emailNotifications: boolean;
-  whatsappNotifications: boolean;
-  stripePublicKey: string;
-  currency: 'USD' | 'PEN';
-  workingDays: number[]; // 0=Sun, 1=Mon...
-  defaultAppointmentDuration: number; // Minutes
-  clinicOpenTime: string; // "08:00"
-  clinicCloseTime: string; // "20:00"
-  breakStartTime: string; // "13:00"
-  breakEndTime: string; // "14:00"
-  subscriptionPlan: 'BASIC' | 'PRO' | 'ENTERPRISE';
+  workingDays: number[];
+  clinicOpenTime: string; // HH:mm
+  clinicCloseTime: string; // HH:mm
+  breakStartTime: string; // HH:mm
+  breakEndTime: string; // HH:mm
+  defaultAppointmentDuration: number;
+  currency: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigurationService {
-  private defaultSettings: GlobalSettings = {
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/settings`;
+
+  settings = signal<SystemSettings>({
     clinicName: 'MediAgenda Clinic',
-    clinicAddress: 'Av. Principal 123, Miraflores',
-    clinicPhone: '+51 987 654 321',
-    emailNotifications: true,
-    whatsappNotifications: false,
-    stripePublicKey: '',
-    currency: 'PEN',
+    clinicAddress: 'Av. Larco 123, Miraflores',
+    clinicPhone: '(01) 555-1234',
     workingDays: [1, 2, 3, 4, 5, 6], // Mon-Sat
-    defaultAppointmentDuration: 30,
     clinicOpenTime: '08:00',
     clinicCloseTime: '20:00',
     breakStartTime: '13:00',
     breakEndTime: '14:00',
-    subscriptionPlan: 'PRO'
-  };
+    defaultAppointmentDuration: 30,
+    currency: 'PEN'
+  });
 
-  settings = signal<GlobalSettings>(this.defaultSettings);
-
-  updateSettings(newSettings: Partial<GlobalSettings>) {
-    this.settings.update(current => ({ ...current, ...newSettings }));
-    console.log('Settings updated:', this.settings());
+  constructor() {
+    this.refreshSettings();
   }
 
-  getSettings() {
-    return this.settings();
+  refreshSettings() {
+    this.http.get<SystemSettings>(this.apiUrl).subscribe({
+      next: (data) => {
+        // Backend might ensure fields match.
+        this.settings.set(data);
+      },
+      error: (err) => {
+        console.error('Failed to load settings', err);
+        // Keep defaults if failed
+      }
+    });
+  }
+
+  updateSettings(newSettings: SystemSettings) {
+    // Optimistic update
+    this.settings.set(newSettings);
+    // Backend update?
+  }
+
+  // Helpers
+  getWorkingHours() {
+    const s = this.settings();
+    return { start: s.clinicOpenTime, end: s.clinicCloseTime };
   }
 }

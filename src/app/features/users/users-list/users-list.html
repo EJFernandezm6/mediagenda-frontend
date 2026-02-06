@@ -1,0 +1,135 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Gestión de Usuarios</h1>
+            <p class="text-sm text-gray-500 mt-1">Administra doctores, staff y administradores</p>
+        </div>
+        <button (click)="openModal()"
+            class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95">
+            <i-lucide name="plus" class="w-5 h-5"></i-lucide>
+            <span>Nuevo Usuario</span>
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4">
+        <select [ngModel]="selectedRole()" (ngModelChange)="filterByRole($event)"
+            class="px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-500 outline-none transition-all">
+            <option value="">Todos los Roles</option>
+            <option value="ADMIN">Administrador</option>
+            <option value="DOCTOR">Doctor</option>
+            <option value="STAFF">Staff</option>
+        </select>
+    </div>
+
+    <!-- Users Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let user of users()"
+            class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col gap-4 hover:shadow-md transition-all">
+            <div class="flex items-start justify-between">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold overflow-hidden">
+                        <img *ngIf="user.photoUrl" [src]="user.photoUrl" alt="" class="w-full h-full object-cover">
+                        <span *ngIf="!user.photoUrl">{{ user.fullName.charAt(0) }}</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">{{ user.fullName }}</h3>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="{
+                                'bg-purple-100 text-purple-800': user.role === 'ADMIN',
+                                'bg-blue-100 text-blue-800': user.role === 'DOCTOR',
+                                'bg-gray-100 text-gray-800': user.role === 'STAFF'
+                              }">
+                            {{ user.role }}
+                        </span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button (click)="editUser(user)"
+                        class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <i-lucide name="pencil" class="w-4 h-4"></i-lucide>
+                    </button>
+                    <button (click)="confirmDelete(user)"
+                        class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <i-lucide name="trash-2" class="w-4 h-4"></i-lucide>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-sm text-gray-600">
+                <div class="flex items-center gap-2">
+                    <i-lucide name="mail" class="w-4 h-4 text-gray-400"></i-lucide>
+                    {{ user.email }}
+                </div>
+                <div *ngIf="user.role === 'DOCTOR' && user.cmp" class="flex items-center gap-2">
+                    <i-lucide name="badge-check" class="w-4 h-4 text-gray-400"></i-lucide>
+                    CMP: {{ user.cmp }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div
+        class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="text-lg font-bold text-gray-900">
+                {{ isEditing ? 'Editar Usuario' : 'Nuevo Usuario' }}
+            </h3>
+            <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i-lucide name="x" class="w-5 h-5"></i-lucide>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                <input type="text" [(ngModel)]="formData.fullName"
+                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" [(ngModel)]="formData.email"
+                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña {{ isEditing ? '(Opcional)' : ''
+                    }}</label>
+                <input type="password" [(ngModel)]="formData.password"
+                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+                <select [(ngModel)]="formData.role"
+                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                    <option value="ADMIN">Administrador</option>
+                    <option value="DOCTOR">Doctor</option>
+                    <option value="STAFF">Staff</option>
+                </select>
+            </div>
+
+            <div *ngIf="formData.role === 'DOCTOR'">
+                <label class="block text-sm font-medium text-gray-700 mb-1">CMP</label>
+                <input type="text" [(ngModel)]="formData.cmp"
+                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+            <button (click)="closeModal()"
+                class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-200 rounded-xl transition-colors">
+                Cancelar
+            </button>
+            <button (click)="saveUser()" [disabled]="!isValid()"
+                class="px-6 py-2 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed">
+                Guardar
+            </button>
+        </div>
+    </div>
+</div>

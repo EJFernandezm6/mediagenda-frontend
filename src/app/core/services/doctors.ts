@@ -1,80 +1,60 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { User } from '../auth/auth.service';
 
-export interface Doctor {
-  id: string;
-  fullName: string;
-  cmp: string; // Colegiatura
-  email: string;
-  phone: string;
-  photoUrl: string;
-  rating: number;
-  reviewsCount: number;
-  active: boolean;
+export interface Doctor extends User {
+  // Extends User from Auth Service which has basics
+  // Specific doctor fields from Backend User entity:
+  cmp?: string;
+  rating?: number;
+  reviewsCount?: number;
+  active?: boolean; // mapped to isActive in backend
+  // photoUrl is in User
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class DoctorsService {
-  private mockDoctors: Doctor[] = [
-    {
-      id: 'd1',
-      fullName: 'Dr. Juan Pérez',
-      cmp: '12345',
-      email: 'juan@clinic.com',
-      phone: '999888777',
-      photoUrl: 'https://ui-avatars.com/api/?name=Juan+Perez&background=random',
-      rating: 4.8,
-      reviewsCount: 120,
-      active: true
-    },
-    {
-      id: 'd2',
-      fullName: 'Dra. Maria López',
-      cmp: '67890',
-      email: 'maria@clinic.com',
-      phone: '999111222',
-      photoUrl: 'https://ui-avatars.com/api/?name=Maria+Lopez&background=random',
-      rating: 4.9,
-      reviewsCount: 85,
-      active: true
-    },
-    {
-      id: 'd3',
-      fullName: 'Dr. Carlos Mendoza',
-      cmp: '11223',
-      email: 'carlos@clinic.com',
-      phone: '999333444',
-      photoUrl: 'https://ui-avatars.com/api/?name=Carlos+Mendoza&background=random',
-      rating: 4.5,
-      reviewsCount: 40,
-      active: false
-    }
-  ];
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/users`; // Uses Users API
 
-  doctors = signal<Doctor[]>(this.mockDoctors);
+  doctors = signal<Doctor[]>([]);
+
+  constructor() {
+    this.refreshDoctors();
+  }
+
+  refreshDoctors() {
+    // Fetch users with ROLE=DOCTOR
+    this.http.get<Doctor[]>(`${this.apiUrl}?role=DOCTOR`).subscribe(data => {
+      this.doctors.set(data);
+    });
+  }
 
   getDoctors() {
     return this.doctors();
   }
 
-  addDoctor(doctor: Omit<Doctor, 'id' | 'rating' | 'reviewsCount'>) {
-    const newDoc: Doctor = {
-      ...doctor,
-      id: Math.random().toString(36).substr(2, 9),
-      rating: 0,
-      reviewsCount: 0
-    };
-    this.doctors.update(list => [...list, newDoc]);
+  addDoctor(doctor: any) {
+    const newDoc = { ...doctor, role: 'DOCTOR' };
+    this.http.post<Doctor>(this.apiUrl, newDoc).subscribe(created => {
+      this.doctors.update(list => [...list, created]);
+    });
   }
 
   updateDoctor(id: string, updates: Partial<Doctor>) {
-    this.doctors.update(list =>
-      list.map(d => d.id === id ? { ...d, ...updates } : d)
-    );
+    this.http.put<Doctor>(`${this.apiUrl}/${id}`, updates).subscribe(updated => {
+      this.doctors.update(list =>
+        list.map(d => d.id === id ? updated : d)
+      );
+    });
   }
 
   deleteDoctor(id: string) {
-    this.doctors.update(list => list.filter(d => d.id !== id));
+    this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
+      this.doctors.update(list => list.filter(d => d.id !== id));
+    });
   }
 }

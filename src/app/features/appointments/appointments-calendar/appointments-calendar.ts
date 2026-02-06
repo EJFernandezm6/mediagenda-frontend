@@ -119,7 +119,7 @@ export class AppointmentsCalendarComponent {
   // Appointments for All Doctors (Today) - Used for Daily View logic mostly
   globalAppointments = computed(() => {
     const today = this.currentDate().toISOString().split('T')[0];
-    return this.appointments().filter(a => a.date === today && a.status !== 'CANCELLED');
+    return this.appointments().filter(a => a.appointmentDate === today && a.status !== 'CANCELLED');
   });
 
   // Dynamic values for Modal
@@ -157,7 +157,7 @@ export class AppointmentsCalendarComponent {
 
       const isBooked = this.appointments().some(a =>
         a.doctorId === doctorId &&
-        a.date === date &&
+        a.appointmentDate === date &&
         a.startTime === time &&
         a.status !== 'CANCELLED'
       );
@@ -236,7 +236,8 @@ export class AppointmentsCalendarComponent {
       const matchingApp = this.appointments().find(a =>
         a.doctorId === docId &&
         a.specialtyId === this.selectedSpecialtyId() &&
-        a.date === dateIso &&
+        a.specialtyId === this.selectedSpecialtyId() &&
+        a.appointmentDate === dateIso &&
         a.startTime === time &&
         a.status !== 'CANCELLED'
       );
@@ -314,13 +315,13 @@ export class AppointmentsCalendarComponent {
     const patientId = this.modalPatientId();
 
     if (doctorId && specialtyId && date && time && patientId) {
-      const patient = this.patients().find(p => p.id === patientId);
+      const patient = this.patients().find(p => p.patientId === patientId);
       this.appointmentsService.addAppointment({
         doctorId,
         specialtyId,
         patientId,
         patientName: patient?.fullName || 'Desconocido',
-        date,
+        appointmentDate: date,
         startTime: time,
         endTime: this.addMinutes(time, 30),
         notes: this.modalNotes(),
@@ -390,7 +391,7 @@ export class AppointmentsCalendarComponent {
       this.isConfirmingCancel = false;
       this.modalSpecialtyId.set(this.selectedAppointment.specialtyId);
       this.modalDoctorId.set(this.selectedAppointment.doctorId);
-      this.modalDate.set(this.selectedAppointment.date);
+      this.modalDate.set(this.selectedAppointment.appointmentDate);
       this.modalTime.set(this.selectedAppointment.startTime);
       this.modalPatientId.set(this.selectedAppointment.patientId);
       this.modalNotes.set(this.selectedAppointment.notes || '');
@@ -410,7 +411,7 @@ export class AppointmentsCalendarComponent {
 
   confirmCancel() {
     if (this.selectedAppointment) {
-      this.appointmentsService.updatestatus(this.selectedAppointment.id, 'CANCELLED');
+      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, 'CANCELLED');
       this.closeDetailsModal();
       this.isConfirmingCancel = false;
     }
@@ -421,7 +422,7 @@ export class AppointmentsCalendarComponent {
       // Update the existing appointment
       const updatedAppointment: Appointment = {
         ...this.selectedAppointment,
-        date: this.modalDate(),
+        appointmentDate: this.modalDate(),
         startTime: this.modalTime(),
         endTime: this.addMinutes(this.modalTime(), 30),
         notes: this.modalNotes(),
@@ -431,7 +432,7 @@ export class AppointmentsCalendarComponent {
 
       // Update in service (you'll need to add this method to the service)
       const appointments = this.appointments();
-      const index = appointments.findIndex(a => a.id === this.selectedAppointment!.id);
+      const index = appointments.findIndex(a => a.appointmentId === this.selectedAppointment!.appointmentId);
       if (index !== -1) {
         appointments[index] = updatedAppointment;
         this.appointmentsService.appointments.set([...appointments]);
@@ -443,7 +444,7 @@ export class AppointmentsCalendarComponent {
 
   cancelAppointment() {
     if (this.selectedAppointment) {
-      this.appointmentsService.updatestatus(this.selectedAppointment.id, 'CANCELLED');
+      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, 'CANCELLED');
       this.closeDetailsModal();
     }
   }

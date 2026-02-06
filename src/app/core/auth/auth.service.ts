@@ -1,61 +1,76 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { tap } from 'rxjs/operators';
 
 export interface User {
-    id: string;
-    name: string;
+    id: string; // UUID from backend
+    fullName: string; // Updated to match Backend
     email: string;
-    photoUrl: string;
-    clinicId: string;
-    role: 'ADMIN' | 'DOCTOR' | 'STAFF';
-    plan: 'STANDARD' | 'PLUS' | 'PREMIUM';
-    subscriptionStatus: 'ACTIVE' | 'EXPIRED' | 'PENDING';
+    photoUrl?: string; // Optional
+    clinicId?: string; // Optional
+    role: 'ADMIN' | 'DOCTOR' | 'STAFF' | 'ESPECIALISTA'; // Aligned with backend + frontend usage
+    cmp?: string; // Doctor specific
+    plan?: 'STANDARD' | 'PLUS' | 'PREMIUM'; // Backend might need to send this in extra fields
+    subscriptionStatus?: 'ACTIVE' | 'EXPIRED' | 'PENDING';
+}
+
+interface AuthResponse {
+    token: string;
+    userId: string;
+    role: string;
+    name: string;
 }
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
-    // Using Signals for reactive state
+    private http = inject(HttpClient);
+    private router = inject(Router);
+    private apiUrl = `${environment.apiUrl}/auth`;
+
     currentUser = signal<User | null>(null);
 
-    constructor(private router: Router) { }
+    constructor() {
+        this.restoreSession();
+    }
 
-    login() {
-        // Mock login simulating a Google Auth response
-        const mockUser: User = {
-            id: 'u1',
-            name: 'Dr. Víctor Manzaneda',
-            email: 'victor@clinic.com',
-            photoUrl: 'https://ui-avatars.com/api/?name=Victor+Manzaneda&background=0D8ABC&color=fff',
-            clinicId: 'c1',
-            role: 'ADMIN',
-            plan: 'PREMIUM',
-            subscriptionStatus: 'ACTIVE'
-        };
+    login(credentials: { email: string, password: string }) {
+        return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
+            tap(response => {
+                const user: User = {
+                    id: response.userId,
+                    fullName: response.name, // Backend response still sends "name" unless I update AuthResponse too. Check Backend.
+                    email: credentials.email,
+                    role: response.role as any,
+                    photoUrl: `https://ui-avatars.com/api/?name=${response.name}&background=0D8ABC&color=fff`, // Default for now
+                    subscriptionStatus: 'ACTIVE' // Mocked for now until backend sends it
+                };
 
-        this.currentUser.set(mockUser);
-        localStorage.setItem('user', JSON.stringify(mockUser));
+                this.currentUser.set(user);
+                localStorage.setItem('token', response.token);
+                localStorage.setItem('user', JSON.stringify(user));
 
-        // Redirect based on subscription status
-        if (mockUser.subscriptionStatus === 'PENDING' || mockUser.subscriptionStatus === 'EXPIRED') {
-            this.router.navigate(['/auth/plans']);
-        } else {
-            this.router.navigate(['/app/dashboard']);
-        }
+                // Navigate
+                this.router.navigate(['/app/dashboard']);
+            })
+        );
     }
 
     logout() {
         this.currentUser.set(null);
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
         this.router.navigate(['/auth/login']);
     }
 
-    // Restore session on app load
     restoreSession() {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            this.currentUser.set(JSON.parse(stored));
+        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        if (storedUser && token) {
+            this.currentUser.set(JSON.parse(storedUser));
         }
     }
 }

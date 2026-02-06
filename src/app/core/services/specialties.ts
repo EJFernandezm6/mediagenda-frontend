@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 export interface Specialty {
   id: string;
@@ -11,33 +13,42 @@ export interface Specialty {
   providedIn: 'root'
 })
 export class SpecialtiesService {
-  // Mock Data
-  private mockSpecialties: Specialty[] = [
-    { id: '1', name: 'Cardiología', description: 'Enfermedades del corazón', active: true },
-    { id: '2', name: 'Pediatría', description: 'Atención a niños', active: true },
-    { id: '3', name: 'Dermatología', description: 'Cuidado de la piel', active: true },
-    { id: '4', name: 'Ginecología', description: 'Salud femenina', active: true },
-    { id: '5', name: 'Medicina General', description: 'Atención primaria', active: true }
-  ];
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/specialties`;
 
-  specialties = signal<Specialty[]>(this.mockSpecialties);
+  specialties = signal<Specialty[]>([]);
+
+  constructor() {
+    this.refreshSpecialties();
+  }
+
+  refreshSpecialties() {
+    this.http.get<Specialty[]>(this.apiUrl).subscribe(data => {
+      this.specialties.set(data);
+    });
+  }
 
   getSpecialties() {
     return this.specialties();
   }
 
   addSpecialty(specialty: Omit<Specialty, 'id'>) {
-    const newSpec = { ...specialty, id: Math.random().toString(36).substr(2, 9) };
-    this.specialties.update(list => [...list, newSpec]);
+    this.http.post<Specialty>(this.apiUrl, specialty).subscribe(newSpec => {
+      this.specialties.update(list => [...list, newSpec]);
+    });
   }
 
   updateSpecialty(id: string, updates: Partial<Specialty>) {
-    this.specialties.update(list =>
-      list.map(s => s.id === id ? { ...s, ...updates } : s)
-    );
+    this.http.put<Specialty>(`${this.apiUrl}/${id}`, updates).subscribe(updated => {
+      this.specialties.update(list =>
+        list.map(s => s.id === id ? updated : s)
+      );
+    });
   }
 
   deleteSpecialty(id: string) {
-    this.specialties.update(list => list.filter(s => s.id !== id));
+    this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
+      this.specialties.update(list => list.filter(s => s.id !== id));
+    });
   }
 }

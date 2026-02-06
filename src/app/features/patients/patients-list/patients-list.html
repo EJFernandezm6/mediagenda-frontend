@@ -70,7 +70,7 @@
                             {{ patient.lastVisit || 'N/A' }}
                         </td>
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <button (click)="viewHistory(patient.id)"
+                            <button (click)="viewHistory(patient.patientId)"
                                 class="text-blue-600 hover:text-blue-900 flex items-center justify-end gap-1 ml-auto">
                                 Historias
                                 <lucide-icon [img]="icons.FileText" class="w-4 h-4"></lucide-icon>

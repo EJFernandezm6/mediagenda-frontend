@@ -1,12 +1,16 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 export interface Appointment {
-  id: string;
+  appointmentId?: string; // Optional for creation
   doctorId: string;
+  doctorName?: string; // Added from DTO
   specialtyId: string;
+  specialtyName?: string; // Added from DTO
   patientId: string;
-  patientName: string; // Denormalized for simpler UI
-  date: string; // ISO Date "2025-10-15"
+  patientName?: string; // Added from DTO
+  appointmentDate: string; // ISO "2025-10-15"
   startTime: string; // "09:00"
   endTime: string; // "09:30"
   status: 'SCHEDULED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
@@ -20,138 +24,53 @@ export interface Appointment {
   providedIn: 'root'
 })
 export class AppointmentsService {
-  private mockAppointments: Appointment[] = this.generateMockAppointments();
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/appointments`;
 
-  private generateMockAppointments(): Appointment[] {
-    const today = new Date();
-    const addDays = (days: number) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() + days);
-      return d.toISOString().split('T')[0];
-    };
+  appointments = signal<Appointment[]>([]);
 
-    return [
-      // TODAY: Mixed States
-      {
-        id: 'a1',
-        doctorId: 'd1',
-        specialtyId: '1',
-        patientId: 'p1',
-        patientName: 'Ana García',
-        date: addDays(0), // Today
-        startTime: '09:00',
-        endTime: '09:30',
-        status: 'CONFIRMED',
-        paymentStatus: 'PAID', // Green
-        notes: 'Consulta pagada - Chequeo anual',
-        paymentMethod: 'YAPE',
-        transactionId: 'TX-123'
-      },
-      {
-        id: 'a2',
-        doctorId: 'd1',
-        specialtyId: '1',
-        patientId: 'p2',
-        patientName: 'Luis Torres',
-        date: addDays(0),
-        startTime: '10:00',
-        endTime: '10:30',
-        status: 'CONFIRMED',
-        paymentStatus: 'PENDING', // Yellow
-        notes: 'Reservada, pago pendiente en recepción'
-      },
-      {
-        id: 'a3',
-        doctorId: 'd2',
-        specialtyId: '1',
-        patientId: 'p3',
-        patientName: 'Carlos Ruiz',
-        date: addDays(0),
-        startTime: '09:00', // Collision with a1 (different doctor)
-        endTime: '09:30',
-        status: 'CONFIRMED', // Was SCHEDULED (Blue) -> Now CONFIRMED & PENDING (Yellow)
-        paymentStatus: 'PENDING'
-      },
-
-      // TOMORROW: Heavy day
-      {
-        id: 'a4',
-        doctorId: 'd1',
-        specialtyId: '1',
-        patientId: 'p4',
-        patientName: 'Maria Lopez',
-        date: addDays(1),
-        startTime: '08:00',
-        endTime: '08:30',
-        status: 'CONFIRMED',
-        paymentStatus: 'PAID' // Green
-      },
-      {
-        id: 'a5',
-        doctorId: 'd1',
-        specialtyId: '1',
-        patientId: 'p5',
-        patientName: 'Jorge Perez',
-        date: addDays(1),
-        startTime: '08:30',
-        endTime: '09:00',
-        status: 'CONFIRMED',
-        paymentStatus: 'PENDING'
-      },
-
-      // NEXT 3 DAYS: Scattered
-      {
-        id: 'a6',
-        doctorId: 'd1',
-        specialtyId: '1',
-        patientId: 'p6',
-        patientName: 'Elena Diaz',
-        date: addDays(3),
-        startTime: '15:00',
-        endTime: '15:30',
-        status: 'CONFIRMED',
-        paymentStatus: 'PENDING' // Yellow
-      },
-      {
-        id: 'a7',
-        doctorId: 'd2',
-        specialtyId: '1',
-        patientId: 'p7',
-        patientName: 'Roberto Gomez',
-        date: addDays(4),
-        startTime: '11:00',
-        endTime: '11:30',
-        status: 'CONFIRMED',
-        paymentStatus: 'PAID' // Green
-      }
-    ];
+  constructor() {
+    // Load initial (e.g., today) or leave empty until filtered
+    this.refreshAppointments();
   }
 
-  appointments = signal<Appointment[]>(this.mockAppointments);
+  refreshAppointments(filters?: { doctorId?: string, date?: string }) {
+    let params = new HttpParams();
+    if (filters?.doctorId) params = params.set('doctorId', filters.doctorId);
+    if (filters?.date) params = params.set('date', filters.date);
+
+    this.http.get<Appointment[]>(this.apiUrl, { params }).subscribe(data => {
+      this.appointments.set(data);
+    });
+  }
 
   getAppointments() {
     return this.appointments();
   }
 
   getAppointmentsForDateRange(start: string, end: string, doctorId: string) {
-    return this.appointments().filter(a =>
-      a.date >= start && a.date <= end && a.doctorId === doctorId
-    );
+    // Backend currently supports single date filter. 
+    // For ranges, we might need a new endpoint or loop. 
+    // For now, let's just fetch generally and filter client-side if range is small, 
+    // or assume the Calendar component requests specific dates.
+    // Better: Update backend to support range.
+    // Fallback: Fetch all for doctor (if not too many) or just fetch for "start" date if calendar views day-by-day.
+    // Let's rely on refreshAppointments logic for now.
+    return this.appointments();
   }
 
-  addAppointment(appointment: Omit<Appointment, 'id' | 'status'>) {
-    const newApp: Appointment = {
-      ...appointment,
-      id: Math.random().toString(36).substr(2, 9),
-      status: 'SCHEDULED'
-    };
-    this.appointments.update(list => [...list, newApp]);
+  addAppointment(appointment: any) {
+    this.http.post<Appointment>(this.apiUrl, appointment).subscribe(newApp => {
+      this.appointments.update(list => [...list, newApp]);
+    });
   }
 
   updatestatus(id: string, status: Appointment['status']) {
-    this.appointments.update(list =>
-      list.map(a => a.id === id ? { ...a, status } : a)
-    );
+    this.http.put<Appointment>(`${this.apiUrl}/${id}/status`, { status }).subscribe(updated => {
+      this.appointments.update(list =>
+        list.map(a => a.appointmentId === id ? updated : a)
+      );
+    });
   }
 
   cancelAppointment(id: string) {

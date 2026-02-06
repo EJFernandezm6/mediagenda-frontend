@@ -386,7 +386,7 @@
                         <select [ngModel]="modalPatientId()" (ngModelChange)="modalPatientId.set($event)"
                             class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none">
                             <option value="" disabled>Seleccionar Paciente</option>
-                            <option *ngFor="let p of patients()" [value]="p.id">{{ p.fullName }} ({{ p.dni }})
+                            <option *ngFor="let p of patients()" [value]="p.patientId">{{ p.fullName }} ({{ p.dni }})
                             </option>
                         </select>
                     </div>
@@ -545,7 +545,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Fecha</label>
-                    <p class="text-sm font-medium text-gray-900">{{ selectedAppointment.date }}</p>
+                    <p class="text-sm font-medium text-gray-900">{{ selectedAppointment.appointmentDate }}</p>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Horario</label>
