@@ -35,6 +35,16 @@ export class DoctorSpecialtyService {
         );
     }
 
+    updateAssociation(original: DoctorSpecialty, updated: DoctorSpecialty) {
+        this.associations.update(list =>
+            list.map(a =>
+                (a.doctorId === original.doctorId && a.specialtyId === original.specialtyId)
+                    ? updated
+                    : a
+            )
+        );
+    }
+
     getSpecialtiesForDoctor(doctorId: string) {
         return this.associations().filter(a => a.doctorId === doctorId);
     }

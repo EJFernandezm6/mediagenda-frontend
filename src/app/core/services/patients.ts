@@ -22,6 +22,8 @@ export interface Consultation {
   doctorId: string;
   specialtyId: string;
   notes: string;
+  diagnosis?: string;
+  treatment?: string;
   status: 'SCHEDULED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
 }
 

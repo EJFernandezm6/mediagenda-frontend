@@ -1,6 +1,6 @@
 <div class="px-4 py-6 sm:px-6 lg:px-8">
     <div class="mb-8">
-        <h1 class="text-xl font-semibold text-gray-900">Turnos de Atención</h1>
+        <h1 class="text-xl font-semibold text-gray-900">Turnos de atención</h1>
         <p class="mt-2 text-sm text-gray-700">Define los días y horas de atención por especialista y especialidad.</p>
     </div>
 
@@ -10,7 +10,7 @@
         <div
             class="bg-white shadow rounded-lg p-6 border border-gray-100 flex flex-col sm:flex-row sm:items-center gap-6">
             <div class="flex-1 w-full">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Especialista</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar especialista</label>
                 <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
                     class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
                     <option value="" disabled selected>Seleccionar especialista</option>
@@ -21,7 +21,7 @@
                 <button (click)="openAddModal()" [disabled]="!selectedDoctorId()"
                     class="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
                     <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
-                    Agregar Turno
+                    Agregar turno
                 </button>
             </div>
         </div>
@@ -29,7 +29,7 @@
         <!-- List View (Main Content now) -->
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100 flex-1 overflow-y-auto">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">Horarios Configurados</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900">Horarios configurados</h3>
                 <span class="text-sm text-gray-500" *ngIf="selectedDoctorId()">
                     {{ currentSchedules().length }} turnos asignados
                 </span>
@@ -99,13 +99,13 @@
                         <lucide-icon [img]="icons.Clock" class="h-6 w-6 text-blue-600"></lucide-icon>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Asignar Turno de
-                            Atención</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Asignar turno de
+                            atención</h3>
                         <div class="mt-4 space-y-4">
 
                             <!-- Date Selection -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Fecha del Turno</label>
+                                <label class="block text-sm font-medium text-gray-700">Fecha del turno</label>
                                 <input [(ngModel)]="modalData.date" (ngModelChange)="onDateChange($event)" type="date"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             </div>
@@ -123,13 +123,13 @@
                             <!-- Time Adjustments -->
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Hora Inicio</label>
+                                    <label class="block text-sm font-medium text-gray-700">Hora inicio</label>
                                     <input [(ngModel)]="modalData.startTime" (ngModelChange)="onStartTimeChange()"
                                         type="time"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Hora Fin</label>
+                                    <label class="block text-sm font-medium text-gray-700">Hora fin</label>
                                     <select [(ngModel)]="modalData.endTime"
                                         class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border bg-white">
                                         <option *ngFor="let time of validEndTimes()" [value]="time">{{ time }}</option>
@@ -144,7 +144,7 @@
                 <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="button" (click)="saveSchedule()"
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        Guardar Turno
+                        Guardar turno
                     </button>
                     <button type="button" (click)="closeModal()"
                         class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm">

@@ -13,6 +13,10 @@ export interface SystemSettings {
   breakEndTime: string; // HH:mm
   defaultAppointmentDuration: number;
   currency: string;
+  subscriptionPlan: 'BASIC' | 'PRO' | 'ENTERPRISE'; // Added
+  stripePublicKey?: string; // Added
+  emailNotifications: boolean; // Added
+  whatsappNotifications: boolean; // Added
 }
 
 @Injectable({
@@ -32,7 +36,10 @@ export class ConfigurationService {
     breakStartTime: '13:00',
     breakEndTime: '14:00',
     defaultAppointmentDuration: 30,
-    currency: 'PEN'
+    currency: 'PEN',
+    subscriptionPlan: 'BASIC',
+    emailNotifications: true,
+    whatsappNotifications: false
   });
 
   constructor() {

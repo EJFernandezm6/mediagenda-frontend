@@ -10,8 +10,9 @@ export interface User {
     email: string;
     photoUrl?: string; // Optional
     clinicId?: string; // Optional
-    role: 'ADMIN' | 'DOCTOR' | 'STAFF' | 'ESPECIALISTA'; // Aligned with backend + frontend usage
+    role: 'ADMIN' | 'DOCTOR' | 'STAFF' | 'ESPECIALISTA'; // Aligned withbackend + frontend usage
     cmp?: string; // Doctor specific
+    phone?: string; // Contact info
     plan?: 'STANDARD' | 'PLUS' | 'PREMIUM'; // Backend might need to send this in extra fields
     subscriptionStatus?: 'ACTIVE' | 'EXPIRED' | 'PENDING';
 }

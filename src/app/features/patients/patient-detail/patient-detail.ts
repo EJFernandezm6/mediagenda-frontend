@@ -27,8 +27,8 @@ export class PatientDetailComponent implements OnInit {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.patient = this.service.getPatient(id);
-      this.history = this.service.getPatientHistory(id);
+      this.service.getPatient(id).subscribe(p => this.patient = p);
+      this.service.getPatientHistory(id).subscribe(h => this.history = h);
     }
   }
 

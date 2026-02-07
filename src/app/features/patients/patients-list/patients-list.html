@@ -8,7 +8,7 @@
             <button (click)="openModal()"
                 class="block rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 flex items-center gap-2">
                 <lucide-icon [img]="icons.Plus" class="w-4 h-4"></lucide-icon>
-                Nuevo Paciente
+                Nuevo paciente
             </button>
         </div>
     </div>
@@ -21,7 +21,7 @@
             </div>
             <input [(ngModel)]="searchTerm" type="text"
                 class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Buscar por DNI o Nombre...">
+                placeholder="Buscar por DNI o nombre...">
         </div>
 
         <!-- Table -->
@@ -31,11 +31,11 @@
                     <tr>
                         <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                             Paciente</th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">DNI / Contacto
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">DNI / contacto
                         </th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Edad / Género
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Edad / género
                         </th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Última Visita
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Última visita
                         </th>
                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                             <span class="sr-only">Acciones</span>
@@ -90,10 +90,10 @@
 
         <div
             class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-            <h3 class="text-base font-semibold leading-6 text-gray-900">Registrar Paciente</h3>
+            <h3 class="text-base font-semibold leading-6 text-gray-900">Registrar paciente</h3>
             <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                    <label class="block text-sm font-medium text-gray-700">Nombre completo</label>
                     <input [(ngModel)]="form.fullName" type="text"
                         class="mt-1 block w-full rounded-md border-gray-300 py-1.5 border px-2">
                 </div>

@@ -2,7 +2,7 @@
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <lucide-icon [img]="icons.Settings" class="w-8 h-8 text-gray-700"></lucide-icon>
-            Configuración Global
+            Configuración global
         </h1>
         <p class="mt-2 text-gray-600">Administra los detalles de la clínica y las integraciones.</p>
     </div>
@@ -18,11 +18,11 @@
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
                 <lucide-icon [img]="icons.Building" class="w-5 h-5 text-gray-500"></lucide-icon>
-                <h3 class="text-lg font-medium text-gray-900">Datos de la Clínica</h3>
+                <h3 class="text-lg font-medium text-gray-900">Datos de la clínica</h3>
             </div>
             <div class="p-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700">Nombre de la Clínica</label>
+                    <label class="block text-sm font-medium text-gray-700">Nombre de la clínica</label>
                     <input [(ngModel)]="settings.clinicName" type="text"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
                 </div>
@@ -32,12 +32,12 @@
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Teléfono General</label>
+                    <label class="block text-sm font-medium text-gray-700">Teléfono general</label>
                     <input [(ngModel)]="settings.clinicPhone" type="text"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Moneda Referencial</label>
+                    <label class="block text-sm font-medium text-gray-700">Moneda referencial</label>
                     <select [(ngModel)]="settings.currency"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2 bg-white">
                         <option value="PEN">Soles (PEN)</option>
@@ -53,11 +53,11 @@
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
                 <lucide-icon [img]="icons.Clock" class="w-5 h-5 text-gray-500"></lucide-icon>
-                <h3 class="text-lg font-medium text-gray-900">Horarios Generales de Atención</h3>
+                <h3 class="text-lg font-medium text-gray-900">Horarios generales de atención</h3>
             </div>
             <div class="p-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <div class="col-span-1 sm:col-span-2 lg:col-span-3">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Días Laborables</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Días laborables</label>
                     <div class="flex flex-wrap gap-2">
                         <button *ngFor="let day of availableDays" (click)="toggleDay(day.id)"
                             [class]="settings.workingDays.includes(day.id) ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'"
@@ -70,22 +70,22 @@
                         calendario.</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Hora Apertura</label>
+                    <label class="block text-sm font-medium text-gray-700">Hora apertura</label>
                     <input [(ngModel)]="settings.clinicOpenTime" type="time"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Hora Cierre</label>
+                    <label class="block text-sm font-medium text-gray-700">Hora cierre</label>
                     <input [(ngModel)]="settings.clinicCloseTime" type="time"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Inicio de Break/Refrigerio</label>
+                    <label class="block text-sm font-medium text-gray-700">Inicio de break/refrigerio</label>
                     <input [(ngModel)]="settings.breakStartTime" type="time"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Fin de Break/Refrigerio</label>
+                    <label class="block text-sm font-medium text-gray-700">Fin de break/refrigerio</label>
                     <input [(ngModel)]="settings.breakEndTime" type="time"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
                 </div>
@@ -96,13 +96,13 @@
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
                 <lucide-icon [img]="icons.Zap" class="w-5 h-5 text-gray-500"></lucide-icon>
-                <h3 class="text-lg font-medium text-gray-900">Suscripción y Plan</h3>
+                <h3 class="text-lg font-medium text-gray-900">Suscripción y plan</h3>
             </div>
             <div class="p-6">
                 <!-- Current Plan Status -->
                 <div class="mb-6 flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-100">
                     <div>
-                        <p class="text-sm text-blue-700 font-medium">Plan Actual</p>
+                        <p class="text-sm text-blue-700 font-medium">Plan actual</p>
                         <h4 class="text-xl font-bold text-blue-900">{{ settings.subscriptionPlan === 'BASIC' ? 'Plan
                             Básico' : (settings.subscriptionPlan === 'PRO' ? 'Plan Profesional' : 'Plan
                             Empresarial') }}
@@ -152,7 +152,7 @@
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
                 <lucide-icon [img]="icons.CreditCard" class="w-5 h-5 text-gray-500"></lucide-icon>
-                <h3 class="text-lg font-medium text-gray-900">Pagos e Integraciones</h3>
+                <h3 class="text-lg font-medium text-gray-900">Pagos e integraciones</h3>
             </div>
             <div class="p-6 space-y-6">
                 <div>
@@ -200,7 +200,7 @@
             <button (click)="save()"
                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <lucide-icon [img]="icons.Save" class="w-4 h-4 mr-2"></lucide-icon>
-                Guardar Cambios
+                Guardar cambios
             </button>
         </div>
     </div>
