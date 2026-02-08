@@ -57,16 +57,14 @@ export class PatientsService {
   }
 
   addPatient(patient: Omit<Patient, 'patientId'>) {
-    this.http.post<Patient>(this.apiUrl, patient).subscribe(newPatient => {
-      this.patients.update(list => [...list, newPatient]);
-    });
+    return this.http.post<Patient>(this.apiUrl, patient).pipe(
+      tap(() => this.refreshPatients())
+    );
   }
 
   updatePatient(id: string, updates: Partial<Patient>) {
-    this.http.put<Patient>(`${this.apiUrl}/${id}`, updates).subscribe(updated => {
-      this.patients.update(list =>
-        list.map(p => p.patientId === id ? updated : p)
-      );
-    });
+    return this.http.put<Patient>(`${this.apiUrl}/${id}`, updates).pipe(
+      tap(() => this.refreshPatients())
+    );
   }
 }

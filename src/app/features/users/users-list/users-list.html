@@ -1,135 +1,223 @@
-<div class="space-y-6">
+<div class="p-6">
     <!-- Header -->
-    <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+    <div class="flex justify-between items-center mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Gestión de usuarios</h1>
-            <p class="text-sm text-gray-500 mt-1">Administra doctores, staff y administradores</p>
+            <h1 class="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
+            <p class="text-gray-500">Administra el acceso y roles del sistema</p>
         </div>
-        <button (click)="openModal()"
-            class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95">
-            <i-lucide name="plus" class="w-5 h-5"></i-lucide>
-            <span>Nuevo usuario</span>
+        <button (click)="openModal()" class="btn btn-primary flex items-center gap-2">
+            <lucide-icon [img]="Icons.Plus" class="w-4 h-4"></lucide-icon>
+            Nuevo Usuario
         </button>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4">
+    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6 flex gap-4">
+        <div class="relative flex-1">
+            <lucide-icon [img]="Icons.Search"
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></lucide-icon>
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por nombre o email..."
+                class="w-full pl-12 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+        </div>
         <select [ngModel]="selectedRole()" (ngModelChange)="filterByRole($event)"
-            class="px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-500 outline-none transition-all">
-            <option value="">Todos los roles</option>
-            <option value="ADMIN">Administrador</option>
-            <option value="DOCTOR">Doctor</option>
-            <option value="STAFF">Staff</option>
+            class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white min-w-[200px]">
+            <option value="">Todos los usuarios</option>
+            <option value="ADMIN">Administradores</option>
+            <option value="DOCTOR">Especialistas</option>
         </select>
     </div>
 
-    <!-- Users Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div *ngFor="let user of users()"
-            class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col gap-4 hover:shadow-md transition-all">
-            <div class="flex items-start justify-between">
-                <div class="flex items-center gap-4">
-                    <div
-                        class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold overflow-hidden">
-                        <img *ngIf="user.photoUrl" [src]="user.photoUrl" alt="" class="w-full h-full object-cover">
-                        <span *ngIf="!user.photoUrl">{{ user.fullName.charAt(0) }}</span>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-gray-900">{{ user.fullName }}</h3>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="{
-                                'bg-purple-100 text-purple-800': user.role === 'ADMIN',
-                                'bg-blue-100 text-blue-800': user.role === 'DOCTOR',
-                                'bg-gray-100 text-gray-800': user.role === 'STAFF'
-                              }">
-                            {{ user.role }}
+    <!-- Users Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Usuario
+                    </th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Rol
+                    </th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">CMP /
+                        Info</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado
+                    </th>
+                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <tr *ngFor="let user of filteredUsers()" class="hover:bg-gray-50 transition-colors group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm">
+                                {{ user.fullName.charAt(0) }}
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900 group-hover:text-primary transition-colors">{{
+                                    user.fullName }}</div>
+                                <div class="text-sm text-gray-500">{{ user.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-1 flex-wrap">
+                            <ng-container *ngFor="let role of user.roles">
+                                <span *ngIf="role !== 'STAFF'"
+                                    class="px-2.5 py-0.5 rounded-full text-xs font-medium border shadow-sm" [ngClass]="{
+                                    'bg-purple-50 text-purple-700 border-purple-100': role === 'ADMIN',
+                                    'bg-blue-50 text-blue-700 border-blue-100': role === 'DOCTOR'
+                                  }">
+                                    {{ role === 'DOCTOR' ? 'Especialista' : 'Administrador' }}
+                                </span>
+                            </ng-container>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div *ngIf="user.roles.includes('DOCTOR') && user.cmp"
+                            class="flex items-center gap-1.5 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded-lg w-fit">
+                            <lucide-icon [img]="Icons.BadgeCheck" class="w-4 h-4 text-blue-500"></lucide-icon>
+                            <span class="font-medium text-gray-700">{{ user.cmp }}</span>
+                        </div>
+                        <span *ngIf="!user.roles.includes('DOCTOR') || !user.cmp" class="text-gray-400 text-sm italic">
+                            -
                         </span>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button (click)="editUser(user)"
-                        class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                        <i-lucide name="pencil" class="w-4 h-4"></i-lucide>
-                    </button>
-                    <button (click)="confirmDelete(user)"
-                        class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <i-lucide name="trash-2" class="w-4 h-4"></i-lucide>
-                    </button>
-                </div>
-            </div>
-
-            <div class="space-y-2 text-sm text-gray-600">
-                <div class="flex items-center gap-2">
-                    <i-lucide name="mail" class="w-4 h-4 text-gray-400"></i-lucide>
-                    {{ user.email }}
-                </div>
-                <div *ngIf="user.role === 'DOCTOR' && user.cmp" class="flex items-center gap-2">
-                    <i-lucide name="badge-check" class="w-4 h-4 text-gray-400"></i-lucide>
-                    CMP: {{ user.cmp }}
-                </div>
-            </div>
-        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                            Activo
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button (click)="editUser(user)"
+                                class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                title="Editar">
+                                <lucide-icon [img]="Icons.Pencil" class="w-4 h-4"></lucide-icon>
+                            </button>
+                            <button (click)="confirmDelete(user)"
+                                class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                title="Eliminar">
+                                <lucide-icon [img]="Icons.Trash2" class="w-4 h-4"></lucide-icon>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
 <!-- Modal -->
-<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-    <div
-        class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h3 class="text-lg font-bold text-gray-900">
-                {{ isEditing ? 'Editar usuario' : 'Nuevo usuario' }}
-            </h3>
-            <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i-lucide name="x" class="w-5 h-5"></i-lucide>
+<div *ngIf="isModalOpen" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col max-h-[90vh]">
+        <!-- Modal Header -->
+        <div
+            class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl flex-shrink-0">
+            <h2 class="text-lg font-semibold text-gray-900">
+                {{ isEditing ? 'Editar Usuario' : 'Nuevo Usuario' }}
+            </h2>
+            <button (click)="closeModal()"
+                class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-all">
+                <lucide-icon [img]="Icons.X" class="w-5 h-5"></lucide-icon>
             </button>
         </div>
 
-        <div class="p-6 space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
-                <input type="text" [(ngModel)]="formData.fullName"
-                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+        <!-- Modal Body -->
+        <div class="p-6 space-y-5 overflow-y-auto">
+
+            <!-- Info Notice -->
+            <div class="bg-blue-50 text-blue-700 p-3 rounded-lg flex gap-3 text-sm items-start" *ngIf="!isEditing">
+                <lucide-icon [img]="Icons.ShieldCheck" class="w-5 h-5 flex-shrink-0 mt-0.5"></lucide-icon>
+                <div>
+                    <span class="font-bold block">Creando Administrador</span>
+                    Este usuario tendrá acceso completo al sistema. Para registrar doctores, usa el módulo de
+                    Especialistas.
+                </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" [(ngModel)]="formData.email"
-                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+            <!-- Full Name -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                <div class="relative">
+                    <input type="text" [(ngModel)]="formData.fullName" autocomplete="off"
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all pl-12"
+                        placeholder="Ej: Juan Pérez">
+                    <lucide-icon [img]="Icons.User"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></lucide-icon>
+                </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña {{ isEditing ? '(Opcional)' : ''
-                    }}</label>
-                <input type="password" [(ngModel)]="formData.password"
-                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+            <!-- Email -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <div class="relative">
+                    <input type="email" [(ngModel)]="formData.email" autocomplete="off"
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all pl-12"
+                        placeholder="correo@ejemplo.com">
+                    <lucide-icon [img]="Icons.Mail"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></lucide-icon>
+                </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
-                <select [(ngModel)]="formData.role"
-                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
-                    <option value="ADMIN">Administrador</option>
-                    <option value="DOCTOR">Doctor</option>
-                    <option value="STAFF">Staff</option>
-                </select>
+            <!-- Password -->
+            <div class="space-y-2" *ngIf="!isEditing">
+                <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+                <div class="relative">
+                    <input type="password" [(ngModel)]="formData.password" autocomplete="new-password"
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all pl-12"
+                        placeholder="••••••••">
+                    <lucide-icon [img]="Icons.Lock"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></lucide-icon>
+                </div>
             </div>
 
-            <div *ngIf="formData.role === 'DOCTOR'">
-                <label class="block text-sm font-medium text-gray-700 mb-1">CMP</label>
-                <input type="text" [(ngModel)]="formData.cmp"
-                    class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+            <!-- Roles (Hidden / Readonly for Admins) -->
+            <div class="hidden">
+                <!-- Hidden input to ensure role logic stays consistent if needed, but handled in controller -->
             </div>
+
         </div>
 
-        <div class="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl flex-shrink-0">
             <button (click)="closeModal()"
-                class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-200 rounded-xl transition-colors">
+                class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium">
                 Cancelar
             </button>
             <button (click)="saveUser()" [disabled]="!isValid()"
-                class="px-6 py-2 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed">
-                Guardar
+                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-primary/20">
+                {{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}
             </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="isDeleteModalOpen"
+    class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all">
+        <div class="p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
+                <lucide-icon [img]="Icons.Trash2" class="w-6 h-6"></lucide-icon>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">¿Eliminar Usuario?</h3>
+            <p class="text-gray-500 text-sm mb-6">
+                ¿Estás seguro que deseas eliminar a <strong>{{ userToDelete?.fullName }}</strong>? Esta acción no se
+                puede deshacer.
+            </p>
+            <div class="flex gap-3 justify-center">
+                <button (click)="cancelDelete()"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium">
+                    Cancelar
+                </button>
+                <button (click)="deleteUserConfirmed()"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-medium shadow-sm shadow-red-200">
+                    Eliminar
+                </button>
+            </div>
         </div>
     </div>
 </div>

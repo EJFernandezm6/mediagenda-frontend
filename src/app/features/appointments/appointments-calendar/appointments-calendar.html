@@ -14,7 +14,7 @@
                 <select [ngModel]="selectedSpecialtyId()" (ngModelChange)="selectedSpecialtyId.set($event)"
                     class="appearance-none bg-white border border-gray-300 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-3 pr-8 py-2.5 shadow-sm hover:border-gray-400 transition-colors cursor-pointer font-medium">
                     <option value="" disabled>Filtrar especialidad</option>
-                    <option *ngFor="let spec of specialties()" [value]="spec.id">{{ spec.name }}</option>
+                    <option *ngFor="let spec of specialties()" [value]="spec.specialtyId">{{ spec.name }}</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                     <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4 rotate-90"></lucide-icon>
@@ -351,7 +351,7 @@
                             (ngModelChange)="modalSpecialtyId.set($event); modalDoctorId.set('')"
                             class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none">
                             <option value="" disabled>Seleccionar especialidad</option>
-                            <option *ngFor="let s of specialties()" [value]="s.id">{{ s.name }}</option>
+                            <option *ngFor="let s of specialties()" [value]="s.specialtyId">{{ s.name }}</option>
                         </select>
                     </div>
 

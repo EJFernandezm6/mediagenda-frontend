@@ -37,6 +37,25 @@
                 Cerrar Sesión
             </a>
         </div>
+
+        <div class="p-4 border-t border-gray-100 bg-gray-50">
+            <div class="flex items-center gap-3">
+                <div class="flex-shrink-0">
+                    <img *ngIf="currentUser()?.photoUrl" [src]="currentUser()?.photoUrl"
+                        class="h-10 w-10 rounded-full bg-gray-300" alt="Profile">
+                    <lucide-icon *ngIf="!currentUser()?.photoUrl" [img]="icons.UserCircle"
+                        class="h-10 w-10 text-gray-400"></lucide-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">
+                        {{ currentUser()?.fullName || 'Usuario' }}
+                    </p>
+                    <p class="text-xs text-gray-500 truncate">
+                        {{ currentUser()?.roles?.[0] || 'Invitado' }}
+                    </p>
+                </div>
+            </div>
+        </div>
     </aside>
 
     <!-- Main Content -->

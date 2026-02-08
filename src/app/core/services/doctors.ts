@@ -2,6 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { User } from '../auth/auth.service';
+import { tap } from 'rxjs/operators';
 
 export interface Doctor extends User {
   // Extends User from Auth Service which has basics
@@ -38,23 +39,26 @@ export class DoctorsService {
   }
 
   addDoctor(doctor: any) {
-    const newDoc = { ...doctor, role: 'DOCTOR' };
-    this.http.post<Doctor>(this.apiUrl, newDoc).subscribe(created => {
-      this.doctors.update(list => [...list, created]);
-    });
+    // Ensure roles array is sent, and add a default password if missing (Backend likely requires it)
+    const newDoc = {
+      ...doctor,
+      roles: ['DOCTOR'],
+      password: doctor.password || '12345678' // Default password for doctors created here
+    };
+    return this.http.post<Doctor>(this.apiUrl, newDoc).pipe(
+      tap(() => this.refreshDoctors())
+    );
   }
 
   updateDoctor(id: string, updates: Partial<Doctor>) {
-    this.http.put<Doctor>(`${this.apiUrl}/${id}`, updates).subscribe(updated => {
-      this.doctors.update(list =>
-        list.map(d => d.id === id ? updated : d)
-      );
-    });
+    return this.http.put<Doctor>(`${this.apiUrl}/${id}`, updates).pipe(
+      tap(() => this.refreshDoctors())
+    );
   }
 
   deleteDoctor(id: string) {
-    this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
-      this.doctors.update(list => list.filter(d => d.id !== id));
-    });
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+      tap(() => this.refreshDoctors())
+    );
   }
 }

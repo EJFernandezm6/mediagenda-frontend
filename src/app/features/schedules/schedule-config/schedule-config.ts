@@ -89,7 +89,7 @@ export class ScheduleConfigComponent {
     const docId = this.selectedDoctorId();
     if (!docId) return [];
     const assocs = this.associationService.getSpecialtiesForDoctor(docId);
-    return assocs.map(a => this.specialtyService.specialties().find(s => s.id === a.specialtyId)).filter((s): s is NonNullable<typeof s> => !!s);
+    return assocs.map(a => this.specialtyService.specialties().find(s => s.specialtyId === a.specialtyId)).filter((s): s is NonNullable<typeof s> => !!s);
   }
 
   getDayName(day: number) {
@@ -102,7 +102,7 @@ export class ScheduleConfigComponent {
   }
 
   getSpecialtyName(id: string) {
-    return this.specialtyService.specialties().find(s => s.id === id)?.name || '';
+    return this.specialtyService.specialties().find(s => s.specialtyId === id)?.name || '';
   }
 
   // Auto-Update Day of Week from Date
@@ -193,7 +193,7 @@ export class ScheduleConfigComponent {
   openAddModal() {
     if (!this.selectedDoctorId()) return;
 
-    const specId = this.availableSpecialtiesForDoctor[0]?.id || '';
+    const specId = this.availableSpecialtiesForDoctor[0]?.specialtyId || '';
     const today = new Date().toISOString().split('T')[0];
 
     this.modalData = {

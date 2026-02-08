@@ -10,7 +10,8 @@ export interface User {
     email: string;
     photoUrl?: string; // Optional
     clinicId?: string; // Optional
-    role: 'ADMIN' | 'DOCTOR' | 'STAFF' | 'ESPECIALISTA'; // Aligned withbackend + frontend usage
+
+    roles: string[]; // Updated for Multi-Role
     cmp?: string; // Doctor specific
     phone?: string; // Contact info
     plan?: 'STANDARD' | 'PLUS' | 'PREMIUM'; // Backend might need to send this in extra fields
@@ -20,7 +21,7 @@ export interface User {
 interface AuthResponse {
     token: string;
     userId: string;
-    role: string;
+    roles: string[];
     name: string;
 }
 
@@ -45,7 +46,7 @@ export class AuthService {
                     id: response.userId,
                     fullName: response.name, // Backend response still sends "name" unless I update AuthResponse too. Check Backend.
                     email: credentials.email,
-                    role: response.role as any,
+                    roles: response.roles,
                     photoUrl: `https://ui-avatars.com/api/?name=${response.name}&background=0D8ABC&color=fff`, // Default for now
                     subscriptionStatus: 'ACTIVE' // Mocked for now until backend sends it
                 };

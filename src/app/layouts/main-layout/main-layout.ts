@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle } from 'lucide-angular';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -22,8 +23,12 @@ export class MainLayoutComponent {
     Settings,
     Shield,
     Menu,
-    X
+    X,
+    UserCircle
   };
+
+  private authService = inject(AuthService);
+  currentUser = this.authService.currentUser;
 
   isMobileMenuOpen = false;
 
@@ -39,7 +44,7 @@ export class MainLayoutComponent {
     { label: 'Asignaciones', icon: this.icons.Users, route: '/app/doctor-specialty' },
     { label: 'Especialidades', icon: this.icons.Award, route: '/app/specialties' },
     { label: 'Turnos de Atención', icon: this.icons.Clock, route: '/app/schedule-config' },
-    { label: 'Roles y Permisos', icon: this.icons.Shield, route: '/app/roles' },
+    { label: 'Usuarios', icon: this.icons.Shield, route: '/app/users' },
     { label: 'Configuración', icon: this.icons.Settings, route: '/app/configuration' }
   ];
 }

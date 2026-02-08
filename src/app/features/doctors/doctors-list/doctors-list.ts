@@ -22,6 +22,7 @@ export class DoctorsListComponent {
 
   // Modal State
   isModalOpen = false;
+  isSaving = false;
   editingId: string | null = null;
   form: any = { fullName: '', cmp: '', email: '', phone: '', active: true, photoUrl: '' };
 
@@ -48,6 +49,8 @@ export class DoctorsListComponent {
   }
 
   save() {
+    this.isSaving = true;
+
     // Generate avatar if name changed AND no photo is set/uploaded (or if it's the default ui-avatar)
     if (!this.form.photoUrl || this.form.photoUrl.includes('ui-avatars')) {
       // Only update default avatar if user hasn't uploaded a custom one (custom ones are base64 data:image...)
@@ -56,12 +59,21 @@ export class DoctorsListComponent {
       }
     }
 
-    if (this.editingId) {
-      this.service.updateDoctor(this.editingId, this.form);
-    } else {
-      this.service.addDoctor(this.form);
-    }
-    this.closeModal();
+    const request$ = this.editingId
+      ? this.service.updateDoctor(this.editingId, this.form)
+      : this.service.addDoctor(this.form);
+
+    request$.subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.closeModal();
+      },
+      error: (error) => {
+        console.error('Error saving doctor:', error);
+        this.isSaving = false;
+        alert('Ocurrió un error al guardar el médico. Por favor intente nuevamente.');
+      }
+    });
   }
 
   onFileSelected(event: any) {
@@ -77,7 +89,7 @@ export class DoctorsListComponent {
 
   delete(id: string) {
     if (confirm('¿Estás seguro de eliminar este médico?')) {
-      this.service.deleteDoctor(id);
+      this.service.deleteDoctor(id).subscribe();
     }
   }
 }

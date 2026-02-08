@@ -46,7 +46,8 @@ export class PatientsListComponent {
   }
 
   save() {
-    this.service.addPatient(this.form);
-    this.closeModal();
+    this.service.addPatient(this.form).subscribe(() => {
+      this.closeModal();
+    });
   }
 }

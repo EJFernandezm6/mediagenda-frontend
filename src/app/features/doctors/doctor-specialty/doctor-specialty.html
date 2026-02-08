@@ -37,7 +37,8 @@
             <select [ngModel]="filterSpecialtyId()" (ngModelChange)="filterSpecialtyId.set($event)"
                 class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
                 <option value="">Todas las especialidades</option>
-                <option *ngFor="let specialty of specialties()" [value]="specialty.id">{{ specialty.name }}</option>
+                <option *ngFor="let specialty of specialties()" [value]="specialty.specialtyId">{{ specialty.name }}
+                </option>
             </select>
         </div>
     </div>
@@ -144,7 +145,7 @@
                                 <select [(ngModel)]="selectedSpecialtyId" [disabled]="isEditMode()"
                                     class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border disabled:bg-gray-100 disabled:text-gray-500">
                                     <option value="" disabled selected>Seleccionar especialidad</option>
-                                    <option *ngFor="let specialty of specialties()" [value]="specialty.id">{{
+                                    <option *ngFor="let specialty of specialties()" [value]="specialty.specialtyId">{{
                                         specialty.name }}</option>
                                 </select>
                             </div>

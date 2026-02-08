@@ -68,7 +68,7 @@ export class AppointmentsCalendarComponent {
     effect(() => {
       const specs = this.specialties();
       if (specs.length > 0 && !this.selectedSpecialtyId()) {
-        this.selectedSpecialtyId.set(specs[0].id);
+        this.selectedSpecialtyId.set(specs[0].specialtyId);
       }
     }, { allowSignalWrites: true });
   }
@@ -345,7 +345,7 @@ export class AppointmentsCalendarComponent {
   }
 
   getSpecialtyName(id: string) {
-    return this.specialties().find(s => s.id === id)?.name || 'Desconocido';
+    return this.specialties().find(s => s.specialtyId === id)?.name || 'Desconocido';
   }
 
   getAppointmentColorClass(app: Appointment): string {

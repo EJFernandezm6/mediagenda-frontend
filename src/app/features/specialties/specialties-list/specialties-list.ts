@@ -33,7 +33,7 @@ export class SpecialtiesListComponent {
 
   openModal(specialty?: Specialty) {
     if (specialty) {
-      this.editingId = specialty.id;
+      this.editingId = specialty.specialtyId;
       this.form = { ...specialty };
     } else {
       this.editingId = null;
@@ -48,16 +48,20 @@ export class SpecialtiesListComponent {
 
   save() {
     if (this.editingId) {
-      this.service.updateSpecialty(this.editingId, this.form);
+      this.service.updateSpecialty(this.editingId, this.form).subscribe(() => {
+        this.closeModal();
+      });
     } else {
-      this.service.addSpecialty(this.form);
+      this.service.addSpecialty(this.form).subscribe(() => {
+        this.closeModal();
+      });
     }
-    this.closeModal();
   }
 
   delete(id: string) {
     if (confirm('¿Estás seguro de eliminar esta especialidad?')) {
-      this.service.deleteSpecialty(id);
+      this.service.deleteSpecialty(id).subscribe();
     }
   }
 }
+// Force rebuild Sat Feb  7 18:25:41 -05 2026

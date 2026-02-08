@@ -37,6 +37,6 @@ export class PatientDetailComponent implements OnInit {
   }
 
   getSpecialtyName(id: string) {
-    return this.specialtyService.specialties().find(s => s.id === id)?.name || 'General';
+    return this.specialtyService.specialties().find(s => s.specialtyId === id)?.name || 'General';
   }
 }

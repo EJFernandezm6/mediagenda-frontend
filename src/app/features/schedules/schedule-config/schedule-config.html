@@ -115,7 +115,8 @@
                                 <label class="block text-sm font-medium text-gray-700">Especialidad</label>
                                 <select [ngModel]="modalData.specialtyId" (ngModelChange)="onSpecialtyChange($event)"
                                     class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border">
-                                    <option *ngFor="let spec of availableSpecialtiesForDoctor" [value]="spec.id">{{
+                                    <option *ngFor="let spec of availableSpecialtiesForDoctor"
+                                        [value]="spec.specialtyId">{{
                                         spec.name }}</option>
                                 </select>
                             </div>

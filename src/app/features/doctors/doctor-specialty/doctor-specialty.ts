@@ -66,7 +66,7 @@ export class DoctorSpecialtyComponent {
   }
 
   getSpecialtyName(id: string) {
-    return this.specialties().find(s => s.id === id)?.name || 'Desconocida';
+    return this.specialties().find(s => s.specialtyId === id)?.name || 'Desconocida';
   }
 
   // Modal Actions
