@@ -16,6 +16,7 @@ export interface User {
     phone?: string; // Contact info
     plan?: 'STANDARD' | 'PLUS' | 'PREMIUM'; // Backend might need to send this in extra fields
     subscriptionStatus?: 'ACTIVE' | 'EXPIRED' | 'PENDING';
+    active?: boolean;
 }
 
 interface AuthResponse {

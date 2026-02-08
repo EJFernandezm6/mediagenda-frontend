@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck } from 'lucide-angular';
+import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power } from 'lucide-angular';
 import { UsersService, UserRequest } from '../../../core/services/users';
 import { AuthService, User as AuthUser } from '../../../core/auth/auth.service';
 
@@ -16,13 +16,14 @@ export class UsersListComponent {
     private usersService = inject(UsersService);
     private authService = inject(AuthService);
 
-    readonly Icons = { Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck };
+    readonly Icons = { Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power };
 
     users = this.usersService.users;
 
     // Filter Config
     searchTerm = signal('');
     selectedRole = signal(''); // Filter by a single role from dropdown
+    selectedStatus = signal(''); // Filter by active status
 
     // Modal Config
     isModalOpen = false;
@@ -35,7 +36,7 @@ export class UsersListComponent {
         email: '',
         password: '',
         roles: ['ADMIN'], // Default to ADMIN for new users in this module
-        cmp: '',
+        cmp: '', // Kept in model but hidden in UI as requested
         clinicId: ''
     };
 
@@ -45,6 +46,7 @@ export class UsersListComponent {
         let currentUsers = this.users();
         const term = this.searchTerm().toLowerCase();
         const role = this.selectedRole();
+        const status = this.selectedStatus();
 
         // 1. Filter by Search Term
         if (term) {
@@ -58,6 +60,12 @@ export class UsersListComponent {
         // 2. Filter by Role (if selected)
         if (role) {
             currentUsers = currentUsers.filter((u: AuthUser) => u.roles.includes(role));
+        }
+
+        // 3. Filter by Status (if selected)
+        if (status) {
+            const isActive = status === 'ACTIVE';
+            currentUsers = currentUsers.filter((u: AuthUser) => u.active === isActive);
         }
 
         return currentUsers;
@@ -74,6 +82,10 @@ export class UsersListComponent {
 
     filterByRole(role: string) {
         this.selectedRole.set(role);
+    }
+
+    filterByStatus(status: string) {
+        this.selectedStatus.set(status);
     }
 
     openModal() {
@@ -120,32 +132,31 @@ export class UsersListComponent {
         }
     }
 
-    // Delete Modal State
-    isDeleteModalOpen = false;
-    userToDelete: AuthUser | null = null;
+    toggleAdmin(user: AuthUser) {
+        if (!confirm(`¿Estás seguro de cambiar el rol de Administrador para ${user.fullName}?`)) return;
 
-    confirmDelete(user: AuthUser) {
-        this.userToDelete = user;
-        this.isDeleteModalOpen = true;
-    }
-
-    cancelDelete() {
-        this.isDeleteModalOpen = false;
-        this.userToDelete = null;
-    }
-
-    deleteUserConfirmed() {
-        if (!this.userToDelete) return;
-
-        this.usersService.deleteUser(this.userToDelete.id).subscribe({
+        this.usersService.toggleAdminRole(user.id).subscribe({
             next: () => {
-                this.cancelDelete();
-                // Success, list updates automatically via service tap
+                // Success
             },
             error: (err) => {
-                console.error('Error deleting user:', err);
-                alert('Error al eliminar el usuario. Por favor intente nuevamente.');
-                this.cancelDelete();
+                console.error('Error toggling admin role:', err);
+                alert('Error al cambiar el rol. Por favor intente nuevamente.');
+            }
+        });
+    }
+
+    toggleActive(user: AuthUser) {
+        const action = user.active ? 'desactivar' : 'activar';
+        if (!confirm(`¿Estás seguro de ${action} a ${user.fullName}?`)) return;
+
+        this.usersService.toggleUserActive(user.id).subscribe({
+            next: () => {
+                // Success
+            },
+            error: (err) => {
+                console.error('Error toggling active status:', err);
+                alert('Error al cambiar el estado. Por favor intente nuevamente.');
             }
         });
     }

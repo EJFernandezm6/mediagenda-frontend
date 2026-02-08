@@ -74,4 +74,16 @@ export class UsersService {
             tap(() => this.refreshUsers())
         );
     }
+
+    toggleAdminRole(id: string) {
+        return this.http.post<User>(`${this.apiUrl}/${id}/toggle-admin`, {}).pipe(
+            tap(() => this.refreshUsers())
+        );
+    }
+
+    toggleUserActive(id: string) {
+        return this.http.post<User>(`${this.apiUrl}/${id}/toggle-active`, {}).pipe(
+            tap(() => this.refreshUsers())
+        );
+    }
 }

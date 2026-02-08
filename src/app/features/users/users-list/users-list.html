@@ -19,9 +19,19 @@
             <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por nombre o email..."
                 class="w-full pl-12 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
         </div>
+
+        <!-- Status Filter -->
+        <select [ngModel]="selectedStatus()" (ngModelChange)="filterByStatus($event)"
+            class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white min-w-[150px]">
+            <option value="">Todos los estados</option>
+            <option value="ACTIVE">Activos</option>
+            <option value="INACTIVE">Inactivos</option>
+        </select>
+
+        <!-- Role Filter -->
         <select [ngModel]="selectedRole()" (ngModelChange)="filterByRole($event)"
             class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white min-w-[200px]">
-            <option value="">Todos los usuarios</option>
+            <option value="">Todos los roles</option>
             <option value="ADMIN">Administradores</option>
             <option value="DOCTOR">Especialistas</option>
         </select>
@@ -36,8 +46,7 @@
                     </th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Rol
                     </th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">CMP /
-                        Info</th>
+                    <!-- CMP Column Removed -->
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado
                     </th>
                     <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -72,35 +81,38 @@
                             </ng-container>
                         </div>
                     </td>
+                    <!-- CMP Cell Removed -->
                     <td class="px-6 py-4">
-                        <div *ngIf="user.roles.includes('DOCTOR') && user.cmp"
-                            class="flex items-center gap-1.5 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded-lg w-fit">
-                            <lucide-icon [img]="Icons.BadgeCheck" class="w-4 h-4 text-blue-500"></lucide-icon>
-                            <span class="font-medium text-gray-700">{{ user.cmp }}</span>
-                        </div>
-                        <span *ngIf="!user.roles.includes('DOCTOR') || !user.cmp" class="text-gray-400 text-sm italic">
-                            -
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span
+                        <span *ngIf="user.active"
                             class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                             <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                             Activo
                         </span>
+                        <span *ngIf="!user.active"
+                            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100">
+                            <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                            Inactivo
+                        </span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <!-- Actions always visible (removed opacity-0 group-hover:opacity-100) -->
+                        <div class="flex justify-end gap-2">
+                            <button (click)="toggleAdmin(user)" class="p-2 rounded-lg transition-all"
+                                [ngClass]="user.roles.includes('ADMIN') ? 'text-purple-600 bg-purple-50 hover:bg-purple-100' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'"
+                                title="Alternar Administrador">
+                                <lucide-icon [img]="Icons.Shield" class="w-4 h-4"></lucide-icon>
+                            </button>
+                            <button (click)="toggleActive(user)" class="p-2 rounded-lg transition-all"
+                                [ngClass]="user.active ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-red-500 bg-red-50 hover:bg-red-100'"
+                                [title]="user.active ? 'Desactivar Usuario' : 'Activar Usuario'">
+                                <lucide-icon [img]="Icons.Power" class="w-4 h-4"></lucide-icon>
+                            </button>
                             <button (click)="editUser(user)"
                                 class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                                 title="Editar">
                                 <lucide-icon [img]="Icons.Pencil" class="w-4 h-4"></lucide-icon>
                             </button>
-                            <button (click)="confirmDelete(user)"
-                                class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                title="Eliminar">
-                                <lucide-icon [img]="Icons.Trash2" class="w-4 h-4"></lucide-icon>
-                            </button>
+                            <!-- Delete Button <Removed> -->
                         </div>
                     </td>
                 </tr>
@@ -190,34 +202,6 @@
                 class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-primary/20">
                 {{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}
             </button>
-        </div>
-    </div>
-</div>
-
-
-<!-- Delete Confirmation Modal -->
-<div *ngIf="isDeleteModalOpen"
-    class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all">
-        <div class="p-6 text-center">
-            <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
-                <lucide-icon [img]="Icons.Trash2" class="w-6 h-6"></lucide-icon>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">¿Eliminar Usuario?</h3>
-            <p class="text-gray-500 text-sm mb-6">
-                ¿Estás seguro que deseas eliminar a <strong>{{ userToDelete?.fullName }}</strong>? Esta acción no se
-                puede deshacer.
-            </p>
-            <div class="flex gap-3 justify-center">
-                <button (click)="cancelDelete()"
-                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium">
-                    Cancelar
-                </button>
-                <button (click)="deleteUserConfirmed()"
-                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-medium shadow-sm shadow-red-200">
-                    Eliminar
-                </button>
-            </div>
         </div>
     </div>
 </div>
