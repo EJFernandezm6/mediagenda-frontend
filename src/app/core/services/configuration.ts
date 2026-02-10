@@ -26,6 +26,7 @@ export class ConfigurationService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/settings`;
 
+
   settings = signal<SystemSettings>({
     clinicName: 'MediAgenda Clinic',
     clinicAddress: 'Av. Larco 123, Miraflores',

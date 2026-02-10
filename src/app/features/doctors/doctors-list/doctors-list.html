@@ -50,10 +50,10 @@
                 <div>
                     <div class="-mt-px flex divide-x divide-gray-200">
                         <div class="flex w-0 flex-1">
-                            <a [href]="'tel:' + doctor.phone"
+                            <a [href]="'https://wa.me/' + doctor.phone" target="_blank"
                                 class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-4 text-sm font-semibold text-gray-900 hover:text-gray-600">
-                                <lucide-icon [img]="icons.Phone" class="h-5 w-5 text-gray-400"></lucide-icon>
-                                Llamar
+                                <lucide-icon [img]="icons.MessageCircle" class="h-5 w-5 text-gray-400"></lucide-icon>
+                                WhatsApp
                             </a>
                         </div>
                         <div class="-ml-px flex w-0 flex-1">
@@ -67,6 +67,9 @@
                     <div class="border-t border-gray-100 flex">
                         <button (click)="openModal(doctor)"
                             class="flex-1 py-3 text-sm text-blue-600 font-medium hover:bg-blue-50 transition-colors">Editar</button>
+                        <div class="w-px bg-gray-100"></div>
+                        <a [routerLink]="['/app/doctors', doctor.id]"
+                            class="flex-1 py-3 text-sm text-gray-600 font-medium hover:bg-gray-50 transition-colors text-center">Detalle</a>
                         <div class="w-px bg-gray-100"></div>
                         <button (click)="delete(doctor.id)"
                             class="flex-1 py-3 text-sm text-red-600 font-medium hover:bg-red-50 transition-colors">Eliminar</button>

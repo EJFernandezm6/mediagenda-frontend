@@ -1,13 +1,13 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 
 export interface Specialty {
   specialtyId: string;
   name: string;
   description: string;
-  active: boolean;
+  active: boolean; // Changed from isActive to match User/Doctor convention
 }
 
 @Injectable({
@@ -15,7 +15,8 @@ export interface Specialty {
 })
 export class SpecialtiesService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/specialties`;
+  private apiUrl = `${environment.apiUrl}/catalog/specialties`;
+
 
   specialties = signal<Specialty[]>([]);
 
@@ -24,7 +25,12 @@ export class SpecialtiesService {
   }
 
   refreshSpecialties() {
-    this.http.get<Specialty[]>(this.apiUrl).subscribe(data => {
+    this.http.get<any[]>(this.apiUrl).pipe(
+      map((data: any[]) => data.map((s: any) => ({
+        ...s,
+        active: s.isActive ?? s.active ?? false
+      }) as Specialty))
+    ).subscribe((data: Specialty[]) => {
       this.specialties.set(data);
     });
   }

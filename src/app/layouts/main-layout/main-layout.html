@@ -14,39 +14,61 @@
 
     <!-- Sidebar -->
     <aside [class.translate-x-0]="isMobileMenuOpen" [class.-translate-x-full]="!isMobileMenuOpen"
-        class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-30 transition-transform duration-300 ease-in-out md:translate-x-0 pt-16 md:pt-0 shadow-xl md:shadow-none">
+        [class.w-64]="!isSidebarCollapsed" [class.w-20]="isSidebarCollapsed"
+        class="bg-white border-r border-gray-200 flex flex-col fixed h-full z-30 transition-all duration-300 ease-in-out md:translate-x-0 pt-16 md:pt-0 shadow-xl md:shadow-none">
 
-        <div class="p-6 hidden md:flex items-center justify-center border-b border-gray-100 h-16">
-            <h1 class="text-2xl font-bold text-blue-600 tracking-tight">MediAgenda</h1>
+        <div class="hidden md:flex items-center border-b border-gray-100 transition-all duration-300 ease-in-out h-16"
+            [class.px-4]="!isSidebarCollapsed" [class.px-0]="isSidebarCollapsed"
+            [class.justify-between]="!isSidebarCollapsed" [class.justify-center]="isSidebarCollapsed"
+            [class.gap-2]="isSidebarCollapsed">
+
+            <div class="flex items-center gap-3 overflow-hidden transition-all duration-300"
+                [class.w-auto]="!isSidebarCollapsed" [class.w-auto]="isSidebarCollapsed"
+                [class.pl-2]="isSidebarCollapsed">
+                <lucide-icon [img]="icons.Stethoscope" class="w-8 h-8 text-blue-600 flex-shrink-0"></lucide-icon>
+                <div class="transition-all duration-300 ease-in-out overflow-hidden"
+                    [class.w-full]="!isSidebarCollapsed" [class.w-0]="isSidebarCollapsed"
+                    [class.opacity-100]="!isSidebarCollapsed" [class.opacity-0]="isSidebarCollapsed">
+                    <h1 class="text-xl font-bold text-blue-600 tracking-tight whitespace-nowrap">MediAgenda</h1>
+                </div>
+            </div>
+
+            <button (click)="toggleSidebar()"
+                class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
+                [title]="isSidebarCollapsed ? 'Expandir menú' : 'Contraer menú'">
+                <lucide-icon [img]="icons.Menu" class="w-5 h-5"></lucide-icon>
+            </button>
         </div>
 
-        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto overflow-x-hidden">
             <a *ngFor="let item of navItems" [routerLink]="item.route" (click)="isMobileMenuOpen = false"
-                routerLinkActive="bg-blue-50 text-blue-600"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors group">
+                [title]="isSidebarCollapsed ? item.label : ''" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors group whitespace-nowrap"
+                [class.justify-center]="isSidebarCollapsed">
                 <lucide-icon [img]="item.icon"
-                    class="w-5 h-5 group-hover:text-blue-600 transition-colors"></lucide-icon>
-                {{ item.label }}
+                    class="w-5 h-5 group-hover:text-blue-600 transition-colors flex-shrink-0"></lucide-icon>
+                <span *ngIf="!isSidebarCollapsed" class="transition-opacity duration-200">{{ item.label }}</span>
             </a>
         </nav>
 
-        <div class="p-4 border-t border-gray-100">
+        <div class="p-3 border-t border-gray-100">
             <a routerLink="/auth/login"
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors">
-                <lucide-icon [img]="icons.LogOut" class="w-5 h-5"></lucide-icon>
-                Cerrar Sesión
+                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap"
+                [class.justify-center]="isSidebarCollapsed" [title]="isSidebarCollapsed ? 'Cerrar Sesión' : ''">
+                <lucide-icon [img]="icons.LogOut" class="w-5 h-5 flex-shrink-0"></lucide-icon>
+                <span *ngIf="!isSidebarCollapsed">Cerrar Sesión</span>
             </a>
         </div>
 
-        <div class="p-4 border-t border-gray-100 bg-gray-50">
-            <div class="flex items-center gap-3">
+        <div class="p-4 border-t border-gray-100 bg-gray-50 overflow-hidden">
+            <div class="flex items-center gap-3" [class.justify-center]="isSidebarCollapsed">
                 <div class="flex-shrink-0">
                     <img *ngIf="currentUser()?.photoUrl" [src]="currentUser()?.photoUrl"
-                        class="h-10 w-10 rounded-full bg-gray-300" alt="Profile">
+                        class="h-10 w-10 rounded-full bg-gray-300 object-cover" alt="Profile">
                     <lucide-icon *ngIf="!currentUser()?.photoUrl" [img]="icons.UserCircle"
                         class="h-10 w-10 text-gray-400"></lucide-icon>
                 </div>
-                <div class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0" *ngIf="!isSidebarCollapsed">
                     <p class="text-sm font-medium text-gray-900 truncate">
                         {{ currentUser()?.fullName || 'Usuario' }}
                     </p>
@@ -59,7 +81,8 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 ml-0 md:ml-64 overflow-y-auto h-full pt-16 md:pt-0">
+    <main class="flex-1 ml-0 transition-all duration-300 ease-in-out md:ml-64 overflow-y-auto h-full pt-16 md:pt-0"
+        [class.md:ml-64]="!isSidebarCollapsed" [class.md:ml-20]="isSidebarCollapsed">
         <div class="p-4 sm:p-8 max-w-7xl mx-auto">
             <router-outlet></router-outlet>
         </div>

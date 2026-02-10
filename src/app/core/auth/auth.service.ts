@@ -8,6 +8,7 @@ export interface User {
     id: string; // UUID from backend
     fullName: string; // Updated to match Backend
     email: string;
+    roleId?: string; // Add roleId for update/create payloads
     photoUrl?: string; // Optional
     clinicId?: string; // Optional
 
@@ -32,7 +33,8 @@ interface AuthResponse {
 export class AuthService {
     private http = inject(HttpClient);
     private router = inject(Router);
-    private apiUrl = `${environment.apiUrl}/auth`;
+    private apiUrl = `${environment.apiUrl}/iam/auth`;
+
 
     currentUser = signal<User | null>(null);
 
@@ -41,19 +43,19 @@ export class AuthService {
     }
 
     login(credentials: { email: string, password: string }) {
-        return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
+        return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
             tap(response => {
                 const user: User = {
-                    id: response.userId,
-                    fullName: response.name, // Backend response still sends "name" unless I update AuthResponse too. Check Backend.
-                    email: credentials.email,
-                    roles: response.roles,
-                    photoUrl: `https://ui-avatars.com/api/?name=${response.name}&background=0D8ABC&color=fff`, // Default for now
-                    subscriptionStatus: 'ACTIVE' // Mocked for now until backend sends it
+                    id: response.userId, // Backend sends userId
+                    fullName: response.fullName || '', // Backend might send fullName or nothing (LoginResponse only has email)
+                    email: response.email,
+                    roles: [], // Backend sends roleId (UUID), frontend expects string[]. Initialize empty to avoid crash.
+                    photoUrl: `https://ui-avatars.com/api/?name=${response.email}&background=0D8ABC&color=fff`, // Default using email
+                    subscriptionStatus: 'ACTIVE' // Mocked
                 };
 
                 this.currentUser.set(user);
-                localStorage.setItem('token', response.token);
+                localStorage.setItem('token', response.accessToken); // Backend sends accessToken
                 localStorage.setItem('user', JSON.stringify(user));
 
                 // Navigate
@@ -61,6 +63,7 @@ export class AuthService {
             })
         );
     }
+
 
     logout() {
         this.currentUser.set(null);

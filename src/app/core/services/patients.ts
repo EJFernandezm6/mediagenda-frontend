@@ -34,6 +34,7 @@ export class PatientsService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/patients`;
 
+
   patients = signal<Patient[]>([]);
 
   constructor() {

@@ -211,15 +211,24 @@ export class ScheduleConfigComponent {
   saveSchedule() {
     const docId = this.selectedDoctorId();
     if (docId && this.modalData.specialtyId && this.modalData.endTime) {
-      this.scheduleService.addSchedule({
+      const payload = {
         doctorId: docId,
         specialtyId: this.modalData.specialtyId,
         dayOfWeek: this.modalData.dayOfWeek,
-        date: this.modalData.date, // Pass specific date
+        date: this.modalData.date,
         startTime: this.modalData.startTime,
         endTime: this.modalData.endTime
+      };
+
+      this.scheduleService.addSchedule(docId, [payload]).subscribe({
+        next: () => {
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error('Error saving schedule', err);
+          alert('Error al guardar el turno. Verifique los datos.');
+        }
       });
-      this.closeModal();
     }
   }
 
@@ -228,6 +237,8 @@ export class ScheduleConfigComponent {
   }
 
   remove(schedule: Schedule) {
-    this.scheduleService.removeSchedule(schedule);
+    if (confirm('¿Estás seguro de eliminar este turno?')) {
+      this.scheduleService.removeSchedule(schedule);
+    }
   }
 }

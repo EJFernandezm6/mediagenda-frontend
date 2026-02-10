@@ -14,14 +14,61 @@
     </div>
 
     <div class="mt-8 flow-root">
-        <!-- Search Bar -->
-        <div class="mb-4 relative max-w-sm">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <lucide-icon [img]="icons.Search" class="h-5 w-5 text-gray-400"></lucide-icon>
+        <!-- Controls Bar -->
+        <div class="mb-4 flex justify-between items-center">
+            <!-- Search Bar -->
+            <div class="relative max-w-sm flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <lucide-icon [img]="icons.Search" class="h-5 w-5 text-gray-400"></lucide-icon>
+                </div>
+                <input [(ngModel)]="searchTerm" type="text"
+                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Buscar por DNI o nombre...">
             </div>
-            <input [(ngModel)]="searchTerm" type="text"
-                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Buscar por DNI o nombre...">
+
+            <!-- Column Visibility Toggle -->
+            <div class="relative ml-4">
+                <button (click)="showColumnFilter = !showColumnFilter"
+                    class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                    <lucide-icon [img]="icons.Columns" class="w-4 h-4 text-gray-500"></lucide-icon>
+                    Columnas
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div *ngIf="showColumnFilter"
+                    class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div class="py-1 px-2">
+                        <label class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                            <input type="checkbox" [checked]="columns.name" (change)="toggleColumn('name')" class="mr-2 rounded text-blue-600 focus:ring-blue-500">
+                            Paciente
+                        </label>
+                        <label class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                            <input type="checkbox" [checked]="columns.email" (change)="toggleColumn('email')" class="mr-2 rounded text-blue-600 focus:ring-blue-500">
+                            Email
+                        </label>
+                        <label class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                            <input type="checkbox" [checked]="columns.dni" (change)="toggleColumn('dni')" class="mr-2 rounded text-blue-600 focus:ring-blue-500">
+                            DNI
+                        </label>
+                        <label class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                            <input type="checkbox" [checked]="columns.phone" (change)="toggleColumn('phone')" class="mr-2 rounded text-blue-600 focus:ring-blue-500">
+                            Teléfono
+                        </label>
+                        <label class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                            <input type="checkbox" [checked]="columns.age" (change)="toggleColumn('age')" class="mr-2 rounded text-blue-600 focus:ring-blue-500">
+                            Edad
+                        </label>
+                        <label class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                            <input type="checkbox" [checked]="columns.gender" (change)="toggleColumn('gender')" class="mr-2 rounded text-blue-600 focus:ring-blue-500">
+                            Género
+                        </label>
+                        <label class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                            <input type="checkbox" [checked]="columns.lastVisit" (change)="toggleColumn('lastVisit')" class="mr-2 rounded text-blue-600 focus:ring-blue-500">
+                            Última visita
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Table -->
@@ -29,52 +76,133 @@
             <table class="min-w-full divide-y divide-gray-300">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                        <th *ngIf="columns.name" scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                             Paciente</th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">DNI / contacto
-                        </th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Edad / género
-                        </th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Última visita
-                        </th>
-                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                        <th *ngIf="columns.email" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Email</th>
+                        <th *ngIf="columns.dni" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            DNI</th>
+                        <th *ngIf="columns.phone" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Teléfono</th>
+                        <th *ngIf="columns.age" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Edad</th>
+                        <th *ngIf="columns.gender" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Género</th>
+                        <th *ngIf="columns.lastVisit" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Última visita</th>
+                        <th *ngIf="columns.actions" scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                             <span class="sr-only">Acciones</span>
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                    <tr *ngFor="let patient of filteredPatients" class="hover:bg-gray-50">
-                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                <tbody *ngFor="let patient of filteredPatients" class="bg-white border-b border-gray-200">
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td *ngIf="columns.name" class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                             <div class="flex items-center">
                                 <div class="h-10 w-10 flex-shrink-0">
-                                    <span
-                                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                                        <span class="font-medium leading-none text-blue-700">{{
-                                            patient.fullName.charAt(0) }}</span>
+                                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                                        <span class="font-medium leading-none text-blue-700">{{ patient.fullName.charAt(0) }}</span>
                                     </span>
                                 </div>
                                 <div class="ml-4">
                                     <div class="font-medium text-gray-900">{{ patient.fullName }}</div>
-                                    <div class="text-gray-500">{{ patient.email }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <div class="text-gray-900">{{ patient.dni }}</div>
-                            <div class="text-gray-500">{{ patient.phone }}</div>
+                        <td *ngIf="columns.email" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {{ patient.email }}
                         </td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {{ patient.age }} años <span class="text-gray-300">|</span> {{ patient.gender }}
+                        <td *ngIf="columns.dni" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {{ patient.dni }}
                         </td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td *ngIf="columns.phone" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {{ patient.phone }}
+                        </td>
+                        <td *ngIf="columns.age" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {{ patient.age }} años
+                        </td>
+                        <td *ngIf="columns.gender" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {{ patient.gender }}
+                        </td>
+                        <td *ngIf="columns.lastVisit" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             {{ patient.lastVisit || 'N/A' }}
                         </td>
-                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <button (click)="viewHistory(patient.patientId)"
-                                class="text-blue-600 hover:text-blue-900 flex items-center justify-end gap-1 ml-auto">
-                                Historias
-                                <lucide-icon [img]="icons.FileText" class="w-4 h-4"></lucide-icon>
+                        <td *ngIf="columns.actions" class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            <button (click)="editPatient(patient)" class="text-blue-600 hover:text-blue-900 mr-4">
+                                <lucide-icon [img]="icons.Pencil" class="w-4 h-4"></lucide-icon>
                             </button>
+                            <button (click)="toggleHistory(patient.patientId)"
+                                class="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1">
+                                <lucide-icon [img]="expandedPatientId === patient.patientId ? icons.ChevronUp : icons.ChevronDown"
+                                    class="w-4 h-4"></lucide-icon>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Expanded Detail Row -->
+                    <tr *ngIf="expandedPatientId === patient.patientId" class="bg-gray-50">
+                        <td colspan="100%" class="px-4 py-4 sm:px-6"> 
+                            <!-- colspan 100% to span over all visible columns -->
+
+                            <div class="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-900/5">
+                                <h3 class="text-sm font-semibold leading-6 text-gray-900 mb-4 flex items-center gap-2">
+                                    <lucide-icon [img]="icons.FileText" class="w-4 h-4 text-blue-500"></lucide-icon>
+                                    Historial de visitas
+                                </h3>
+
+                                <div *ngIf="isLoadingHistory" class="text-center py-4">
+                                    <svg class="animate-spin h-5 w-5 text-blue-500 mx-auto"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                    <p class="text-xs text-gray-500 mt-2">Cargando historial...</p>
+                                </div>
+
+                                <div *ngIf="!isLoadingHistory && patientHistory.length === 0" class="text-center py-6">
+                                    <lucide-icon [img]="icons.Activity" class="mx-auto h-8 w-8 text-gray-300"></lucide-icon>
+                                    <p class="mt-2 text-sm text-gray-500">No hay consultas registradas.</p>
+                                </div>
+
+                                <div *ngIf="!isLoadingHistory && patientHistory.length > 0" class="overflow-x-auto mt-4">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="py-2 pl-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                                <th scope="col" class="py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Especialidad</th>
+                                                <th scope="col" class="py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                                                <th scope="col" class="py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnóstico</th>
+                                                <th scope="col" class="py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tratamiento</th>
+                                                <th scope="col" class="py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 bg-white">
+                                            <tr *ngFor="let record of patientHistory">
+                                                <td class="whitespace-nowrap py-2 pl-2 text-xs text-gray-900">
+                                                    {{ record.appointmentDate }}
+                                                </td>
+                                                <td class="whitespace-nowrap py-2 text-xs text-gray-900">
+                                                    {{ getSpecialtyName(record.specialtyId) }}
+                                                </td>
+                                                <td class="whitespace-nowrap py-2 text-xs text-gray-900">
+                                                    {{ getDoctorName(record.doctorId) }}
+                                                </td>
+                                                <td class="whitespace-nowrap py-2 text-xs text-gray-900 max-w-xs truncate" title="{{record.diagnosis}}">
+                                                    {{ record.diagnosis }}
+                                                </td>
+                                                <td class="whitespace-nowrap py-2 text-xs text-gray-900 max-w-xs truncate" title="{{record.treatment}}">
+                                                    {{ record.treatment }}
+                                                </td>
+                                                <td class="whitespace-nowrap py-2 text-xs text-gray-500 max-w-xs truncate" title="{{record.notes}}">
+                                                    {{ record.notes }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 </tbody>

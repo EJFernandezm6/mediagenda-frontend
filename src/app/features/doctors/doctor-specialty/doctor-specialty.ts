@@ -102,26 +102,25 @@ export class DoctorSpecialtyComponent {
       durationMinutes: this.duration
     };
 
-    if (this.isEditMode() && this.originalAssociation) {
-      this.associationService.updateAssociation(this.originalAssociation, association);
+    if (this.isEditMode() && this.originalAssociation?.doctorSpecialtyId) {
+      this.associationService.updateAssociation(this.originalAssociation.doctorSpecialtyId, association).subscribe(() => {
+        this.closeModal();
+      });
     } else {
-      // Check for duplicates before adding? The service handles array update, but we might want to prevent duplicates in UI or Service logic. 
-      // For now, assuming service allows adds (or we should check here).
-      // Simple check:
       const exists = this.associations().some(a => a.doctorId === association.doctorId && a.specialtyId === association.specialtyId);
       if (exists) {
-        alert('Esta asignación ya existe.'); // Simple alert for now
+        alert('Esta asignación ya existe.');
         return;
       }
-      this.associationService.addAssociation(association);
+      this.associationService.addAssociation(this.selectedDoctorId, association).subscribe(() => {
+        this.closeModal();
+      });
     }
-
-    this.closeModal();
   }
 
   delete(item: DoctorSpecialty) {
-    if (confirm(`¿Estás seguro de eliminar la asignación de ${this.getSpecialtyName(item.specialtyId)} a ${this.getDoctorName(item.doctorId)}?`)) {
-      this.associationService.removeAssociation(item.doctorId, item.specialtyId);
+    if (item.doctorSpecialtyId && confirm(`¿Estás seguro de eliminar la asignación de ${this.getSpecialtyName(item.specialtyId)} a ${this.getDoctorName(item.doctorId)}?`)) {
+      this.associationService.removeAssociation(item.doctorSpecialtyId).subscribe();
     }
   }
 

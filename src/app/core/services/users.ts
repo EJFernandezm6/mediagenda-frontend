@@ -21,7 +21,8 @@ export interface UserRequest {
 })
 export class UsersService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.apiUrl}/users`;
+    private apiUrl = `${environment.apiUrl}/iam/users`;
+
 
     users = signal<User[]>([]);
     private _currentRole = '';
@@ -43,9 +44,11 @@ export class UsersService {
             tap(data => console.log('Raw users data:', data)), // Debug log
             map(users => users.map(u => ({
                 ...u,
-                id: u.id || u.userId, // Handle potential userId field from backend
-                fullName: u.fullName || u.name // Handle potential name field
+                id: u.userId || u.id, // Backend sends 'userId'
+                fullName: u.fullName || u.name, // Handle potential name field
+                // Ensure other fields sort of match or at least don't break
             } as User)))
+
         ).subscribe({
             next: (data) => this.users.set(data),
             error: (err) => console.error('Error fetching users:', err)

@@ -27,6 +27,7 @@ export class AppointmentsService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/appointments`;
 
+
   appointments = signal<Appointment[]>([]);
 
   constructor() {

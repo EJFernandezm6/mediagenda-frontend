@@ -31,9 +31,14 @@ export class MainLayoutComponent {
   currentUser = this.authService.currentUser;
 
   isMobileMenuOpen = false;
+  isSidebarCollapsed = false;
 
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  toggleSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
   navItems = [
@@ -41,10 +46,11 @@ export class MainLayoutComponent {
     { label: 'Agenda Citas', icon: this.icons.Calendar, route: '/app/appointments' },
     { label: 'Pacientes', icon: this.icons.Users, route: '/app/patients' },
     { label: 'Especialistas', icon: this.icons.Stethoscope, route: '/app/doctors' },
-    { label: 'Asignaciones', icon: this.icons.Users, route: '/app/doctor-specialty' },
     { label: 'Especialidades', icon: this.icons.Award, route: '/app/specialties' },
+    { label: 'Asignaciones', icon: this.icons.Users, route: '/app/doctor-specialty' },
     { label: 'Turnos de Atención', icon: this.icons.Clock, route: '/app/schedule-config' },
-    { label: 'Usuarios', icon: this.icons.Shield, route: '/app/users' },
+    { label: 'Roles y Permisos', icon: this.icons.Shield, route: '/app/users' },
     { label: 'Configuración', icon: this.icons.Settings, route: '/app/configuration' }
   ];
+
 }

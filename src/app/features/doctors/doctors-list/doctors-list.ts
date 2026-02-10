@@ -1,13 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
-import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, Phone, Mail, FileBadge } from 'lucide-angular';
+import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-doctors-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule],
+  imports: [CommonModule, LucideAngularModule, FormsModule, RouterLink],
   templateUrl: './doctors-list.html',
   styleUrl: './doctors-list.css'
 })
@@ -15,7 +16,7 @@ export class DoctorsListComponent {
   private service = inject(DoctorsService);
 
   // Icons
-  readonly icons = { Plus, Pencil, Trash2, Search, Star, Phone, Mail, FileBadge };
+  readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge };
 
   doctors = this.service.doctors;
   searchTerm = '';
@@ -71,7 +72,11 @@ export class DoctorsListComponent {
       error: (error) => {
         console.error('Error saving doctor:', error);
         this.isSaving = false;
-        alert('Ocurrió un error al guardar el médico. Por favor intente nuevamente.');
+        if (error.status === 500) {
+          alert('Error interno. Es posible que el correo ya esté registrado o haya datos inválidos.');
+        } else {
+          alert('Ocurrió un error al guardar el médico. Por favor intente nuevamente.');
+        }
       }
     });
   }

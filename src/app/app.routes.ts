@@ -33,6 +33,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/doctors/doctors-list/doctors-list').then(m => m.DoctorsListComponent)
             },
             {
+                path: 'doctors/:id',
+                loadComponent: () => import('./features/doctors/doctor-detail/doctor-detail').then(m => m.DoctorDetailComponent)
+            },
+            {
                 path: 'doctor-specialty',
                 loadComponent: () => import('./features/doctors/doctor-specialty/doctor-specialty').then(m => m.DoctorSpecialtyComponent)
             },
@@ -51,10 +55,6 @@ export const routes: Routes = [
             {
                 path: 'appointments',
                 loadComponent: () => import('./features/appointments/appointments-calendar/appointments-calendar').then(m => m.AppointmentsCalendarComponent)
-            },
-            {
-                path: 'roles',
-                loadComponent: () => import('./features/roles/roles-manager/roles-manager').then(m => m.RolesManagerComponent)
             },
             {
                 path: 'users',
