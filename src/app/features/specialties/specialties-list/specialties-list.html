@@ -56,6 +56,11 @@
                                 </td>
                                 <td
                                     class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                    <button (click)="toggleActive(specialty)" class="p-2 rounded-lg transition-all mr-2"
+                                        [ngClass]="specialty.active ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-red-500 bg-red-50 hover:bg-red-100'"
+                                        [title]="specialty.active ? 'Desactivar' : 'Activar'">
+                                        <lucide-icon [img]="icons.Power" class="w-4 h-4"></lucide-icon>
+                                    </button>
                                     <button (click)="openModal(specialty)"
                                         class="text-blue-600 hover:text-blue-900 mr-4"><lucide-icon [img]="icons.Pencil"
                                             class="w-4 h-4"></lucide-icon></button>

@@ -57,7 +57,7 @@ export class DoctorsService {
             dni: user.dni || profile?.dni || '',
             rating: profile?.rating || 0,
             reviewsCount: profile?.reviewsCount || 0,
-            active: user.isActive ?? profile?.isActive ?? false // Prioritize User status which is the source of truth for login/access
+            active: user.active ?? profile?.isActive ?? false // Prioritize User status which is the source of truth for login/access
           } as Doctor;
         });
       })

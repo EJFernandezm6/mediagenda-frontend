@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power } from 'lucide-angular';
+import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power, Stethoscope } from 'lucide-angular';
 import { UsersService, UserRequest } from '../../../core/services/users';
 import { AuthService, User as AuthUser } from '../../../core/auth/auth.service';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
@@ -18,7 +18,7 @@ export class UsersListComponent {
     private authService = inject(AuthService);
     private confirmService = inject(ConfirmModalService);
 
-    readonly Icons = { Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power };
+    readonly Icons = { Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power, Stethoscope };
 
     users = this.usersService.users;
 
@@ -39,7 +39,8 @@ export class UsersListComponent {
         password: '',
         roles: ['ADMIN'], // Default to ADMIN for new users in this module
         cmp: '', // Kept in model but hidden in UI as requested
-        clinicId: ''
+        clinicId: '',
+        roleId: ''
     };
 
     currentUser = this.authService.currentUser;
@@ -61,7 +62,9 @@ export class UsersListComponent {
 
         // 2. Filter by Role (if selected)
         if (role) {
-            currentUsers = currentUsers.filter((u: AuthUser) => u.roles.includes(role));
+            currentUsers = currentUsers.filter((u: AuthUser) =>
+                u.roles.some(r => r.toUpperCase() === role.toUpperCase())
+            );
         }
 
         // 3. Filter by Status (if selected)
@@ -77,7 +80,11 @@ export class UsersListComponent {
     // We remove the toggle logic as we only create Admins here.
 
     hasRole(role: string): boolean {
-        return (this.formData.roles as string[]).includes(role);
+        return (this.formData.roles as string[]).some(r => r.toUpperCase() === role.toUpperCase());
+    }
+
+    hasRoleInUser(user: AuthUser, role: string): boolean {
+        return user.roles.some(r => r.toUpperCase() === role.toUpperCase());
     }
 
     constructor() { }
@@ -99,7 +106,8 @@ export class UsersListComponent {
             password: '',
             roles: ['ADMIN'], // Always ADMIN
             cmp: '',
-            clinicId: ''
+            clinicId: '',
+            roleId: ''
         };
         this.isModalOpen = true;
     }
@@ -113,7 +121,8 @@ export class UsersListComponent {
             password: '', // Don't fill password
             roles: [...user.roles], // Copy roles
             cmp: user.cmp || '',
-            clinicId: user.clinicId
+            clinicId: user.clinicId,
+            roleId: user.roleId
         };
         this.isModalOpen = true;
     }
@@ -124,12 +133,27 @@ export class UsersListComponent {
 
     saveUser() {
         if (this.isEditing && this.editingId) {
-            this.usersService.updateUser(this.editingId, this.formData).subscribe(() => {
-                this.closeModal();
+            // Clean payload for update (email is not editable)
+            const updatePayload = {
+                fullName: this.formData.fullName,
+                phone: this.formData.phone,
+                roleId: this.formData.roleId,
+                photoUrl: this.formData.photoUrl
+            };
+            this.usersService.updateUser(this.editingId, updatePayload).subscribe({
+                next: () => this.closeModal(),
+                error: (err) => {
+                    console.error('Error updating user:', err);
+                    alert('Error al actualizar usuario. Verifique los datos.');
+                }
             });
         } else {
-            this.usersService.addUser(this.formData).subscribe(() => {
-                this.closeModal();
+            this.usersService.addUser(this.formData).subscribe({
+                next: () => this.closeModal(),
+                error: (err) => {
+                    console.error('Error adding user:', err);
+                    alert('Error al crear usuario.');
+                }
             });
         }
     }
@@ -173,6 +197,33 @@ export class UsersListComponent {
             error: (err) => {
                 console.error('Error toggling active status:', err);
                 alert('Error al cambiar el estado. Por favor intente nuevamente.');
+            }
+        });
+    }
+
+    async toggleSpecialist(user: AuthUser) {
+        const isSpecialist = this.hasRoleInUser(user, 'DOCTOR');
+        const title = isSpecialist ? 'Quitar Rol de Especialista' : 'Asignar Rol de Especialista';
+        const message = isSpecialist
+            ? `¿Estás seguro de quitar el rol de Especialista a ${user.fullName}?`
+            : `¿Estás seguro de asignar el rol de Especialista a ${user.fullName}?`;
+
+        const confirmed = await this.confirmService.confirm({
+            title,
+            message,
+            confirmText: 'Confirmar',
+            cancelText: 'Cancelar'
+        });
+
+        if (!confirmed) return;
+
+        this.usersService.toggleSpecialistRole(user.id).subscribe({
+            next: () => {
+                // Success
+            },
+            error: (err) => {
+                console.error('Error toggling specialist role:', err);
+                alert('Error al cambiar el rol. Por favor intente nuevamente.');
             }
         });
     }

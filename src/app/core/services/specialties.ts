@@ -51,6 +51,12 @@ export class SpecialtiesService {
     );
   }
 
+  updateStatus(id: string, active: boolean) {
+    return this.http.patch<void>(`${this.apiUrl}/${id}/status`, { isActive: active }).pipe(
+      tap(() => this.refreshSpecialties())
+    );
+  }
+
   deleteSpecialty(id: string) {
     return this.http.delete(`${this.apiUrl}/${id}`).pipe(
       tap(() => this.refreshSpecialties())

@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpecialtiesService, Specialty } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
-import { LucideAngularModule, Plus, Pencil, Trash2, Search } from 'lucide-angular';
+import { LucideAngularModule, Plus, Pencil, Trash2, Search, Power } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -17,7 +17,7 @@ export class SpecialtiesListComponent {
   private confirmService = inject(ConfirmModalService);
 
   // Icons
-  readonly icons = { Plus, Pencil, Trash2, Search };
+  readonly icons = { Plus, Pencil, Trash2, Search, Power };
 
   specialties = this.service.specialties;
   searchTerm = '';
@@ -58,6 +58,10 @@ export class SpecialtiesListComponent {
         this.closeModal();
       });
     }
+  }
+
+  toggleActive(specialty: Specialty) {
+    this.service.updateStatus(specialty.specialtyId, !specialty.active).subscribe();
   }
 
   async delete(id: string) {

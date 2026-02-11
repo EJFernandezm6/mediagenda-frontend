@@ -14,6 +14,7 @@ export interface UserRequest {
     cmp?: string;
     photoUrl?: string;
     clinicId?: string;
+    roleId?: string;
 }
 
 @Injectable({
@@ -78,8 +79,14 @@ export class UsersService {
         );
     }
 
-    toggleAdminRole(id: string) {
-        return this.http.post<User>(`${this.apiUrl}/${id}/toggle-admin`, {}).pipe(
+    toggleAdminRole(userId: string) {
+        return this.http.post<void>(`${this.apiUrl}/${userId}/toggle-admin`, {}).pipe(
+            tap(() => this.refreshUsers())
+        );
+    }
+
+    toggleSpecialistRole(userId: string) {
+        return this.http.post<void>(`${this.apiUrl}/${userId}/toggle-specialist`, {}).pipe(
             tap(() => this.refreshUsers())
         );
     }

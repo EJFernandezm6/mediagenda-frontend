@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
-import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin } from 'lucide-angular';
+import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -18,7 +18,7 @@ export class DoctorsListComponent {
   private confirmService = inject(ConfirmModalService);
 
   // Icons
-  readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin };
+  readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power };
 
   doctors = this.service.doctors;
   searchTerm = '';
@@ -38,6 +38,19 @@ export class DoctorsListComponent {
 
   get isFormValid() {
     return this.form.fullName?.trim() && this.form.phone?.trim() && this.form.cmp?.trim() && this.form.dni?.trim();
+  }
+
+  isMissingData(doctor: Doctor) {
+    return !doctor.fullName?.trim() || !doctor.phone?.trim() || !doctor.cmp?.trim() || !doctor.dni?.trim();
+  }
+
+  getMissingFields(doctor: Doctor): string[] {
+    const fields = [];
+    if (!doctor.fullName?.trim()) fields.push('Nombre');
+    if (!doctor.phone?.trim()) fields.push('Teléfono');
+    if (!doctor.cmp?.trim()) fields.push('CMP');
+    if (!doctor.dni?.trim()) fields.push('DNI');
+    return fields;
   }
 
   openModal(doctor?: Doctor) {
@@ -85,6 +98,10 @@ export class DoctorsListComponent {
         }
       }
     });
+  }
+
+  toggleActive(doctor: Doctor) {
+    this.service.updateDoctor(doctor.id, { active: !doctor.active }).subscribe();
   }
 
   onFileSelected(event: any) {
