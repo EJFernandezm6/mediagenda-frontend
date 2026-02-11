@@ -1,6 +1,5 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://api.yourdomain.com/v1' // Generic base
-
+    apiUrl: 'https://mediagenda-api-dev.azurewebsites.net/v1' // Generic base
 
 };
