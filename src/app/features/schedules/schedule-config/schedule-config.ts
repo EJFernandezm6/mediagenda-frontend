@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SchedulesService, Schedule } from '../../../core/services/schedules';
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
+import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
 import { LucideAngularModule, Clock, Plus, Trash2 } from 'lucide-angular';
 
@@ -19,6 +20,7 @@ export class ScheduleConfigComponent {
   private doctorService = inject(DoctorsService);
   private specialtyService = inject(SpecialtiesService);
   private associationService = inject(DoctorSpecialtyService);
+  private confirmService = inject(ConfirmModalService);
 
   readonly icons = { Clock, Plus, Trash2 };
 
@@ -236,8 +238,15 @@ export class ScheduleConfigComponent {
     this.isModalOpen = false;
   }
 
-  remove(schedule: Schedule) {
-    if (confirm('¿Estás seguro de eliminar este turno?')) {
+  async remove(schedule: Schedule) {
+    const confirmed = await this.confirmService.confirm({
+      title: 'Eliminar Turno',
+      message: '¿Estás seguro de que deseas eliminar este turno de atención?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+
+    if (confirmed) {
       this.scheduleService.removeSchedule(schedule);
     }
   }

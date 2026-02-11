@@ -1,0 +1,4 @@
+/* Custom animations for the modal can go here if needed */
+:host {
+    display: block;
+}

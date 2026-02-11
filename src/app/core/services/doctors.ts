@@ -13,6 +13,8 @@ export interface Doctor extends User {
   doctorId?: string; // Specific ID for Catalog/Doctor profile
   userId?: string; // Redundant but kept for clarity
   cmp?: string;
+  // DNI: Mandatory for Specialists (Not yet implemented in DB/Backend)
+  dni?: string;
   rating?: number;
   reviewsCount?: number;
   active?: boolean;
@@ -52,6 +54,7 @@ export class DoctorsService {
             doctorId: profile?.doctorId, // Keep track of Doctor ID
             userId: user.userId || user.id,
             cmp: profile?.cmp || '',
+            dni: user.dni || profile?.dni || '',
             rating: profile?.rating || 0,
             reviewsCount: profile?.reviewsCount || 0,
             active: user.isActive ?? profile?.isActive ?? false // Prioritize User status which is the source of truth for login/access
@@ -82,6 +85,7 @@ export class DoctorsService {
           fullName: doctor.fullName,
           email: doctor.email,
           phone: doctor.phone,
+          dni: doctor.dni,
           password: doctor.password || '12345678', // Default password
           roleId: roleId,
           photoUrl: doctor.photoUrl
@@ -92,7 +96,8 @@ export class DoctorsService {
         // 3. Create Doctor Profile linked to User
         const newDoctorProfile = {
           userId: createdUser.userId || createdUser.id,
-          cmp: doctor.cmp
+          cmp: doctor.cmp,
+          dni: doctor.dni
         };
         return this.http.post<any>(this.doctorsUrl, newDoctorProfile);
       }),
@@ -133,8 +138,11 @@ export class DoctorsService {
     // We need the doctorId. If we don't have it in the updates object, we find it in the current doctors signal
     const doctorId = updates.doctorId || this.doctors().find(d => d.id === id)?.doctorId;
 
-    if (updates.cmp !== undefined && doctorId) {
-      profileUpdate$ = this.http.put(`${this.doctorsUrl}/${doctorId}`, { cmp: updates.cmp });
+    if ((updates.cmp !== undefined || updates.dni !== undefined) && doctorId) {
+      profileUpdate$ = this.http.put(`${this.doctorsUrl}/${doctorId}`, {
+        cmp: updates.cmp || this.doctors().find(d => d.id === id)?.cmp,
+        dni: updates.dni || this.doctors().find(d => d.id === id)?.dni
+      });
     }
 
     return forkJoin([userUpdate$, statusUpdate$, profileUpdate$]).pipe(

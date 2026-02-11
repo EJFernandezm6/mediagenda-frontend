@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power } from 'lucide-angular';
 import { UsersService, UserRequest } from '../../../core/services/users';
 import { AuthService, User as AuthUser } from '../../../core/auth/auth.service';
+import { ConfirmModalService } from '../../../core/services/confirm.service';
 
 @Component({
     selector: 'app-users-list',
@@ -15,6 +16,7 @@ import { AuthService, User as AuthUser } from '../../../core/auth/auth.service';
 export class UsersListComponent {
     private usersService = inject(UsersService);
     private authService = inject(AuthService);
+    private confirmService = inject(ConfirmModalService);
 
     readonly Icons = { Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power };
 
@@ -132,8 +134,15 @@ export class UsersListComponent {
         }
     }
 
-    toggleAdmin(user: AuthUser) {
-        if (!confirm(`¿Estás seguro de cambiar el rol de Administrador para ${user.fullName}?`)) return;
+    async toggleAdmin(user: AuthUser) {
+        const confirmed = await this.confirmService.confirm({
+            title: 'Cambiar Rol de Administrador',
+            message: `¿Estás seguro de cambiar el rol de Administrador para ${user.fullName}?`,
+            confirmText: 'Confirmar',
+            cancelText: 'Cancelar'
+        });
+
+        if (!confirmed) return;
 
         this.usersService.toggleAdminRole(user.id).subscribe({
             next: () => {
@@ -146,9 +155,16 @@ export class UsersListComponent {
         });
     }
 
-    toggleActive(user: AuthUser) {
+    async toggleActive(user: AuthUser) {
         const action = user.active ? 'desactivar' : 'activar';
-        if (!confirm(`¿Estás seguro de ${action} a ${user.fullName}?`)) return;
+        const confirmed = await this.confirmService.confirm({
+            title: `${action.charAt(0).toUpperCase() + action.slice(1)} Usuario`,
+            message: `¿Estás seguro de ${action} a ${user.fullName}?`,
+            confirmText: action.charAt(0).toUpperCase() + action.slice(1),
+            cancelText: 'Cancelar'
+        });
+
+        if (!confirmed) return;
 
         this.usersService.toggleUserActive(user.id).subscribe({
             next: () => {

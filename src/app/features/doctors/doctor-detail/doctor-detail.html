@@ -28,24 +28,43 @@
 
                     <!-- Basic Info -->
                     <div class="flex-1 space-y-4">
-                        <div>
-                            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">{{ doctor()?.fullName
-                                }}</h1>
-                            <p class="text-lg text-blue-600 font-medium mt-1 flex items-center">
+                        <div class="flex items-center gap-4">
+                            <h1 class="text-3xl md:text-4xl font-black text-gray-900 leading-tight">
+                                {{ doctor()?.fullName }}
+                            </h1>
+                            <span *ngIf="doctor()?.active"
+                                class="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-sm font-bold text-green-700 ring-1 ring-inset ring-green-600/20">
+                                Activo
+                            </span>
+                            <span *ngIf="!doctor()?.active"
+                                class="inline-flex items-center rounded-full bg-gray-50 px-3 py-1 text-sm font-bold text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                Inactivo
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mt-1">
+                            <p class="text-lg text-blue-600 font-semibold flex items-center">
                                 <lucide-icon [img]="icons.Award" class="w-5 h-5 mr-2"></lucide-icon>
                                 CMP: {{ doctor()?.cmp }}
                             </p>
+                            <p class="text-lg text-gray-500 font-semibold flex items-center">
+                                <lucide-icon [img]="icons.MapPin" class="w-5 h-5 mr-2"></lucide-icon>
+                                DNI: {{ doctor()?.dni }}
+                            </p>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-50">
-                            <div class="flex items-center text-gray-600">
-                                <lucide-icon [img]="icons.Mail" class="w-5 h-5 mr-3 text-gray-400"></lucide-icon>
-                                {{ doctor()?.email }}
-                            </div>
-                            <div class="flex items-center text-gray-600">
-                                <lucide-icon [img]="icons.Phone" class="w-5 h-5 mr-3 text-gray-400"></lucide-icon>
-                                {{ doctor()?.phone }}
-                            </div>
+                        <div class="flex flex-wrap gap-x-8 gap-y-4 pt-6 mt-2 border-t border-gray-100">
+                            <a [href]="'mailto:' + doctor()?.email"
+                                class="flex items-center text-gray-600 hover:text-blue-600 transition-colors group">
+                                <lucide-icon [img]="icons.Mail"
+                                    class="w-5 h-5 mr-3 text-gray-400 group-hover:text-blue-500"></lucide-icon>
+                                <span class="font-medium">{{ doctor()?.email }}</span>
+                            </a>
+                            <a [href]="'https://wa.me/' + doctor()?.phone" target="_blank"
+                                class="flex items-center text-gray-600 hover:text-green-600 transition-colors group">
+                                <lucide-icon [img]="icons.Phone"
+                                    class="w-5 h-5 mr-3 text-gray-400 group-hover:text-green-500"></lucide-icon>
+                                <span class="font-medium">{{ doctor()?.phone }}</span>
+                            </a>
                         </div>
                     </div>
 
@@ -156,4 +175,3 @@
             </div>
         </div>
     </div>
-</div>

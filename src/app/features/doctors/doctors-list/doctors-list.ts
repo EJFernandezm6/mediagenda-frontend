@@ -2,7 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
-import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge } from 'lucide-angular';
+import { ConfirmModalService } from '../../../core/services/confirm.service';
+import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -14,9 +15,10 @@ import { FormsModule } from '@angular/forms';
 })
 export class DoctorsListComponent {
   private service = inject(DoctorsService);
+  private confirmService = inject(ConfirmModalService);
 
   // Icons
-  readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge };
+  readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin };
 
   doctors = this.service.doctors;
   searchTerm = '';
@@ -25,7 +27,7 @@ export class DoctorsListComponent {
   isModalOpen = false;
   isSaving = false;
   editingId: string | null = null;
-  form: any = { fullName: '', cmp: '', email: '', phone: '', active: true, photoUrl: '' };
+  form: any = { fullName: '', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: '' };
 
   get filteredDoctors() {
     return this.doctors().filter(d =>
@@ -34,13 +36,17 @@ export class DoctorsListComponent {
     );
   }
 
+  get isFormValid() {
+    return this.form.fullName?.trim() && this.form.phone?.trim() && this.form.cmp?.trim() && this.form.dni?.trim();
+  }
+
   openModal(doctor?: Doctor) {
     if (doctor) {
       this.editingId = doctor.id;
       this.form = { ...doctor };
     } else {
       this.editingId = null;
-      this.form = { fullName: '', cmp: '', email: '', phone: '', active: true, photoUrl: 'https://ui-avatars.com/api/?background=random' };
+      this.form = { fullName: '', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: 'https://ui-avatars.com/api/?background=random' };
     }
     this.isModalOpen = true;
   }
@@ -92,8 +98,15 @@ export class DoctorsListComponent {
     }
   }
 
-  delete(id: string) {
-    if (confirm('¿Estás seguro de eliminar este médico?')) {
+  async delete(id: string) {
+    const confirmed = await this.confirmService.confirm({
+      title: 'Eliminar Especialista',
+      message: '¿Estás seguro de que deseas eliminar permanentemente a este médico? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+
+    if (confirmed) {
       this.service.deleteDoctor(id).subscribe();
     }
   }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DoctorSpecialtyService, DoctorSpecialty } from './doctor-specialty.service';
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
+import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { LucideAngularModule, Plus, Trash2, Edit, Search, X, Filter } from 'lucide-angular';
 
 @Component({
@@ -17,6 +18,7 @@ export class DoctorSpecialtyComponent {
   private associationService = inject(DoctorSpecialtyService);
   private doctorService = inject(DoctorsService);
   private specialtyService = inject(SpecialtiesService);
+  private confirmService = inject(ConfirmModalService);
 
   readonly icons = { Plus, Trash2, Edit, Search, X, Filter };
 
@@ -118,8 +120,17 @@ export class DoctorSpecialtyComponent {
     }
   }
 
-  delete(item: DoctorSpecialty) {
-    if (item.doctorSpecialtyId && confirm(`¿Estás seguro de eliminar la asignación de ${this.getSpecialtyName(item.specialtyId)} a ${this.getDoctorName(item.doctorId)}?`)) {
+  async delete(item: DoctorSpecialty) {
+    if (!item.doctorSpecialtyId) return;
+
+    const confirmed = await this.confirmService.confirm({
+      title: 'Eliminar Asignación',
+      message: `¿Estás seguro de eliminar la asignación de ${this.getSpecialtyName(item.specialtyId)} a ${this.getDoctorName(item.doctorId)}?`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+
+    if (confirmed) {
       this.associationService.removeAssociation(item.doctorSpecialtyId).subscribe();
     }
   }

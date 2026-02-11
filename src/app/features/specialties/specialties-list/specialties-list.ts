@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpecialtiesService, Specialty } from '../../../core/services/specialties';
+import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { LucideAngularModule, Plus, Pencil, Trash2, Search } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 
@@ -13,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class SpecialtiesListComponent {
   private service = inject(SpecialtiesService);
+  private confirmService = inject(ConfirmModalService);
 
   // Icons
   readonly icons = { Plus, Pencil, Trash2, Search };
@@ -58,8 +60,15 @@ export class SpecialtiesListComponent {
     }
   }
 
-  delete(id: string) {
-    if (confirm('¿Estás seguro de eliminar esta especialidad?')) {
+  async delete(id: string) {
+    const confirmed = await this.confirmService.confirm({
+      title: 'Eliminar Especialidad',
+      message: '¿Estás seguro de que deseas eliminar esta especialidad?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+
+    if (confirmed) {
       this.service.deleteSpecialty(id).subscribe();
     }
   }
