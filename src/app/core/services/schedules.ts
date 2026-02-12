@@ -27,12 +27,12 @@ export class SchedulesService {
   }
 
   refreshSchedules(filters?: { doctorId?: string, specialtyId?: string }) {
-    if (!filters?.doctorId) {
-      console.warn('Need a doctorId to fetch schedules');
-      return;
+    let url = `${this.apiUrl}/schedules`;
+    if (filters?.doctorId) {
+      url = `${this.apiUrl}/doctors/${filters.doctorId}/schedules`;
     }
 
-    this.http.get<Schedule[]>(`${this.apiUrl}/doctors/${filters.doctorId}/schedules`).subscribe(data => {
+    this.http.get<Schedule[]>(url).subscribe(data => {
       this.schedules.set(data);
     });
   }
@@ -47,12 +47,10 @@ export class SchedulesService {
     );
   }
 
-  removeSchedule(schedule: Schedule) {
-    if (!schedule.id || !schedule.doctorId) return;
-
-    this.http.delete(`${this.apiUrl}/schedules/${schedule.id}`).subscribe(() => {
-      this.refreshSchedules({ doctorId: schedule.doctorId });
-    });
+  removeSchedule(scheduleId: string, doctorId: string) {
+    return this.http.delete(`${this.apiUrl}/schedules/${scheduleId}`).pipe(
+      tap(() => this.refreshSchedules({ doctorId }))
+    );
   }
 
   getSchedulesForDoctor(doctorId: string, specialtyId: string) {

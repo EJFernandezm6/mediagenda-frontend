@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Users, CalendarCheck, FileX, DollarSign, Activity } from 'lucide-angular';
-// import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, NgxChartsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -38,7 +38,25 @@ export class DashboardComponent {
   ];
 
   // Chart Config
+  view: [number, number] = [500, 300]; // Default view dimensions
+  showXAxis = true;
+  showYAxis = true;
+  gradient = false;
+  showLegend = true;
+  showXAxisLabel = true;
+  xAxisLabel = 'Especialidad';
+  showYAxisLabel = true;
+  yAxisLabel = 'Visitas';
+
   colorScheme: any = {
     domain: ['#10B981', '#F59E0B', '#3B82F6', '#6366F1', '#8B5CF6']
   };
+
+  pieColorScheme: any = {
+    domain: ['#10B981', '#F59E0B', '#EF4444'] // Green, Orange, Red-ish for statuses
+  };
+
+  onSelect(event: any) {
+    console.log(event);
+  }
 }

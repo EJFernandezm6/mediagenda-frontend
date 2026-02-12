@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DoctorSpecialtyService, DoctorSpecialty } from './doctor-specialty.service';
 import { DoctorsService } from '../../../core/services/doctors';
 import { DoctorSelectorComponent } from '../../../shared/components/doctor-selector/doctor-selector';
+import { SpecialtySelectorComponent } from '../../../shared/components/specialty-selector/specialty-selector';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { LucideAngularModule, Plus, Trash2, Edit, Search, X, Filter } from 'lucide-angular';
@@ -11,7 +12,7 @@ import { LucideAngularModule, Plus, Trash2, Edit, Search, X, Filter } from 'luci
 @Component({
   selector: 'app-doctor-specialty',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent, SpecialtySelectorComponent],
   templateUrl: './doctor-specialty.html',
   styleUrl: './doctor-specialty.css'
 })
@@ -76,10 +77,22 @@ export class DoctorSpecialtyComponent {
       const matchesSpecialty = !specFilter || item.specialtyId === specFilter;
 
       return matchesSearch && matchesDoctor && matchesSpecialty;
+    }).sort((a, b) => {
+      const specA = this.getSpecialtyName(a.specialtyId).toLowerCase();
+      const specB = this.getSpecialtyName(b.specialtyId).toLowerCase();
+
+      if (specA < specB) return -1;
+      if (specA > specB) return 1;
+
+      // Secondary sort by Doctor Name
+      const docA = this.getDoctorName(a.doctorId).toLowerCase();
+      const docB = this.getDoctorName(b.doctorId).toLowerCase();
+      return docA.localeCompare(docB);
     });
   });
 
   @ViewChild(DoctorSelectorComponent) doctorSelector!: DoctorSelectorComponent;
+  @ViewChild(SpecialtySelectorComponent) specialtySelector!: SpecialtySelectorComponent;
 
   getDoctorName(id: string) {
     // The id passed here is likely the Doctor Profile ID (from association.doctorId)
@@ -102,7 +115,8 @@ export class DoctorSpecialtyComponent {
   openAddModal() {
     this.isEditMode.set(false);
     this.resetForm();
-    this.doctorSelector?.clear(); // Use component method
+    this.doctorSelector?.clear();
+    this.specialtySelector?.clear();
     this.isModalOpen.set(true);
   }
 
@@ -120,6 +134,7 @@ export class DoctorSpecialtyComponent {
     // Use timeout to ensure modal content (and component) is rendered if using *ngIf inside modal
     setTimeout(() => {
       this.doctorSelector?.setValue(item.doctorId);
+      this.specialtySelector?.setValue(item.specialtyId);
     });
   }
 

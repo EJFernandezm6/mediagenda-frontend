@@ -5,6 +5,7 @@
         <div>
             <h1 class="text-xl font-bold text-gray-900">Agenda de citas</h1>
             <p class="text-sm text-gray-500">Gestiona los turnos y citas médicas globales.</p>
+
         </div>
 
         <!-- Action & Navigation -->
@@ -13,7 +14,7 @@
             <div class="relative">
                 <select [ngModel]="selectedSpecialtyId()" (ngModelChange)="selectedSpecialtyId.set($event)"
                     class="appearance-none bg-white border border-gray-300 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-3 pr-8 py-2.5 shadow-sm hover:border-gray-400 transition-colors cursor-pointer font-medium">
-                    <option value="" disabled>Filtrar especialidad</option>
+                    <option value="">Todas las especialidades</option>
                     <option *ngFor="let spec of specialties()" [value]="spec.specialtyId">{{ spec.name }}</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
@@ -101,8 +102,8 @@
 
             <!-- Time Slots Body -->
             <div class="relative">
-                <div *ngFor="let time of this.timeSlots"
-                    class="grid border-b border-gray-100 last:border-b-0 min-h-[5rem]"
+                <div *ngFor="let time of timeSlots()"
+                    class="grid border-b border-gray-100 last:border-b-0 min-h-[3.5rem]"
                     [class]="(viewMode() === 'week' ? 'grid-cols-8' : 'grid-cols-[auto_1fr]') + (isBreakTime(time) ? ' bg-gray-100' : '')">
 
                     <!-- Time Label -->
@@ -114,7 +115,7 @@
                     <!-- Week View Columns -->
                     <ng-container *ngIf="viewMode() === 'week'">
                         <div *ngFor="let day of weekDays(); let i = index"
-                            [class]="(!isWorkingDay(i) ? 'bg-gray-100/50 ' : '') + 'border-r border-gray-100 last:border-r-0 relative p-1 min-h-[80px]'">
+                            [class]="(!isWorkingDay(i) || isPastDate(day.iso) ? 'bg-gray-100/70 ' : '') + 'border-r border-gray-100 last:border-r-0 relative p-1 min-h-[3.5rem]'">
 
                             <!-- Logic to determine slot content -->
                             <ng-container *ngIf="getSlotStatus(day.iso, time, i) as items">
@@ -129,14 +130,16 @@
 
                                         <!-- Available Card -->
                                         <button *ngIf="item.type === 'available'"
-                                            (click)="openBookingModal(day.iso, time)"
-                                            [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center' : 'w-full min-h-[40px] p-1'"
-                                            class="rounded bg-blue-50 border border-blue-200 border-dashed hover:bg-blue-100 hover:border-solid hover:shadow-md transition-all group flex flex-col justify-center items-center gap-0.5 cursor-pointer relative">
+                                            (click)="!item.isPast && openBookingModal(day.iso, time)"
+                                            [disabled]="item.isPast"
+                                            [ngClass]="(items.length >= 3 ? 'w-8 h-8 p-0 justify-center ' : 'w-full min-h-[30px] p-0.5 ') + 
+                                                       (item.isPast ? 'opacity-100 cursor-not-allowed bg-gray-200 border-gray-300 border-dashed text-gray-500' : 'cursor-pointer hover:bg-blue-100 hover:border-solid hover:shadow-md bg-blue-50 border-blue-200 border-dashed')"
+                                            class="rounded border transition-all group flex flex-col justify-center items-center gap-0.5 relative">
 
                                             <!-- Normal View -->
                                             <ng-container *ngIf="items.length < 3">
                                                 <span
-                                                    class="text-[9px] font-medium text-blue-600 truncate w-full text-center">{{
+                                                    [class]="item.isPast ? 'text-[9px] font-medium truncate w-full text-center' : 'text-[9px] font-medium text-blue-600 truncate w-full text-center'">{{
                                                     item.doctorName }}</span>
                                                 <span
                                                     class="text-[9px] text-blue-500 opacity-80 truncate w-full text-center pb-0.5">{{

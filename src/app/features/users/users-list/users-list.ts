@@ -5,6 +5,7 @@ import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X,
 import { UsersService, UserRequest } from '../../../core/services/users';
 import { AuthService, User as AuthUser } from '../../../core/auth/auth.service';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
+import { DoctorsService } from '../../../core/services/doctors';
 
 @Component({
     selector: 'app-users-list',
@@ -17,6 +18,7 @@ export class UsersListComponent {
     private usersService = inject(UsersService);
     private authService = inject(AuthService);
     private confirmService = inject(ConfirmModalService);
+    private doctorsService = inject(DoctorsService);
 
     readonly Icons = { Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power, Stethoscope };
 
@@ -223,11 +225,22 @@ export class UsersListComponent {
 
         if (!confirmed) return;
 
-        this.usersService.toggleUserActive(user.id).subscribe({
+        const isDoctor = this.hasRoleInUser(user, 'DOCTOR');
+        const newStatus = !user.active; // Toggle current status
+
+        // If is Doctor, use DoctorsService which updates BOTH User and Doctor Profile
+        // If not, use generic UsersService
+        const update$ = isDoctor
+            ? this.doctorsService.updateDoctor(user.id, { active: newStatus })
+            : this.usersService.toggleUserActive(user.id);
+
+        (update$ as any).subscribe({
             next: () => {
                 // Success
+                // Refresh users to reflect changes (DoctorsService handles its own refresh but UsersService needs trigger)
+                if (!isDoctor) this.usersService.refreshUsers();
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error toggling active status:', err);
                 alert('Error al cambiar el estado. Por favor intente nuevamente.');
             }

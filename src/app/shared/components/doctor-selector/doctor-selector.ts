@@ -66,10 +66,7 @@ export class DoctorSelectorComponent {
     onSearchChange(text: string) {
         this.searchText.set(text);
         this.isOpen.set(true);
-        if (!text) {
-            this.selectedDoctorId.set('');
-            this.selectionChanged.emit('');
-        }
+        // Do NOT clear selectedDoctorId here to persist selection
     }
 
     selectDoctor(doctor: any) {

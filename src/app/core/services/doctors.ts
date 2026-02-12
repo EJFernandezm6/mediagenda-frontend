@@ -129,24 +129,46 @@ export class DoctorsService {
     delete userUpdates.doctorId; // DoctorID is not in User entity
 
     // 1. Update User Basic Info
+    // If userUpdates is empty (e.g. only active status changed), we must still send required fields like fullName
+    // or the backend validation will fail.
+    const currentDoctor = this.doctors().find(d => d.id === id);
+    if (currentDoctor) {
+      if (!userUpdates.fullName) userUpdates.fullName = currentDoctor.fullName;
+      if (!userUpdates.email && !userUpdates.email) userUpdates.email = currentDoctor.email; // Email usually read-only but if needed
+      if (!userUpdates.phone) userUpdates.phone = currentDoctor.phone;
+    }
+
     const userUpdate$ = this.http.put<any>(`${this.apiUrl}/${id}`, userUpdates);
 
-    // 2. Update Status if changed
+    // 2. Update Status if changed (IAM User)
     let statusUpdate$ = new Observable(obs => { obs.next(null); obs.complete(); });
     if (updates.active !== undefined) {
       statusUpdate$ = this.http.patch(`${this.apiUrl}/${id}/status`, { isActive: updates.active });
     }
 
-    // 3. Update Doctor Profile (CMP) if changed
+    // 3. Update Doctor Profile (CMP/Status) if changed
     let profileUpdate$ = new Observable(obs => { obs.next(null); obs.complete(); });
-    // We need the doctorId. If we don't have it in the updates object, we find it in the current doctors signal
     const doctorId = updates.doctorId || this.doctors().find(d => d.id === id)?.doctorId;
 
-    if ((updates.cmp !== undefined || updates.dni !== undefined) && doctorId) {
-      profileUpdate$ = this.http.put(`${this.doctorsUrl}/${doctorId}`, {
-        cmp: updates.cmp || this.doctors().find(d => d.id === id)?.cmp,
-        dni: updates.dni || this.doctors().find(d => d.id === id)?.dni
-      });
+    if (doctorId) {
+      const tasks: Observable<any>[] = [];
+
+      // Update CMP/DNI
+      if (updates.cmp !== undefined || updates.dni !== undefined) {
+        tasks.push(this.http.put(`${this.doctorsUrl}/${doctorId}`, {
+          cmp: updates.cmp || this.doctors().find(d => d.id === id)?.cmp,
+          dni: updates.dni || this.doctors().find(d => d.id === id)?.dni
+        }));
+      }
+
+      // Update Doctor Profile Status
+      if (updates.active !== undefined) {
+        tasks.push(this.http.patch(`${this.doctorsUrl}/${doctorId}/status`, { isActive: updates.active }));
+      }
+
+      if (tasks.length > 0) {
+        profileUpdate$ = forkJoin(tasks);
+      }
     }
 
     return forkJoin([userUpdate$, statusUpdate$, profileUpdate$]).pipe(

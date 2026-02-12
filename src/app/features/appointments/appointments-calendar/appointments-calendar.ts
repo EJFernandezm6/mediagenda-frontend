@@ -18,13 +18,13 @@ import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, 
   styleUrl: './appointments-calendar.css'
 })
 export class AppointmentsCalendarComponent {
-  private appointmentsService = inject(AppointmentsService);
-  private doctorService = inject(DoctorsService);
-  private specialtyService = inject(SpecialtiesService);
-  private scheduleService = inject(SchedulesService);
-  private patientsService = inject(PatientsService);
-  private doctorSpecialtyService = inject(DoctorSpecialtyService);
-  private configService = inject(ConfigurationService);
+  protected appointmentsService = inject(AppointmentsService);
+  protected doctorService = inject(DoctorsService);
+  protected specialtyService = inject(SpecialtiesService);
+  protected scheduleService = inject(SchedulesService);
+  protected patientsService = inject(PatientsService);
+  protected doctorSpecialtyService = inject(DoctorSpecialtyService);
+  protected configService = inject(ConfigurationService);
 
   readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle };
 
@@ -64,13 +64,10 @@ export class AppointmentsCalendarComponent {
   selectedSpecialtyId = signal<string>('');
 
   constructor() {
+    // Default to "All" (empty string)
     // Auto-select first specialty when available to ensure data visibility
-    effect(() => {
-      const specs = this.specialties();
-      if (specs.length > 0 && !this.selectedSpecialtyId()) {
-        this.selectedSpecialtyId.set(specs[0].specialtyId);
-      }
-    }, { allowSignalWrites: true });
+    // Load available schedules for visualization
+    this.scheduleService.refreshSchedules();
   }
 
   // Calendar State
@@ -144,7 +141,7 @@ export class AppointmentsCalendarComponent {
 
     // Safer Day Calculation
     const [y, m, d] = date.split('-').map(Number);
-    return this.timeSlots.filter(time => {
+    return this.timeSlots().filter(time => {
       const isWorking = schedules.some(s => {
         return s.date === date && time >= s.startTime && time < s.endTime;
       });
@@ -183,10 +180,80 @@ export class AppointmentsCalendarComponent {
     return days;
   });
 
-  // Time Slots (08:00 to 20:00)
-  timeSlots = Array.from({ length: 13 }, (_, i) => {
-    const hour = i + 8;
-    return `${hour.toString().padStart(2, '0')}:00`;
+  // Helper to convert "HH:mm" to minutes since midnight
+  private getMinutes(time: string): number {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  // Helper to convert minutes to "HH:mm"
+  private formatMinutes(mins: number): string {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  }
+
+  // Dynamic Time Slots
+  timeSlots = computed(() => {
+    // 1. Determine Duration
+    let duration = 30; // Default
+    const docId = this.selectedDoctorId();
+    const specId = this.selectedSpecialtyId();
+
+    if (docId && specId) {
+      const assoc = this.doctorSpecialtyService.associations()
+        .find(a => a.doctorId === docId && a.specialtyId === specId);
+      if (assoc && assoc.durationMinutes > 0) {
+        duration = assoc.durationMinutes;
+      }
+    }
+
+    // 2. Determine Range (Start/End) based on Schedules
+    // If no doctor selected, default 08:00 - 20:00
+    // If doctor selected, find their earliest start and latest end in the current view?
+    // User requirement: "If turn ends at 5, last visible should be 4:30"
+
+    let minStart = 8 * 60; // 08:00
+    let maxEnd = 20 * 60;  // 20:00
+
+    // Optimality: If we want to be strict, we scan schedules. 
+    // For now, let's keep a reasonable default range but expanded if schedules exist outside.
+    if (docId) {
+      // Get all schedules for this doctor (optionally filtered by specialty if selected?)
+      // We want to show ALL slots where they might work 
+      let schedules = this.scheduleService.schedules().filter(s => s.doctorId === docId);
+
+      if (specId) {
+        schedules = schedules.filter(s => s.specialtyId === specId);
+      }
+
+      if (schedules.length > 0) {
+        // Find min start and max end
+        const starts = schedules.map(s => this.getMinutes(s.startTime));
+        const ends = schedules.map(s => this.getMinutes(s.endTime));
+
+        const earliest = Math.min(...starts);
+        const latest = Math.max(...ends);
+
+        // Use these bounds, maybe with a little buffer or strictly?
+        // User example implies strictness relative to shifts.
+        // Let's use the found bounds.
+        minStart = earliest;
+        maxEnd = latest;
+      }
+    }
+
+    // 3. Generate Slots
+    const slots: string[] = [];
+    let current = minStart;
+
+    // We generate slots such that (current + duration) <= maxEnd
+    while (current + duration <= maxEnd) {
+      slots.push(this.formatMinutes(current));
+      current += duration;
+    }
+
+    return slots;
   });
 
   getStartOfWeek(date: Date) {
@@ -210,28 +277,48 @@ export class AppointmentsCalendarComponent {
     this.viewMode.set(mode);
   }
 
+  // ...
+
+  isPastDate(dateStr: string): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const date = new Date(dateStr + 'T00:00:00');
+    return date < today;
+  }
+
+  isPastTime(dateStr: string, timeStr: string): boolean {
+    if (this.isPastDate(dateStr)) return true;
+
+    // If today, check time
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (dateStr === todayStr) {
+      const now = new Date();
+      const [h, m] = timeStr.split(':').map(Number);
+      const slotTime = new Date();
+      slotTime.setHours(h, m, 0, 0);
+      return slotTime < now;
+    }
+
+    return false;
+  }
+
   // Helper to check availability for Week View
   getSlotStatus(dateIso: string, time: string, dayOfWeekIndex: number): any[] {
-    if (!this.selectedSpecialtyId()) return [];
-    // dayOfWeekIndex from 0 (Monday in my loop) to 6 (Sunday)
-    // Actually weekDays() logic: 0=Mon, 6=Sun.
-    // My weekDays loop: d.getDay() is correct?
-    // Wait, weekDays array is generated. data.dayNum.
-    // Let's rely on dateIso to get the day of matching schedules.
-
-    // Check availability for ANY doctor in the specialty if none selected, OR specific doctor
-    const doctorsToCheck = this.selectedDoctorId() ? [this.selectedDoctorId()] : this.doctorsInCurrentSpecialty().map(d => d.id);
-
     const items: any[] = [];
+    const isPast = this.isPastTime(dateIso, time);
+
+    // doctors to check (Use doctorId as that is what schedules use)
+    const doctorsToCheck = this.selectedDoctorId()
+      ? [this.selectedDoctorId()]
+      : this.doctorsInCurrentSpecialty().map(d => d.doctorId || d.id);
 
     for (const docId of doctorsToCheck) {
       const docName = this.getDoctorName(docId);
 
-      // 1. Check Appointment
+      // Check Appointments
       const matchingApp = this.appointments().find(a =>
         a.doctorId === docId &&
-        a.specialtyId === this.selectedSpecialtyId() &&
-        a.specialtyId === this.selectedSpecialtyId() &&
+        (!this.selectedSpecialtyId() || a.specialtyId === this.selectedSpecialtyId()) &&
         a.appointmentDate === dateIso &&
         a.startTime === time &&
         a.status !== 'CANCELLED'
@@ -242,27 +329,48 @@ export class AppointmentsCalendarComponent {
         continue;
       }
 
-      // 2. Check Schedule (if no appointment)
-      const schedules = this.scheduleService.getSchedulesForDoctor(docId, this.selectedSpecialtyId());
-      // Calculate dayOfWeek from dateIso for recurring check
-      const d = new Date(dateIso + 'T00:00:00'); // Local midnight approx
-      // Careful with timezone again.
-      // Using the passed dayOfWeekIndex might be safer if it aligns with the column index 0..6
-      // weekDays()[0] is Monday? index 0.
-      // weekDays() generation: "1=Mon to 6=Sat, 0=Sun".
-      // dayOfWeekIndex 0 (Mon) -> 1.
+      // Check Schedule availability
+      let isWorking = false;
+      let workingSpecialtyId = '';
 
-      // Let's use the date from ISO string to be sure
-      // We need to match the 'dayOfWeek' format in Mock Data (1=Mon, ..., 0=Sun?)
-      // My previous fix used strict local date matching for Schedules.
+      // Helper to normalize time to HH:mm for comparison (backend might send HH:mm:ss)
+      const normalize = (t: string) => t.length > 5 ? t.substring(0, 5) : t;
 
-      // Re-implement IsWorking Logic logic per doctor
-      const isWorking = schedules.some(s => {
-        return s.date === dateIso && time >= s.startTime && time < s.endTime;
-      });
+      if (this.selectedSpecialtyId()) {
+        const schedules = this.scheduleService.getSchedulesForDoctor(docId, this.selectedSpecialtyId());
+
+        isWorking = schedules.some(s =>
+          s.date === dateIso &&
+          time >= normalize(s.startTime) &&
+          time < normalize(s.endTime)
+        );
+        workingSpecialtyId = this.selectedSpecialtyId();
+      } else {
+        // View All: Check any specialty
+        const allSchedules = this.scheduleService.schedules().filter(s => s.doctorId === docId);
+
+        const validSchedule = allSchedules.find(s =>
+          s.date === dateIso &&
+          time >= normalize(s.startTime) &&
+          time < normalize(s.endTime)
+        );
+
+        if (validSchedule) {
+          isWorking = true;
+          workingSpecialtyId = validSchedule.specialtyId;
+        }
+      }
 
       if (isWorking) {
-        items.push({ type: 'available', doctorId: docId, doctorName: docName, date: dateIso, time: time, specialtyId: this.selectedSpecialtyId() });
+        items.push({
+          type: 'available',
+          doctorId: docId,
+          doctorName: docName,
+          date: dateIso,
+          time: time,
+          specialtyId: workingSpecialtyId,
+          isPast: isPast
+        });
       }
     }
 
@@ -292,6 +400,12 @@ export class AppointmentsCalendarComponent {
     this.isModalOpen = false;
   }
 
+  getDuration(doctorId: string, specialtyId: string): number {
+    const assoc = this.doctorSpecialtyService.associations()
+      .find(a => a.doctorId === doctorId && a.specialtyId === specialtyId);
+    return assoc && assoc.durationMinutes > 0 ? assoc.durationMinutes : 30; // Default 30
+  }
+
   saveAppointment() {
     const doctorId = this.modalDoctorId();
     const specialtyId = this.modalSpecialtyId();
@@ -301,6 +415,8 @@ export class AppointmentsCalendarComponent {
 
     if (doctorId && specialtyId && date && time && patientId) {
       const patient = this.patients().find(p => p.patientId === patientId);
+      const duration = this.getDuration(doctorId, specialtyId);
+
       this.appointmentsService.addAppointment({
         doctorId,
         specialtyId,
@@ -308,7 +424,7 @@ export class AppointmentsCalendarComponent {
         patientName: patient?.fullName || 'Desconocido',
         appointmentDate: date,
         startTime: time,
-        endTime: this.addMinutes(time, 30),
+        endTime: this.addMinutes(time, duration),
         notes: this.modalNotes(),
         paymentMethod: this.modalPaymentMethod() as any,
         paymentStatus: this.modalPaymentMethod() === 'CASH' ? 'PENDING' : 'PAID',
@@ -326,7 +442,7 @@ export class AppointmentsCalendarComponent {
   }
 
   getDoctorName(id: string) {
-    return this.doctors().find(d => d.id === id)?.fullName || 'Desconocido';
+    return this.doctors().find(d => d.id === id || d.doctorId === id)?.fullName || 'Desconocido';
   }
 
   getSpecialtyName(id: string) {
@@ -345,7 +461,8 @@ export class AppointmentsCalendarComponent {
   openGenericBooking() {
     // Find first available slot today or in the week
     const today = new Date().toISOString().split('T')[0];
-    const firstAvailable = this.timeSlots.find(slot =>
+    const slots = this.timeSlots();
+    const firstAvailable = slots.find(slot =>
       this.getSlotStatus(today, slot, 0).some((item: any) => item.type === 'available')
     );
 
@@ -353,7 +470,7 @@ export class AppointmentsCalendarComponent {
       this.openBookingModal(today, firstAvailable);
     } else {
       // Just open with today and first slot if none found
-      this.openBookingModal(today, this.timeSlots[0]);
+      this.openBookingModal(today, slots[0] || '09:00');
     }
   }
 
@@ -404,12 +521,18 @@ export class AppointmentsCalendarComponent {
 
   saveRescheduledAppointment() {
     if (this.selectedAppointment && this.modalTime() && this.modalDate()) {
+      const doctorId = this.modalDoctorId() || this.selectedAppointment.doctorId;
+      const specialtyId = this.modalSpecialtyId() || this.selectedAppointment.specialtyId;
+      const duration = this.getDuration(doctorId, specialtyId);
+
       // Update the existing appointment
       const updatedAppointment: Appointment = {
         ...this.selectedAppointment,
+        doctorId, // Ensure these are updated if changed (though UI restricts changing specialty/doctor in some flows, best to be safe)
+        specialtyId,
         appointmentDate: this.modalDate(),
         startTime: this.modalTime(),
-        endTime: this.addMinutes(this.modalTime(), 30),
+        endTime: this.addMinutes(this.modalTime(), duration),
         notes: this.modalNotes(),
         paymentMethod: this.modalPaymentMethod() as any,
         transactionId: this.modalTransactionId()

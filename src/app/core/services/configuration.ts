@@ -34,8 +34,8 @@ export class ConfigurationService {
     workingDays: [1, 2, 3, 4, 5, 6], // Mon-Sat
     clinicOpenTime: '08:00',
     clinicCloseTime: '20:00',
-    breakStartTime: '13:00',
-    breakEndTime: '14:00',
+    breakStartTime: '',
+    breakEndTime: '',
     defaultAppointmentDuration: 30,
     currency: 'PEN',
     subscriptionPlan: 'BASIC',

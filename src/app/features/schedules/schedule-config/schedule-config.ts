@@ -5,6 +5,7 @@ import { SchedulesService, Schedule } from '../../../core/services/schedules';
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
+import { ConfigurationService } from '../../../core/services/configuration';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
 import { LucideAngularModule, Clock, Plus, Trash2 } from 'lucide-angular';
 
@@ -23,6 +24,7 @@ export class ScheduleConfigComponent {
   private specialtyService = inject(SpecialtiesService);
   private associationService = inject(DoctorSpecialtyService);
   private confirmService = inject(ConfirmModalService);
+  private configService = inject(ConfigurationService);
 
   readonly icons = { Clock, Plus, Trash2 };
 
@@ -34,9 +36,25 @@ export class ScheduleConfigComponent {
   currentSchedules = computed(() => {
     const docId = this.selectedDoctorId();
     if (!docId) return [];
+
     const all = this.scheduleService.schedules();
-    return all.filter(s => s.doctorId === docId);
+    const today = new Date().toISOString().split('T')[0];
+
+    return all
+      .filter(s => s.doctorId === docId)
+      // Filter out past dates
+      .filter(s => s.date >= today)
+      // Sort by Date then Time
+      .sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return a.startTime.localeCompare(b.startTime);
+      });
   });
+
+  formatTimeDisplay(time: string): string {
+    if (!time) return '';
+    return time.substring(0, 5);
+  }
 
   // Modal State
   isModalOpen = false;
@@ -44,7 +62,8 @@ export class ScheduleConfigComponent {
     date: '', // specific date
     startTime: '09:00',
     endTime: '',
-    specialtyId: ''
+    specialtyId: '',
+    weeksToRepeat: 0
   };
 
   viewMode: 'list' = 'list';
@@ -111,13 +130,21 @@ export class ScheduleConfigComponent {
 
     const times: string[] = [];
     let current = this.dateFromTime(startTime);
-    const endLimit = new Date(current);
-    endLimit.setHours(23, 59, 0, 0);
+
+    // Use configured close time as limit
+    const closeTimeStr = this.configService.settings().clinicCloseTime || '20:00';
+    const closeDate = this.dateFromTime(closeTimeStr);
+
+    // Ensure closeDate is set to the same day base as current for comparison
+    // input of dateFromTime uses "new Date()" which is today.
+    // So both are today.
+
+    const endLimit = closeDate;
 
     current.setMinutes(current.getMinutes() + duration);
 
-    for (let i = 0; i < 16; i++) {
-      if (current > endLimit) break;
+    // Generate times until closing time
+    while (current <= endLimit) {
       times.push(this.timeFromDate(current));
       current.setMinutes(current.getMinutes() + duration);
     }
@@ -159,29 +186,52 @@ export class ScheduleConfigComponent {
       date: today,
       startTime: '09:00',
       endTime: '',
-      specialtyId: specId
+      specialtyId: specId,
+      weeksToRepeat: 0
     };
 
     this.updateValidEndTimes();
     this.isModalOpen = true;
   }
 
+
+
+  // ...
+
   saveSchedule() {
     const docId = this.selectedDoctorId();
     if (docId && this.modalData.specialtyId && this.modalData.endTime) {
       // Clean payload
       const formatTime = (t: string) => t.length === 5 ? `${t}:00` : t;
+      const payloads: any[] = [];
+      const [sy, sm, sd] = this.modalData.date.split('-').map(Number);
+      // Create date at noon to avoid timezone rollover issues
+      const startDate = new Date(sy, sm - 1, sd, 12, 0, 0);
 
-      const payload = {
-        specialtyId: this.modalData.specialtyId,
-        date: this.modalData.date,
-        startTime: formatTime(this.modalData.startTime),
-        endTime: formatTime(this.modalData.endTime)
-      };
+      const totalOccurrences = 1 + this.modalData.weeksToRepeat;
 
-      this.scheduleService.addSchedule(docId, [payload]).subscribe({
+      for (let i = 0; i < totalOccurrences; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + (i * 7));
+
+        const isoDate = [
+          currentDate.getFullYear(),
+          (currentDate.getMonth() + 1).toString().padStart(2, '0'),
+          currentDate.getDate().toString().padStart(2, '0')
+        ].join('-');
+
+        payloads.push({
+          specialtyId: this.modalData.specialtyId,
+          date: isoDate,
+          startTime: formatTime(this.modalData.startTime),
+          endTime: formatTime(this.modalData.endTime)
+        });
+      }
+
+      this.scheduleService.addSchedule(docId, payloads).subscribe({
         next: () => {
           this.closeModal();
+          this.scheduleService.refreshSchedules({ doctorId: docId }); // Ensure refresh
         },
         error: (err) => {
           console.error('Error saving schedule', err);
@@ -203,8 +253,10 @@ export class ScheduleConfigComponent {
       cancelText: 'Cancelar'
     });
 
-    if (confirmed) {
-      this.scheduleService.removeSchedule(schedule);
+    if (confirmed && schedule.id) {
+      this.scheduleService.removeSchedule(schedule.id, schedule.doctorId).subscribe({
+        error: (err) => console.error('Error deleting schedule', err)
+      });
     }
   }
 }

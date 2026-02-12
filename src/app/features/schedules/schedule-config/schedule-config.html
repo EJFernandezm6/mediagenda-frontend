@@ -25,7 +25,9 @@
         <!-- List View (Main Content now) -->
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100 flex-1 overflow-y-auto">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">Horarios configurados</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900">
+                    {{ selectedDoctorName() ? 'Horarios de ' + selectedDoctorName() : 'Horarios configurados' }}
+                </h3>
                 <span class="text-sm text-gray-500" *ngIf="selectedDoctorId()">
                     {{ currentSchedules().length }} turnos asignados
                 </span>
@@ -39,8 +41,9 @@
                             {{ getScheduleDisplay(schedule) }}
                         </div>
                         <div>
-                            <span class="text-gray-900 font-medium text-lg block">{{ schedule.startTime }} - {{
-                                schedule.endTime }}</span>
+                            <span class="text-gray-900 font-medium text-lg block">{{
+                                formatTimeDisplay(schedule.startTime) }} - {{
+                                formatTimeDisplay(schedule.endTime) }}</span>
                             <span class="block text-sm text-gray-500">{{ getSpecialtyName(schedule.specialtyId)
                                 }}</span>
                         </div>
@@ -135,6 +138,20 @@
                                     </select>
                                     <p class="mt-1 text-xs text-gray-500">Según duración de cita</p>
                                 </div>
+                            </div>
+
+                            <!-- Repeat Option -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Repetir turno</label>
+                                <select [(ngModel)]="modalData.weeksToRepeat"
+                                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border bg-white">
+                                    <option [ngValue]="0">Solo esta fecha</option>
+                                    <option [ngValue]="4">Repetir por 1 mes (4 semanas)</option>
+                                    <option [ngValue]="8">Repetir por 2 meses (8 semanas)</option>
+                                    <option [ngValue]="12">Repetir por 3 meses (12 semanas)</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Se crearán múltiples turnos para el mismo día de
+                                    la semana.</p>
                             </div>
 
                         </div>

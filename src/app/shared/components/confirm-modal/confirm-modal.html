@@ -30,7 +30,7 @@
                     class="inline-flex w-full justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto transition-all">
                     {{ data()?.confirmText || 'Aceptar' }}
                 </button>
-                <button (click)="cancel()" type="button"
+                <button *ngIf="data()?.showCancel !== false" (click)="cancel()" type="button"
                     class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-all">
                     {{ data()?.cancelText || 'Cancelar' }}
                 </button>

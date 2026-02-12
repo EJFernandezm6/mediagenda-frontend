@@ -5,6 +5,7 @@ export interface ConfirmData {
     message: string;
     confirmText?: string;
     cancelText?: string;
+    showCancel?: boolean;
 }
 
 @Injectable({
@@ -24,11 +25,23 @@ export class ConfirmModalService {
      * @returns A promise that resolves to true if the user confirms, and false if they cancel.
      */
     confirm(data: ConfirmData): Promise<boolean> {
-        this.dataSignal.set(data);
+        this.dataSignal.set({ ...data, showCancel: data.showCancel ?? true });
         this.isOpenSignal.set(true);
 
         return new Promise<boolean>((resolve) => {
             this.resolveFn = resolve;
+        });
+    }
+
+    /**
+     * Opens an alert modal (no cancel button).
+     */
+    alert(title: string, message: string): Promise<boolean> {
+        return this.confirm({
+            title,
+            message,
+            confirmText: 'Entendido',
+            showCancel: false
         });
     }
 

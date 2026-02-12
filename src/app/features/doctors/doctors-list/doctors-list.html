@@ -28,80 +28,102 @@
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div *ngFor="let doctor of filteredDoctors"
                 class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow border border-gray-100 transition-all hover:shadow-md">
-                <div class="flex w-full items-center justify-between space-x-6 p-6">
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center space-x-3">
-                            <h3 class="truncate text-sm font-medium text-gray-900">{{ doctor.fullName }}</h3>
-                            <span *ngIf="doctor.active"
-                                class="inline-flex flex-shrink-0 items-center rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Activo</span>
-                            <span *ngIf="!doctor.active"
-                                class="inline-flex flex-shrink-0 items-center rounded-full bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Inactivo</span>
+                <div class="p-6 relative">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-base font-bold text-gray-900 leading-tight">{{ doctor.fullName }}</h3>
+                                <span *ngIf="doctor.active"
+                                    class="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Activo</span>
+                                <span *ngIf="!doctor.active"
+                                    class="inline-flex items-center rounded-full bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Inactivo</span>
 
-                            <!-- Missing Data Indicator Custom Tooltip -->
-                            <div *ngIf="isMissingData(doctor)" class="tooltip-container cursor-help">
-                                <lucide-icon [img]="icons.AlertCircle"
-                                    class="w-4 h-4 text-amber-500 animate-pulse"></lucide-icon>
-                                <span class="tooltip-text">
-                                    Faltan datos: {{ getMissingFields(doctor).join(', ') }}
+                                <!-- Missing Data Warning -->
+                                <div *ngIf="isMissingData(doctor)" class="tooltip-container cursor-help relative group">
+                                    <lucide-icon [img]="icons.AlertCircle"
+                                        class="w-4 h-4 text-amber-500 animate-pulse"></lucide-icon>
+                                    <div
+                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-gray-800 text-white text-xs rounded z-50">
+                                        Faltan: {{ getMissingFields(doctor).join(', ') }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4 text-sm text-gray-500 mb-2">
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-400">CMP:</span>
+                                    <span class="font-medium text-gray-700 flex items-center gap-1">
+                                        <lucide-icon [img]="icons.FileBadge" class="w-3 h-3"></lucide-icon>
+                                        {{ doctor.cmp }}
+                                    </span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-400">DNI:</span>
+                                    <span class="font-medium text-gray-700 flex items-center gap-1">
+                                        <lucide-icon [img]="icons.MapPin" class="w-3 h-3"></lucide-icon>
+                                        {{ doctor.dni }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center text-sm">
+                                <lucide-icon [img]="icons.Star"
+                                    class="w-4 h-4 text-yellow-400 fill-yellow-400"></lucide-icon>
+                                <span class="ml-1 font-bold text-gray-900">{{ doctor.rating || '4.5' }}</span>
+                                <span class="ml-1 text-gray-400 text-xs">({{ doctor.reviewsCount || 40 }}
+                                    reviews)</span>
+                            </div>
+                        </div>
+
+                        <!-- Avatar -->
+                        <div class="flex-shrink-0">
+                            <div
+                                class="h-14 w-14 rounded-full bg-blue-900 flex items-center justify-center text-white text-xl font-bold uppercase overflow-hidden ring-4 ring-white shadow-sm">
+                                <img *ngIf="doctor.photoUrl && !doctor.photoUrl.includes('ui-avatars')"
+                                    [src]="doctor.photoUrl" class="h-full w-full object-cover">
+                                <span *ngIf="!doctor.photoUrl || doctor.photoUrl.includes('ui-avatars')">
+                                    {{ doctor.fullName.substring(0, 2) }}
                                 </span>
                             </div>
                         </div>
-                        <div class="mt-1 flex items-center gap-3 text-sm text-gray-500">
-                            <span class="flex items-center gap-1">
-                                <lucide-icon [img]="icons.FileBadge" class="w-3 h-3"></lucide-icon>
-                                CMP: {{ doctor.cmp }}
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <lucide-icon [img]="icons.MapPin" class="w-3 h-3"></lucide-icon>
-                                DNI: {{ doctor.dni }}
-                            </span>
-                        </div>
-                        <div class="mt-2 flex items-center text-sm text-yellow-500">
-                            <lucide-icon [img]="icons.Star" class="w-4 h-4 fill-current"></lucide-icon>
-                            <span class="ml-1 text-gray-900 font-semibold">{{ doctor.rating || '0.0' }}</span>
-                            <span class="ml-1 text-gray-400">({{ doctor.reviewsCount || 0 }} reviews)</span>
-                        </div>
                     </div>
-                    <img class="h-14 w-14 flex-shrink-0 rounded-full bg-gray-300 object-cover"
-                        [src]="doctor.photoUrl || 'https://ui-avatars.com/api/?name=' + doctor.fullName + '&background=EBF4FF&color=7F9CF5'"
-                        #img
-                        (error)="img.src = 'https://ui-avatars.com/api/?name=' + doctor.fullName + '&background=EBF4FF&color=7F9CF5'"
-                        alt="">
                 </div>
-                <div>
-                    <div class="-mt-px flex divide-x divide-gray-200">
-                        <div class="flex w-0 flex-1">
-                            <a [href]="'https://wa.me/' + doctor.phone" target="_blank"
-                                class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-4 text-sm font-semibold text-gray-900 hover:text-gray-600">
-                                <lucide-icon [img]="icons.MessageCircle" class="h-5 w-5 text-gray-400"></lucide-icon>
-                                WhatsApp
-                            </a>
-                        </div>
-                        <div class="-ml-px flex w-0 flex-1">
-                            <a [href]="'mailto:' + doctor.email"
-                                class="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-4 text-sm font-semibold text-gray-900 hover:text-gray-600">
-                                <lucide-icon [img]="icons.Mail" class="h-5 w-5 text-gray-400"></lucide-icon>
-                                Email
-                            </a>
-                        </div>
-                    </div>
-                    <div class="border-t border-gray-100 flex items-center">
-                        <div class="px-3">
-                            <button (click)="toggleActive(doctor)" class="p-2 rounded-lg transition-all"
-                                [ngClass]="doctor.active ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-red-500 bg-red-50 hover:bg-red-100'"
-                                [title]="doctor.active ? 'Desactivar' : 'Activar'">
-                                <lucide-icon [img]="icons.Power" class="w-4 h-4"></lucide-icon>
-                            </button>
-                        </div>
-                        <div class="w-px h-10 bg-gray-100"></div>
+
+                <!-- Contact Actions -->
+                <div class="border-t border-gray-100 grid grid-cols-2 divide-x divide-gray-100">
+                    <a [href]="'https://wa.me/' + doctor.phone" target="_blank"
+                        class="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                        <lucide-icon [img]="icons.MessageCircle" class="h-5 w-5 text-gray-400"></lucide-icon>
+                        WhatsApp
+                    </a>
+                    <a [href]="'mailto:' + doctor.email"
+                        class="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                        <lucide-icon [img]="icons.Mail" class="h-5 w-5 text-gray-400"></lucide-icon>
+                        Email
+                    </a>
+                </div>
+
+                <!-- Bottom Actions -->
+                <div class="border-t border-gray-100 p-2 flex items-center justify-between gap-2">
+                    <button (click)="toggleActive(doctor)"
+                        [class]="doctor.active ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-red-50 text-red-600 hover:bg-red-100'"
+                        class="p-2.5 rounded-lg transition-colors" [title]="doctor.active ? 'Desactivar' : 'Activar'">
+                        <lucide-icon [img]="icons.Power" class="w-5 h-5"></lucide-icon>
+                    </button>
+
+                    <div class="flex-1 flex justify-end gap-1">
                         <button (click)="openModal(doctor)"
-                            class="flex-1 py-3 text-sm text-blue-600 font-medium hover:bg-blue-50 transition-colors">Editar</button>
-                        <div class="w-px h-10 bg-gray-100"></div>
+                            class="px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                            Editar
+                        </button>
                         <a [routerLink]="['/app/doctors', doctor.id]"
-                            class="flex-1 py-3 text-sm text-gray-600 font-medium hover:bg-gray-50 transition-colors text-center">Detalle</a>
-                        <div class="w-px h-10 bg-gray-100"></div>
+                            class="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
+                            Detalle
+                        </a>
                         <button (click)="delete(doctor.id)"
-                            class="flex-1 py-3 text-sm text-red-600 font-medium hover:bg-red-50 transition-colors">Eliminar</button>
+                            class="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors">
+                            Eliminar
+                        </button>
                     </div>
                 </div>
             </div>
