@@ -8,10 +8,12 @@ import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
 import { LucideAngularModule, Clock, Plus, Trash2 } from 'lucide-angular';
 
+import { DoctorSelectorComponent } from '../../../shared/components/doctor-selector/doctor-selector';
+
 @Component({
   selector: 'app-schedule-config',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent],
   templateUrl: './schedule-config.html',
   styleUrl: './schedule-config.css'
 })

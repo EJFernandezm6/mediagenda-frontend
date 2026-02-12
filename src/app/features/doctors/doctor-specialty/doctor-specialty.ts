@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DoctorSpecialtyService, DoctorSpecialty } from './doctor-specialty.service';
 import { DoctorsService } from '../../../core/services/doctors';
+import { DoctorSelectorComponent } from '../../../shared/components/doctor-selector/doctor-selector';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { LucideAngularModule, Plus, Trash2, Edit, Search, X, Filter } from 'lucide-angular';
@@ -10,7 +11,7 @@ import { LucideAngularModule, Plus, Trash2, Edit, Search, X, Filter } from 'luci
 @Component({
   selector: 'app-doctor-specialty',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent],
   templateUrl: './doctor-specialty.html',
   styleUrl: './doctor-specialty.css'
 })
@@ -41,49 +42,6 @@ export class DoctorSpecialtyComponent {
   selectedSpecialtyId = '';
   cost: number = 0;
   duration: number = 30;
-
-  // Searchable Dropdown State
-  isDoctorDropdownOpen = signal(false);
-  doctorSearchText = signal('');
-
-  // Computed: Filtered doctors for dropdown
-  filteredDoctorOptions = computed(() => {
-    const search = this.doctorSearchText().toLowerCase();
-    return this.formattedDoctors().filter(d =>
-      d.displayName.toLowerCase().includes(search)
-    );
-  });
-
-  // Dropdown Handling
-  toggleDoctorDropdown() {
-    this.isDoctorDropdownOpen.update(v => !v);
-    if (this.isDoctorDropdownOpen()) {
-      // Focus input logic could go here if using ViewChild
-    }
-  }
-
-  selectDoctor(doctor: any) {
-    // We need the DOCTOR PROFILE ID, not the User ID, strictly for this association endpoint
-    // If doctorId is missing, it means the user has the role but no profile entry in catalog/doctors
-    this.selectedDoctorId = doctor.doctorId;
-
-    if (!doctor.doctorId) {
-      console.error('Doctor selected has no Doctor Profile ID:', doctor);
-      alert('Este usuario tiene rol de doctor pero no tiene perfil médico creado. No se puede asignar especialidad.');
-      return;
-    }
-
-    this.doctorSearchText.set(doctor.displayName);
-    this.isDoctorDropdownOpen.set(false);
-  }
-
-  onDoctorSearchChange(text: string) {
-    this.doctorSearchText.set(text);
-    this.isDoctorDropdownOpen.set(true);
-    // If text is empty, clear selection? Or keep ID?
-    // If user types something that doesn't match, we should probably clear ID
-    if (!text) this.selectedDoctorId = '';
-  }
 
   // Track original for editing
   private originalAssociation: DoctorSpecialty | null = null;
@@ -121,6 +79,8 @@ export class DoctorSpecialtyComponent {
     });
   });
 
+  @ViewChild(DoctorSelectorComponent) doctorSelector!: DoctorSelectorComponent;
+
   getDoctorName(id: string) {
     // The id passed here is likely the Doctor Profile ID (from association.doctorId)
     // But our doctors() list is indexed by User ID (d.id)
@@ -128,7 +88,7 @@ export class DoctorSpecialtyComponent {
     const doctor = this.doctors().find(d => d.doctorId === id || d.id === id);
 
     if (!doctor) {
-      console.warn('Doctor not found for ID:', id, 'Available doctors:', this.doctors());
+      // console.warn('Doctor not found for ID:', id, 'Available doctors:', this.doctors());
       return 'Desconocido';
     }
     return doctor.dni ? `${doctor.dni} - ${doctor.fullName}` : doctor.fullName;
@@ -138,10 +98,11 @@ export class DoctorSpecialtyComponent {
     return this.specialties().find(s => s.specialtyId === id)?.name || 'Desconocida';
   }
 
+  // Modal Actions
   openAddModal() {
     this.isEditMode.set(false);
     this.resetForm();
-    this.doctorSearchText.set(''); // Clear search
+    this.doctorSelector?.clear(); // Use component method
     this.isModalOpen.set(true);
   }
 
@@ -153,11 +114,13 @@ export class DoctorSpecialtyComponent {
     this.duration = item.durationMinutes;
     this.originalAssociation = { ...item };
 
-    // Set initial text for dropdown
-    const doctorName = this.getDoctorName(item.doctorId);
-    this.doctorSearchText.set(doctorName);
-
     this.isModalOpen.set(true);
+
+    // Set initial value for selector
+    // Use timeout to ensure modal content (and component) is rendered if using *ngIf inside modal
+    setTimeout(() => {
+      this.doctorSelector?.setValue(item.doctorId);
+    });
   }
 
   closeModal() {

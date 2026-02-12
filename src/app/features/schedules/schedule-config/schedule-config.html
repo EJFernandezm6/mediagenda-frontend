@@ -11,11 +11,7 @@
             class="bg-white shadow rounded-lg p-6 border border-gray-100 flex flex-col sm:flex-row sm:items-center gap-6">
             <div class="flex-1 w-full">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar especialista</label>
-                <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
-                    class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
-                    <option value="" disabled selected>Seleccionar especialista</option>
-                    <option *ngFor="let doctor of doctors()" [value]="doctor.id">{{ doctor.fullName }}</option>
-                </select>
+                <app-doctor-selector (selectionChanged)="selectedDoctorId.set($event)"></app-doctor-selector>
             </div>
             <div class="flex-none pt-0 sm:pt-6 w-full sm:w-auto">
                 <button (click)="openAddModal()" [disabled]="!selectedDoctorId()"
