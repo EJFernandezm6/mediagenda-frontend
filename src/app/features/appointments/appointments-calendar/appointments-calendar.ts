@@ -144,14 +144,9 @@ export class AppointmentsCalendarComponent {
 
     // Safer Day Calculation
     const [y, m, d] = date.split('-').map(Number);
-    const dayOfWeek = new Date(y, m - 1, d).getDay(); // Local Day 0-6
-
     return this.timeSlots.filter(time => {
       const isWorking = schedules.some(s => {
-        // Specific Date Match
-        if (s.date) return s.date === date && time >= s.startTime && time < s.endTime;
-        // Recurring Match (fallback)
-        return s.dayOfWeek === dayOfWeek && time >= s.startTime && time < s.endTime;
+        return s.date === date && time >= s.startTime && time < s.endTime;
       });
       if (!isWorking) return false;
 
@@ -263,17 +258,7 @@ export class AppointmentsCalendarComponent {
 
       // Re-implement IsWorking Logic logic per doctor
       const isWorking = schedules.some(s => {
-        // Date specific match
-        if (s.date) return s.date === dateIso && time >= s.startTime && time < s.endTime;
-
-        // Recurring match (fallback if no specific date on schedule)
-        // We need accurate dayOfWeek.
-        // Let's parse dateIso: YYYY-MM-DD
-        const [y, m, day] = dateIso.split('-').map(Number);
-        const localDate = new Date(y, m - 1, day);
-        const dow = localDate.getDay(); // 0=Sun, 1=Mon
-
-        return s.dayOfWeek === dow && time >= s.startTime && time < s.endTime;
+        return s.date === dateIso && time >= s.startTime && time < s.endTime;
       });
 
       if (isWorking) {

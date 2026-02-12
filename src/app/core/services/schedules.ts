@@ -7,8 +7,7 @@ export interface Schedule {
   id?: string;
   doctorId: string;
   specialtyId: string;
-  dayOfWeek: number; // 0=Sunday, 1=Monday... (Keep for fallback/recurring if needed, or derived)
-  date?: string; // specific date YYYY-MM-DD
+  date: string; // specific date YYYY-MM-DD
   startTime: string; // "09:00"
   endTime: string; // "13:00"
 }
