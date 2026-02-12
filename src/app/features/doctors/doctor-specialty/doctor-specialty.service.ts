@@ -31,7 +31,13 @@ export class DoctorSpecialtyService {
     }
 
     addAssociation(doctorId: string, association: any) {
-        return this.http.post<DoctorSpecialty>(`${this.apiUrl}/doctors/${doctorId}/specialties`, association).pipe(
+        // Clean payload: Remove doctorId as it sends in URL, keep relevant fields
+        const payload = {
+            specialtyId: association.specialtyId,
+            cost: association.cost,
+            durationMinutes: association.durationMinutes
+        };
+        return this.http.post<DoctorSpecialty>(`${this.apiUrl}/doctors/${doctorId}/specialties`, payload).pipe(
             tap(() => this.refreshAssociations())
         );
     }

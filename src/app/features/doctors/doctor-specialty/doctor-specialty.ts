@@ -42,8 +42,60 @@ export class DoctorSpecialtyComponent {
   cost: number = 0;
   duration: number = 30;
 
+  // Searchable Dropdown State
+  isDoctorDropdownOpen = signal(false);
+  doctorSearchText = signal('');
+
+  // Computed: Filtered doctors for dropdown
+  filteredDoctorOptions = computed(() => {
+    const search = this.doctorSearchText().toLowerCase();
+    return this.formattedDoctors().filter(d =>
+      d.displayName.toLowerCase().includes(search)
+    );
+  });
+
+  // Dropdown Handling
+  toggleDoctorDropdown() {
+    this.isDoctorDropdownOpen.update(v => !v);
+    if (this.isDoctorDropdownOpen()) {
+      // Focus input logic could go here if using ViewChild
+    }
+  }
+
+  selectDoctor(doctor: any) {
+    // We need the DOCTOR PROFILE ID, not the User ID, strictly for this association endpoint
+    // If doctorId is missing, it means the user has the role but no profile entry in catalog/doctors
+    this.selectedDoctorId = doctor.doctorId;
+
+    if (!doctor.doctorId) {
+      console.error('Doctor selected has no Doctor Profile ID:', doctor);
+      alert('Este usuario tiene rol de doctor pero no tiene perfil médico creado. No se puede asignar especialidad.');
+      return;
+    }
+
+    this.doctorSearchText.set(doctor.displayName);
+    this.isDoctorDropdownOpen.set(false);
+  }
+
+  onDoctorSearchChange(text: string) {
+    this.doctorSearchText.set(text);
+    this.isDoctorDropdownOpen.set(true);
+    // If text is empty, clear selection? Or keep ID?
+    // If user types something that doesn't match, we should probably clear ID
+    if (!text) this.selectedDoctorId = '';
+  }
+
   // Track original for editing
   private originalAssociation: DoctorSpecialty | null = null;
+
+  // Computed: Doctors with formatted display (DNI - Name)
+  formattedDoctors = computed(() => {
+    return this.doctors().map(doctor => ({
+      ...doctor,
+      valueId: doctor.doctorId || doctor.id,
+      displayName: doctor.dni ? `${doctor.dni} - ${doctor.fullName}` : doctor.fullName
+    }));
+  });
 
   // Computed Methods
   filteredAssociations = computed(() => {
@@ -52,10 +104,16 @@ export class DoctorSpecialtyComponent {
     const specFilter = this.filterSpecialtyId();
 
     return this.associations().filter(item => {
-      const doctorName = this.getDoctorName(item.doctorId).toLowerCase();
+      // Find doctor using the stored ID (which is DoctorID)
+      const doctor = this.doctors().find(d => d.doctorId === item.doctorId || d.id === item.doctorId);
+      const doctorName = doctor?.fullName.toLowerCase() || '';
+      const doctorDNI = doctor?.dni?.toLowerCase() || '';
       const specialtyName = this.getSpecialtyName(item.specialtyId).toLowerCase();
 
-      const matchesSearch = doctorName.includes(term) || specialtyName.includes(term);
+      // Search by doctor name, DNI, or specialty name
+      const matchesSearch = doctorName.includes(term) || doctorDNI.includes(term) || specialtyName.includes(term);
+
+      // Filter by doctor ID (Profile ID)
       const matchesDoctor = !docFilter || item.doctorId === docFilter;
       const matchesSpecialty = !specFilter || item.specialtyId === specFilter;
 
@@ -64,17 +122,26 @@ export class DoctorSpecialtyComponent {
   });
 
   getDoctorName(id: string) {
-    return this.doctors().find(d => d.id === id)?.fullName || 'Desconocido';
+    // The id passed here is likely the Doctor Profile ID (from association.doctorId)
+    // But our doctors() list is indexed by User ID (d.id)
+    // So we must find the doctor where d.doctorId matches the input id
+    const doctor = this.doctors().find(d => d.doctorId === id || d.id === id);
+
+    if (!doctor) {
+      console.warn('Doctor not found for ID:', id, 'Available doctors:', this.doctors());
+      return 'Desconocido';
+    }
+    return doctor.dni ? `${doctor.dni} - ${doctor.fullName}` : doctor.fullName;
   }
 
   getSpecialtyName(id: string) {
     return this.specialties().find(s => s.specialtyId === id)?.name || 'Desconocida';
   }
 
-  // Modal Actions
   openAddModal() {
     this.isEditMode.set(false);
     this.resetForm();
+    this.doctorSearchText.set(''); // Clear search
     this.isModalOpen.set(true);
   }
 
@@ -85,6 +152,11 @@ export class DoctorSpecialtyComponent {
     this.cost = item.cost;
     this.duration = item.durationMinutes;
     this.originalAssociation = { ...item };
+
+    // Set initial text for dropdown
+    const doctorName = this.getDoctorName(item.doctorId);
+    this.doctorSearchText.set(doctorName);
+
     this.isModalOpen.set(true);
   }
 
@@ -98,24 +170,29 @@ export class DoctorSpecialtyComponent {
     if (!this.selectedDoctorId || !this.selectedSpecialtyId) return;
 
     const association: DoctorSpecialty = {
-      doctorId: this.selectedDoctorId,
+      doctorId: this.selectedDoctorId, // This must be the Doctor Profile ID
       specialtyId: this.selectedSpecialtyId,
       cost: this.cost,
       durationMinutes: this.duration
     };
 
+    console.log('💾 Saving association for Doctor ID:', this.selectedDoctorId);
+
     if (this.isEditMode() && this.originalAssociation?.doctorSpecialtyId) {
-      this.associationService.updateAssociation(this.originalAssociation.doctorSpecialtyId, association).subscribe(() => {
-        this.closeModal();
+      this.associationService.updateAssociation(this.originalAssociation.doctorSpecialtyId, association).subscribe({
+        next: () => this.closeModal(),
+        error: (err) => alert('Error al actualizar: ' + (err.error?.message || err.message))
       });
     } else {
+      // Check if association already exists (using Doctor Profile ID)
       const exists = this.associations().some(a => a.doctorId === association.doctorId && a.specialtyId === association.specialtyId);
       if (exists) {
         alert('Esta asignación ya existe.');
         return;
       }
-      this.associationService.addAssociation(this.selectedDoctorId, association).subscribe(() => {
-        this.closeModal();
+      this.associationService.addAssociation(this.selectedDoctorId, association).subscribe({
+        next: () => this.closeModal(),
+        error: (err) => alert('Error al guardar: ' + (err.error?.message || err.message))
       });
     }
   }

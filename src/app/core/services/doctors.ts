@@ -45,7 +45,11 @@ export class DoctorsService {
       profiles: this.http.get<any[]>(this.doctorsUrl)
     }).pipe(
       map(({ users, profiles }) => {
-        return users.map(user => {
+        console.log('🔍 Refreshing Doctors - Raw Users:', users);
+        // Filter out ADMINs (case insensitive check)
+        const doctorUsers = users.filter(u => !u.roles.some((r: string) => r.toUpperCase() === 'ADMIN'));
+
+        return doctorUsers.map(user => {
           // Find matching profile by userId
           const profile = profiles.find(p => p.userId === (user.userId || user.id));
           return {
