@@ -134,8 +134,10 @@ export class DoctorsService {
     const currentDoctor = this.doctors().find(d => d.id === id);
     if (currentDoctor) {
       if (!userUpdates.fullName) userUpdates.fullName = currentDoctor.fullName;
-      if (!userUpdates.email && !userUpdates.email) userUpdates.email = currentDoctor.email; // Email usually read-only but if needed
+      if (!userUpdates.email) userUpdates.email = currentDoctor.email;
       if (!userUpdates.phone) userUpdates.phone = currentDoctor.phone;
+      // Ensure roleId is present for validation
+      if (!userUpdates.roleId) userUpdates.roleId = currentDoctor.roleId;
     }
 
     const userUpdate$ = this.http.put<any>(`${this.apiUrl}/${id}`, userUpdates);
