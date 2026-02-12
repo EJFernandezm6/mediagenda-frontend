@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap } from 'lucide-angular';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal';
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -25,7 +25,8 @@ export class MainLayoutComponent {
     Shield,
     Menu,
     X,
-    UserCircle
+    UserCircle,
+    Zap
   };
 
   private authService = inject(AuthService);
@@ -51,6 +52,7 @@ export class MainLayoutComponent {
     { label: 'Asignaciones', icon: this.icons.Users, route: '/app/doctor-specialty' },
     { label: 'Turnos de Atención', icon: this.icons.Clock, route: '/app/schedule-config' },
     { label: 'Roles y Permisos', icon: this.icons.Shield, route: '/app/users' },
+    { label: 'Suscripción', icon: this.icons.Zap, route: '/app/subscription' },
     { label: 'Configuración', icon: this.icons.Settings, route: '/app/configuration' }
   ];
 

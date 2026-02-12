@@ -27,36 +27,7 @@ export class ConfigurationComponent {
   }
 
   // Subscription Plans
-  subscriptionPlans = [
-    {
-      id: 'BASIC',
-      name: 'Plan Básico',
-      price: 'Gratis',
-      period: 'por siempre',
-      features: ['1 Médico', 'Agenda Básica', 'Sin Notificaciones'],
-      recommended: false
-    },
-    {
-      id: 'PRO',
-      name: 'Plan Profesional',
-      price: '$29',
-      period: 'mes',
-      features: ['Hasta 5 Médicos', 'Agenda Avanzada', 'Notificaciones Email', 'Reportes Básicos'],
-      recommended: true
-    },
-    {
-      id: 'ENTERPRISE',
-      name: 'Plan Empresarial',
-      price: 'Consultar',
-      period: '',
-      features: ['Médicos Ilimitados', 'API WhatsApp Business', 'Reportes Avanzados', 'Soporte 24/7'],
-      recommended: false
-    }
-  ];
 
-  selectPlan(planId: string) {
-    this.settings.subscriptionPlan = planId as any;
-  }
 
   // Helper for UI
   availableDays = [

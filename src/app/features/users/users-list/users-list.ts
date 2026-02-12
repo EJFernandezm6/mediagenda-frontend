@@ -36,11 +36,13 @@ export class UsersListComponent {
     formData: UserRequest = {
         fullName: '',
         email: '',
-        password: '',
+        password: '123456',
         roles: ['ADMIN'], // Default to ADMIN for new users in this module
         cmp: '', // Kept in model but hidden in UI as requested
         clinicId: '',
-        roleId: ''
+        roleId: '',
+        phone: '',
+        photoUrl: ''
     };
 
     currentUser = this.authService.currentUser;
@@ -103,11 +105,13 @@ export class UsersListComponent {
         this.formData = {
             fullName: '',
             email: '',
-            password: '',
+            password: '123456', // Default password
             roles: ['ADMIN'], // Always ADMIN
             cmp: '',
             clinicId: '',
-            roleId: ''
+            roleId: '',
+            phone: '',
+            photoUrl: ''
         };
         this.isModalOpen = true;
     }
@@ -122,7 +126,9 @@ export class UsersListComponent {
             roles: [...user.roles], // Copy roles
             cmp: user.cmp || '',
             clinicId: user.clinicId,
-            roleId: user.roleId
+            roleId: user.roleId,
+            phone: user.phone || '',
+            photoUrl: user.photoUrl || ''
         };
         this.isModalOpen = true;
     }
@@ -137,22 +143,49 @@ export class UsersListComponent {
             const updatePayload = {
                 fullName: this.formData.fullName,
                 phone: this.formData.phone,
-                roleId: this.formData.roleId,
+                roleId: this.formData.roleId || undefined,
                 photoUrl: this.formData.photoUrl
             };
+
+            console.log('🔄 Updating user:', this.editingId, 'with payload:', updatePayload);
+
             this.usersService.updateUser(this.editingId, updatePayload).subscribe({
-                next: () => this.closeModal(),
+                next: () => {
+                    console.log('✅ User updated successfully');
+                    this.closeModal();
+                },
                 error: (err) => {
-                    console.error('Error updating user:', err);
+                    console.error('❌ Error updating user:', err);
                     alert('Error al actualizar usuario. Verifique los datos.');
                 }
             });
         } else {
-            this.usersService.addUser(this.formData).subscribe({
+            // New User: Ensure clinicId is set
+            const currentUser = this.currentUser();
+            if (currentUser?.clinicId) {
+                this.formData.clinicId = currentUser.clinicId;
+            }
+
+            // Clean empty strings to undefined to avoid Backend 400 errors on UUID fields
+            const payload = { ...this.formData };
+            if (!payload.roleId) delete payload.roleId;
+            if (!payload.cmp) delete payload.cmp;
+            // Keep clinicId - it's required and copied from current user
+
+            this.usersService.addUser(payload).subscribe({
                 next: () => this.closeModal(),
                 error: (err) => {
                     console.error('Error adding user:', err);
-                    alert('Error al crear usuario.');
+                    // Try to extract meaningful error message from backend
+                    let errorMessage = 'Error al crear usuario.';
+                    if (err.error?.message) {
+                        errorMessage = err.error.message;
+                    } else if (err.error?.errors) {
+                        errorMessage = JSON.stringify(err.error.errors);
+                    } else if (err.message) {
+                        errorMessage = err.message;
+                    }
+                    alert(errorMessage);
                 }
             });
         }
@@ -232,6 +265,11 @@ export class UsersListComponent {
         if (!this.formData.fullName || !this.formData.email) return false;
         if (!this.isEditing && !this.formData.password) return false;
         if (this.formData.roles.length === 0) return false; // Must have at least one role
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(this.formData.email)) return false;
+
         return true;
     }
 }

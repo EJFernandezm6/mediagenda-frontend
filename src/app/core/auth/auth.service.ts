@@ -51,7 +51,8 @@ export class AuthService {
                     email: response.email,
                     roles: [], // Backend sends roleId (UUID), frontend expects string[]. Initialize empty to avoid crash.
                     photoUrl: `https://ui-avatars.com/api/?name=${response.email}&background=0D8ABC&color=fff`, // Default using email
-                    subscriptionStatus: 'ACTIVE' // Mocked
+                    subscriptionStatus: 'ACTIVE', // Mocked
+                    clinicId: response.clinicId // Map clinicId
                 };
 
                 this.currentUser.set(user);

@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { User } from '../auth/auth.service';
-import { tap, map } from 'rxjs/operators';
+import { tap, map, switchMap } from 'rxjs/operators';
 
 // Interface for creating/updating users (matches Backend UserRequest)
 export interface UserRequest {
@@ -60,9 +60,42 @@ export class UsersService {
         return this.users();
     }
 
+    private rolesUrl = `${environment.apiUrl}/iam/roles`;
+
+    getRoles() {
+        return this.http.get<any[]>(this.rolesUrl);
+    }
+
     addUser(user: UserRequest) {
-        // Return observable so component can handle success/close modal
-        return this.http.post<User>(this.apiUrl, user).pipe(
+        // 1. Fetch Roles to get ADMIN ID
+        return this.getRoles().pipe(
+            switchMap(roles => {
+                // Default to ADMIN if no specific role is requested (or if user.roles contains ADMIN)
+                // The frontend currently only creates ADMINs via this form
+                const targetRole = user.roles.includes('ADMIN') ? 'ADMIN' : user.roles[0];
+                const roleObj = roles.find(r => r.roleKey === targetRole || r.name.toUpperCase() === targetRole);
+
+                if (!roleObj) {
+                    throw new Error(`Role ${targetRole} not found`);
+                }
+
+                // 2. Create STRICT payload for backend (remove 'roles' array, keep only roleId)
+                const finalPayload = {
+                    fullName: user.fullName,
+                    email: user.email,
+                    password: user.password,
+                    roleId: roleObj.roleId,
+                    phone: user.phone || '', // Ensure string
+                    photoUrl: user.photoUrl || '' // Ensure string
+                    // Backend infers clinicId from authenticated user's JWT token
+                };
+
+                console.log('🔍 Role found:', roleObj);
+                console.log('📤 Final payload to send:', finalPayload);
+
+                // 3. Create User
+                return this.http.post<User>(this.apiUrl, finalPayload);
+            }),
             tap(() => this.refreshUsers())
         );
     }

@@ -1,0 +1,58 @@
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <lucide-icon [img]="icons.Zap" class="w-8 h-8 text-yellow-500 fill-yellow-500"></lucide-icon>
+                Planes y Suscripción
+            </h1>
+            <p class="mt-2 text-gray-600">Gestiona tu plan actual, facturación y métodos de pago.</p>
+        </div>
+
+        <!-- Currency Toggle -->
+        <div class="bg-gray-100 p-1 rounded-lg inline-flex items-center">
+            <button (click)="toggleCurrency('PEN')" [class.bg-white]="currentCurrency() === 'PEN'"
+                [class.text-blue-600]="currentCurrency() === 'PEN'" [class.shadow-sm]="currentCurrency() === 'PEN'"
+                [class.text-gray-500]="currentCurrency() !== 'PEN'"
+                class="px-4 py-1.5 text-sm font-medium rounded-md transition-all">
+                Soles (PEN)
+            </button>
+            <button (click)="toggleCurrency('USD')" [class.bg-white]="currentCurrency() === 'USD'"
+                [class.text-blue-600]="currentCurrency() === 'USD'" [class.shadow-sm]="currentCurrency() === 'USD'"
+                [class.text-gray-500]="currentCurrency() !== 'USD'"
+                class="px-4 py-1.5 text-sm font-medium rounded-md transition-all">
+                Dólares (USD)
+            </button>
+        </div>
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <app-plan-card *ngFor="let plan of plans()" [plan]="plan"
+            [isCurrent]="currentSubscriptionId() === plan.subscription_id"
+            [onSelect]="selectPlan.bind(this, plan.subscription_id)">
+        </app-plan-card>
+    </div>
+
+    <!-- Additional Sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+            <app-payment-methods></app-payment-methods>
+        </div>
+
+        <!-- Billing History or Info (Placeholder) -->
+        <div class="bg-white shadow rounded-lg p-6 border border-gray-100">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Próxima Facturación</h3>
+            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                <span class="text-gray-500">Fecha</span>
+                <span class="font-medium">11 Mar, 2026</span>
+            </div>
+            <div class="flex items-center justify-between py-2">
+                <span class="text-gray-500">Monto estimado</span>
+                <span class="font-medium">{{ currentCurrency() === 'USD' ? '$29.00' : 'S/ 110.00' }}</span>
+            </div>
+            <p class="mt-4 text-xs text-gray-400">
+                * El monto puede variar según el uso de características adicionales o prorrateo.
+            </p>
+        </div>
+    </div>
+</div>
