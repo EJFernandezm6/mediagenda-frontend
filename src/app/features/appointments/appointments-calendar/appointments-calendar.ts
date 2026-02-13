@@ -64,10 +64,25 @@ export class AppointmentsCalendarComponent {
   selectedSpecialtyId = signal<string>('');
 
   constructor() {
-    // Default to "All" (empty string)
-    // Auto-select first specialty when available to ensure data visibility
-    // Load available schedules for visualization
     this.scheduleService.refreshSchedules();
+
+    effect(() => {
+      const current = this.currentDate();
+      const mode = this.viewMode();
+      let from: string, to: string;
+
+      if (mode === 'week') {
+        const start = this.getStartOfWeek(current);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        from = start.toISOString().split('T')[0];
+        to = end.toISOString().split('T')[0];
+      } else {
+        from = to = current.toISOString().split('T')[0];
+      }
+
+      this.appointmentsService.refreshAppointmentsByRange(from, to);
+    });
   }
 
   // Calendar State
@@ -83,6 +98,7 @@ export class AppointmentsCalendarComponent {
 
   // Modal State
   isModalOpen = false;
+  saving = signal(false);
   selectedSlot: { date: string, time: string } | null = null;
 
   // Reactive Modal State
@@ -110,7 +126,7 @@ export class AppointmentsCalendarComponent {
       .filter(a => a.specialtyId === specialtyId)
       .map(a => a.doctorId);
 
-    return this.doctors().filter(d => doctorIds.includes(d.id));
+    return this.doctors().filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
   });
 
   // Appointments for All Doctors (Today) - Used for Daily View logic mostly
@@ -127,7 +143,7 @@ export class AppointmentsCalendarComponent {
     const doctorIds = associations
       .filter(a => a.specialtyId === specialtyId)
       .map(a => a.doctorId);
-    return this.doctors().filter(d => doctorIds.includes(d.id));
+    return this.doctors().filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
   });
 
   availableSlotsForModal = computed(() => {
@@ -137,16 +153,30 @@ export class AppointmentsCalendarComponent {
 
     if (!doctorId || !specialtyId || !date) return [];
 
-    const schedules = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId);
+    // 1. Obtener duración de la asociación médico-especialidad
+    const duration = this.getDuration(doctorId, specialtyId);
 
-    // Safer Day Calculation
-    const [y, m, d] = date.split('-').map(Number);
-    return this.timeSlots().filter(time => {
-      const isWorking = schedules.some(s => {
-        return s.date === date && time >= s.startTime && time < s.endTime;
-      });
-      if (!isWorking) return false;
+    // 2. Obtener horarios del médico para esa especialidad en esa fecha
+    const normalize = (t: string) => t.length > 5 ? t.substring(0, 5) : t;
+    const schedules = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId)
+      .filter(s => s.date === date);
 
+    if (schedules.length === 0) return [];
+
+    // 3. Generar slots desde cada bloque de horario
+    const slots: string[] = [];
+    for (const s of schedules) {
+      const start = this.getMinutes(normalize(s.startTime));
+      const end = this.getMinutes(normalize(s.endTime));
+      let current = start;
+      while (current + duration <= end) {
+        slots.push(this.formatMinutes(current));
+        current += duration;
+      }
+    }
+
+    // 4. Filtrar slots ya ocupados
+    return slots.filter(time => {
       const isBooked = this.appointments().some(a =>
         a.doctorId === doctorId &&
         a.appointmentDate === date &&
@@ -318,7 +348,6 @@ export class AppointmentsCalendarComponent {
       // Check Appointments
       const matchingApp = this.appointments().find(a =>
         a.doctorId === docId &&
-        (!this.selectedSpecialtyId() || a.specialtyId === this.selectedSpecialtyId()) &&
         a.appointmentDate === dateIso &&
         a.startTime === time &&
         a.status !== 'CANCELLED'
@@ -383,11 +412,11 @@ export class AppointmentsCalendarComponent {
     return res.filter((item: any) => item.type === 'booked').map((item: any) => item.appointment);
   }
 
-  openBookingModal(dateIso: string, time: string) {
+  openBookingModal(dateIso: string, time: string, doctorId?: string, specialtyId?: string) {
     this.selectedSlot = { date: dateIso, time };
     this.modalPatientId.set('');
-    this.modalSpecialtyId.set(this.selectedSpecialtyId() || '');
-    this.modalDoctorId.set(this.selectedDoctorId() || '');
+    this.modalSpecialtyId.set(specialtyId || this.selectedSpecialtyId() || '');
+    this.modalDoctorId.set(doctorId || this.selectedDoctorId() || '');
     this.modalDate.set(dateIso);
     this.modalTime.set(time);
     this.modalNotes.set('');
@@ -417,6 +446,7 @@ export class AppointmentsCalendarComponent {
       const patient = this.patients().find(p => p.patientId === patientId);
       const duration = this.getDuration(doctorId, specialtyId);
 
+      this.saving.set(true);
       this.appointmentsService.addAppointment({
         doctorId,
         specialtyId,
@@ -429,8 +459,13 @@ export class AppointmentsCalendarComponent {
         paymentMethod: this.modalPaymentMethod() as any,
         paymentStatus: this.modalPaymentMethod() === 'CASH' ? 'PENDING' : 'PAID',
         transactionId: this.modalTransactionId()
+      }).subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.closeModal();
+        },
+        error: () => this.saving.set(false)
       });
-      this.closeModal();
     }
   }
 

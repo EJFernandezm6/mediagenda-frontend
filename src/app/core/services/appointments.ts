@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface Appointment {
@@ -27,49 +28,33 @@ export class AppointmentsService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/appointments`;
 
-
   appointments = signal<Appointment[]>([]);
 
-  constructor() {
-    // Load initial (e.g., today) or leave empty until filtered
-    this.refreshAppointments();
+  private normalizeTime(t: string): string {
+    return t && t.length > 5 ? t.substring(0, 5) : t;
   }
 
-  refreshAppointments(filters?: { doctorId?: string, date?: string }) {
-    let params = new HttpParams();
-    if (filters?.doctorId) params = params.set('doctorId', filters.doctorId);
-    if (filters?.date) params = params.set('date', filters.date);
+  private normalizeAppointment(a: Appointment): Appointment {
+    return { ...a, startTime: this.normalizeTime(a.startTime), endTime: this.normalizeTime(a.endTime) };
+  }
 
-    this.http.get<Appointment[]>(this.apiUrl, { params }).subscribe(data => {
-      this.appointments.set(data);
+  refreshAppointmentsByRange(from: string, to: string) {
+    const params = new HttpParams().set('from', from).set('to', to);
+    this.http.get<Appointment[]>(`${this.apiUrl}/range`, { params }).subscribe(data => {
+      this.appointments.set(data.map(a => this.normalizeAppointment(a)));
     });
-  }
-
-  getAppointments() {
-    return this.appointments();
-  }
-
-  getAppointmentsForDateRange(start: string, end: string, doctorId: string) {
-    // Backend currently supports single date filter. 
-    // For ranges, we might need a new endpoint or loop. 
-    // For now, let's just fetch generally and filter client-side if range is small, 
-    // or assume the Calendar component requests specific dates.
-    // Better: Update backend to support range.
-    // Fallback: Fetch all for doctor (if not too many) or just fetch for "start" date if calendar views day-by-day.
-    // Let's rely on refreshAppointments logic for now.
-    return this.appointments();
   }
 
   addAppointment(appointment: any) {
-    this.http.post<Appointment>(this.apiUrl, appointment).subscribe(newApp => {
-      this.appointments.update(list => [...list, newApp]);
-    });
+    return this.http.post<Appointment>(this.apiUrl, appointment).pipe(
+      tap(newApp => this.appointments.update(list => [...list, this.normalizeAppointment(newApp)]))
+    );
   }
 
   updatestatus(id: string, status: Appointment['status']) {
     this.http.put<Appointment>(`${this.apiUrl}/${id}/status`, { status }).subscribe(updated => {
       this.appointments.update(list =>
-        list.map(a => a.appointmentId === id ? updated : a)
+        list.map(a => a.appointmentId === id ? this.normalizeAppointment(updated) : a)
       );
     });
   }
