@@ -43,6 +43,10 @@ export class MainLayoutComponent {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
+  onLogout() {
+    this.authService.logout();
+  }
+
   navItems = [
     { label: 'Dashboard', icon: this.icons.LayoutDashboard, route: '/app/dashboard' },
     { label: 'Agenda Citas', icon: this.icons.Calendar, route: '/app/appointments' },

@@ -52,8 +52,8 @@
         </nav>
 
         <div class="p-3 border-t border-gray-100">
-            <a routerLink="/auth/login"
-                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap"
+            <a (click)="onLogout()"
+                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap cursor-pointer"
                 [class.justify-center]="isSidebarCollapsed" [title]="isSidebarCollapsed ? 'Cerrar Sesión' : ''">
                 <lucide-icon [img]="icons.LogOut" class="w-5 h-5 flex-shrink-0"></lucide-icon>
                 <span *ngIf="!isSidebarCollapsed">Cerrar Sesión</span>
