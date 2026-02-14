@@ -12,6 +12,13 @@
 
         <!-- Login Actions -->
         <div class="space-y-4">
+            <!-- Error Message -->
+            <div *ngIf="errorMessage"
+                class="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"
+                role="alert">
+                <span class="font-medium">Error!</span> {{ errorMessage }}
+            </div>
+
             <form (ngSubmit)="onLogin()" class="space-y-4">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">Email</label>

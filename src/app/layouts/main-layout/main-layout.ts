@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight } from 'lucide-angular';
@@ -49,6 +49,8 @@ export class MainLayoutComponent {
   isMobileMenuOpen = false;
   isSidebarCollapsed = false;
 
+  @ViewChild('notificationsContainer') notificationsContainer!: ElementRef;
+
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
@@ -59,6 +61,13 @@ export class MainLayoutComponent {
 
   toggleNotifications() {
     this.isNotificationsOpen = !this.isNotificationsOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.isNotificationsOpen && this.notificationsContainer && !this.notificationsContainer.nativeElement.contains(event.target)) {
+      this.isNotificationsOpen = false;
+    }
   }
 
   navigateToAppointment(id: string) {

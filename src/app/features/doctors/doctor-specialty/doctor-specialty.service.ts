@@ -30,6 +30,10 @@ export class DoctorSpecialtyService {
         });
     }
 
+    getAllAssociations() {
+        return this.http.get<DoctorSpecialty[]>(`${this.apiUrl}/doctor-specialties`);
+    }
+
     addAssociation(doctorId: string, association: any) {
         // Clean payload: Remove doctorId as it sends in URL, keep relevant fields
         const payload = {

@@ -47,6 +47,13 @@ export class AppointmentsService {
     });
   }
 
+  getAppointmentsRange(from: string, to: string) {
+    const params = new HttpParams().set('from', from).set('to', to);
+    return this.http.get<Appointment[]>(`${this.apiUrl}/range`, { params }).pipe(
+      tap(data => data.map(a => this.normalizeAppointment(a)))
+    );
+  }
+
   getAppointmentById(id: string) {
     return this.http.get<Appointment>(`${this.apiUrl}/${id}`).pipe(
       tap(app => {

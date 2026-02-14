@@ -71,6 +71,14 @@ export class DoctorsService {
     });
   }
 
+  // Helper to get raw data for Dashboard usage
+  getAllDoctorsRaw() {
+    return forkJoin({
+      users: this.http.get<any[]>(`${this.apiUrl}?role=DOCTOR`),
+      profiles: this.http.get<any[]>(this.doctorsUrl)
+    });
+  }
+
   getDoctors() {
     return this.doctors();
   }

@@ -1,0 +1,58 @@
+    <!-- Charts Section 4: Performance -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
+        <!-- Revenue by Specialty -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <lucide-icon [img]="icons.DollarSign" class="w-5 h-5 text-gray-500"></lucide-icon>
+                Ingresos por Especialidad
+            </h3>
+            <div class="h-64 w-full flex items-center justify-center">
+                <ngx-charts-bar-vertical [scheme]="colorScheme" [results]="revenueBySpecialty" [gradient]="gradient"
+                    [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="false"
+                    [showYAxisLabel]="true" [yAxisLabel]="'Soles (S/)'" (select)="onSelect($event)">
+                </ngx-charts-bar-vertical>
+            </div>
+        </div>
+
+        <!-- Top Doctors -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <lucide-icon [img]="icons.Activity" class="w-5 h-5 text-gray-500"></lucide-icon>
+                Top Doctores (Más Solicitados)
+            </h3>
+            <div class="overflow-y-auto max-h-64">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Doctor
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Citas
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Ingresos
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr *ngFor="let doc of topDoctors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ doc.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    {{ doc.count }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                S/ {{ doc.revenue }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p *ngIf="topDoctors.length === 0" class="text-center text-gray-500 py-4 text-sm">No hay datos suficientes.</p>
+            </div>
+        </div>
+    </div>
+</div>

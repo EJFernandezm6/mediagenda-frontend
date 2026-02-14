@@ -19,9 +19,25 @@ export class LoginComponent {
 
   constructor(private authService: AuthService) { }
 
+  errorMessage = '';
+
   onLogin() {
     if (this.email && this.password) {
-      this.authService.login({ email: this.email, password: this.password }).subscribe();
+      this.errorMessage = ''; // Clear previous errors
+      this.authService.login({ email: this.email, password: this.password }).subscribe({
+        next: () => {
+          // Navigation is handled in AuthService usually, or here if needed.
+          // Assuming AuthService handles everything on success or we stay here.
+          // If AuthService redirects, we are good.
+        },
+        error: (err) => {
+          if (err.status === 400) {
+            this.errorMessage = 'Usuario o contraseña incorrectos';
+          } else {
+            this.errorMessage = 'Ocurrió un error inesperado al iniciar sesión';
+          }
+        }
+      });
     }
   }
 }

@@ -45,6 +45,10 @@ export class PatientsService {
     this.http.get<Patient[]>(this.apiUrl).subscribe(data => this.patients.set(data));
   }
 
+  getAllPatients() {
+    return this.http.get<Patient[]>(this.apiUrl);
+  }
+
   getPatients() {
     return this.patients();
   }

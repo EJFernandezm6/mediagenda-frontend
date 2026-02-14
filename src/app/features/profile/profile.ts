@@ -52,6 +52,7 @@ export class ProfileComponent {
         });
 
         this.passwordForm = this.fb.group({
+            currentPassword: ['', [Validators.required]],
             password: ['', [Validators.required, Validators.minLength(6)]],
             confirmPassword: ['', [Validators.required]]
         }, { validators: passwordMatchValidator });
@@ -93,14 +94,14 @@ export class ProfileComponent {
     onChangePassword() {
         if (this.passwordForm.invalid) return;
 
-        const user = this.currentUser();
-        if (!user) return;
-
         this.isChangingPassword = true;
+        const currentPassword = this.passwordForm.value.currentPassword;
         const newPassword = this.passwordForm.value.password;
 
-        // Assuming updateUser handles password update if 'password' field is present
-        this.usersService.updateUser(user.id, { password: newPassword }).subscribe({
+        this.usersService.changePassword({
+            currentPassword,
+            newPassword
+        }).subscribe({
             next: () => {
                 this.isChangingPassword = false;
                 this.passwordForm.reset();
@@ -109,7 +110,7 @@ export class ProfileComponent {
             error: (err) => {
                 console.error('Error updating password:', err);
                 this.isChangingPassword = false;
-                alert('Error al cambiar la contraseña');
+                alert('Error al cambiar la contraseña: ' + (err.error?.message || 'Error desconocido'));
             }
         });
     }
