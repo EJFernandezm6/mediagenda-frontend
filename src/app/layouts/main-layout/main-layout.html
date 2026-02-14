@@ -60,7 +60,8 @@
             </a>
         </div>
 
-        <div class="p-4 border-t border-gray-100 bg-gray-50 overflow-hidden">
+        <div class="p-4 border-t border-gray-100 bg-gray-50 overflow-hidden cursor-pointer hover:bg-gray-100 transition-colors"
+            routerLink="/app/profile" [title]="'Ver mi perfil'">
             <div class="flex items-center gap-3" [class.justify-center]="isSidebarCollapsed">
                 <div class="flex-shrink-0">
                     <img *ngIf="currentUser()?.photoUrl" [src]="currentUser()?.photoUrl"
@@ -83,6 +84,96 @@
     <!-- Main Content -->
     <main class="flex-1 ml-0 transition-all duration-300 ease-in-out md:ml-64 overflow-y-auto h-full pt-16 md:pt-0"
         [class.md:ml-64]="!isSidebarCollapsed" [class.md:ml-20]="isSidebarCollapsed">
+
+        <!-- Desktop Header / Toolbar -->
+        <header
+            class="hidden md:flex items-center justify-between px-8 py-4 bg-white border-b border-gray-200 sticky top-0 z-10 transition-shadow">
+            <div>
+                <!-- Breadcrumbs or Page Title could go here -->
+            </div>
+
+            <div class="flex items-center gap-4 relative">
+                <!-- Notifications -->
+                <button (click)="toggleNotifications()"
+                    class="relative p-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-200 hover:shadow-md transition-all focus:outline-none shadow-sm">
+                    <lucide-icon [img]="icons.Bell" class="w-5 h-5"></lucide-icon>
+                    <span *ngIf="pendingAppointments().length > 0" class="absolute -top-1 -right-1 flex h-5 w-5">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span
+                            class="relative inline-flex rounded-full h-5 w-5 bg-red-500 text-[10px] text-white font-bold items-center justify-center border-2 border-white shadow-sm">
+                            {{ pendingAppointments().length > 9 ? '9+' : pendingAppointments().length }}
+                        </span>
+                    </span>
+                </button>
+
+                <!-- Dropdown -->
+                <div *ngIf="isNotificationsOpen"
+                    class="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in-up origin-top-right ring-1 ring-black/5">
+                    <div
+                        class="p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Validaciones</h3>
+                        <span
+                            class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-200">
+                            {{ pendingAppointments().length }} Pendientes
+                        </span>
+                    </div>
+
+                    <div class="max-h-[320px] overflow-y-auto custom-scrollbar bg-white">
+                        <div *ngIf="pendingAppointments().length === 0"
+                            class="p-8 text-center text-gray-400 flex flex-col items-center">
+                            <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                                <lucide-icon [img]="icons.CheckCircle" class="w-6 h-6 text-gray-300"></lucide-icon>
+                            </div>
+                            <p class="text-sm font-medium">Todo al día</p>
+                            <p class="text-xs mt-1">No hay pagos pendientes de validar.</p>
+                        </div>
+
+                        <div *ngFor="let app of pendingAppointments()"
+                            (click)="navigateToAppointment(app.appointmentId!)"
+                            class="p-4 border-b border-gray-50 hover:bg-blue-50/50 cursor-pointer transition-colors group flex gap-3 relative overflow-hidden">
+                            <!-- Indicator Stripe -->
+                            <div
+                                class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            </div>
+
+                            <!-- Icon -->
+                            <div class="flex-shrink-0">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-yellow-50 border border-yellow-100 flex items-center justify-center text-yellow-600 shadow-sm group-hover:scale-110 transition-transform duration-200">
+                                    <lucide-icon [img]="icons.Zap" class="w-5 h-5"></lucide-icon>
+                                </div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="flex-1 min-w-0 pt-0.5">
+                                <div class="flex justify-between items-start mb-0.5">
+                                    <h4
+                                        class="text-sm font-bold text-gray-900 truncate pr-2 group-hover:text-blue-700 transition-colors">
+                                        {{ app.patientName || 'Paciente' }}</h4>
+                                    <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">{{
+                                        app.appointmentDate }}</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mb-2">Pago pendiente <span
+                                        class="font-bold text-gray-700">({{ app.paymentMethod }})</span></p>
+
+                                <span
+                                    class="inline-flex items-center text-[10px] font-bold text-blue-600 group-hover:underline decoration-blue-300 underline-offset-2 transition-all">
+                                    Revisar comprobante <lucide-icon [img]="icons.ChevronRight"
+                                        class="w-3 h-3 ml-0.5"></lucide-icon>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-2 border-t border-gray-100 bg-gray-50 text-center">
+                        <button (click)="isNotificationsOpen = false"
+                            class="w-full py-1.5 text-xs font-bold text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">Ocultar</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
         <div class="p-4 sm:p-8 max-w-7xl mx-auto">
             <router-outlet></router-outlet>
         </div>

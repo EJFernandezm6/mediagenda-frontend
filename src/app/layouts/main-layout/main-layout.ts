@@ -1,9 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap } from 'lucide-angular';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight } from 'lucide-angular';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal';
 import { AuthService } from '../../core/auth/auth.service';
+import { AppointmentsService } from '../../core/services/appointments';
 
 @Component({
   selector: 'app-main-layout',
@@ -26,11 +27,24 @@ export class MainLayoutComponent {
     Menu,
     X,
     UserCircle,
-    Zap
+    Zap,
+    Bell,
+    CheckCircle,
+    ChevronRight
   };
 
   private authService = inject(AuthService);
+  private appointmentsService = inject(AppointmentsService);
+  private router = inject(Router);
+
   currentUser = this.authService.currentUser;
+  pendingAppointments = this.appointmentsService.pendingAppointments;
+  isNotificationsOpen = false;
+
+  constructor() {
+    // Initial fetch
+    this.appointmentsService.fetchPendingAppointments();
+  }
 
   isMobileMenuOpen = false;
   isSidebarCollapsed = false;
@@ -41,6 +55,15 @@ export class MainLayoutComponent {
 
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  toggleNotifications() {
+    this.isNotificationsOpen = !this.isNotificationsOpen;
+  }
+
+  navigateToAppointment(id: string) {
+    this.isNotificationsOpen = false;
+    this.router.navigate(['/app/appointments'], { queryParams: { appointmentId: id } });
   }
 
   onLogout() {

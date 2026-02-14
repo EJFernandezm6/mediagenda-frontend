@@ -17,6 +17,17 @@ export interface UserRequest {
     roleId?: string;
 }
 
+export interface UpdateProfileRequest {
+    fullName?: string;
+    phone?: string;
+    photoUrl?: string;
+}
+
+export interface ChangePasswordRequest {
+    currentPassword?: string;
+    newPassword?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -128,5 +139,16 @@ export class UsersService {
         return this.http.post<User>(`${this.apiUrl}/${id}/toggle-active`, {}).pipe(
             tap(() => this.refreshUsers())
         );
+    }
+
+    updateProfile(data: UpdateProfileRequest) {
+        // Use separate endpoint for profile update
+        return this.http.put<User>(`${this.apiUrl}/profile`, data).pipe(
+            tap(() => this.refreshUsers())
+        );
+    }
+
+    changePassword(data: ChangePasswordRequest) {
+        return this.http.put<void>(`${this.apiUrl}/change-password`, data);
     }
 }

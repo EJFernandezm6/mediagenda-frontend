@@ -1,4 +1,5 @@
 import { Component, inject, computed, signal, effect } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppointmentsService, Appointment } from '../../../core/services/appointments';
@@ -25,6 +26,7 @@ export class AppointmentsCalendarComponent {
   protected patientsService = inject(PatientsService);
   protected doctorSpecialtyService = inject(DoctorSpecialtyService);
   protected configService = inject(ConfigurationService);
+  private route = inject(ActivatedRoute);
 
   readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle };
 
@@ -83,6 +85,25 @@ export class AppointmentsCalendarComponent {
 
       this.appointmentsService.refreshAppointmentsByRange(from, to);
     });
+
+    // Handle Deep Linking (Notifications)
+    this.route.queryParams.subscribe(params => {
+      const appId = params['appointmentId'];
+      if (appId) {
+        this.appointmentsService.getAppointmentById(appId).subscribe({
+          next: (app) => {
+            if (app) {
+              // 1. Move calendar to date
+              const date = new Date(app.appointmentDate + 'T00:00:00');
+              this.currentDate.set(date);
+
+              // 2. Open Modal
+              this.openAppointmentDetails(app);
+            }
+          }
+        });
+      }
+    });
   }
 
   // Calendar State
@@ -110,6 +131,7 @@ export class AppointmentsCalendarComponent {
   modalNotes = signal('');
   modalPaymentMethod = signal('CASH');
   modalTransactionId = signal('');
+  modalPaymentProof = signal('');
 
   // Details Modal State
   isDetailsModalOpen = false;
@@ -418,21 +440,98 @@ export class AppointmentsCalendarComponent {
     this.modalSpecialtyId.set(specialtyId || this.selectedSpecialtyId() || '');
     this.modalDoctorId.set(doctorId || this.selectedDoctorId() || '');
     this.modalDate.set(dateIso);
-    this.modalTime.set(time);
+
+    // Snap time to valid slot if needed
+    let alignedTime = time;
+    if (doctorId && specialtyId) {
+      const duration = this.getDuration(doctorId, specialtyId);
+      // Find schedule to get start time
+      const normalize = (t: string) => t.length > 5 ? t.substring(0, 5) : t;
+      const schedule = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId)
+        .find(s => s.date === dateIso);
+
+      if (schedule) {
+        const startMins = this.getMinutes(normalize(schedule.startTime));
+        const clickMins = this.getMinutes(time);
+
+        // Calculate aligned slot: start + floor((click - start) / duration) * duration
+        const diff = clickMins - startMins;
+        if (diff >= 0) {
+          const slotIndex = Math.floor(diff / duration);
+          const alignedMins = startMins + (slotIndex * duration);
+          alignedTime = this.formatMinutes(alignedMins);
+        }
+      }
+    }
+
+    this.modalTime.set(alignedTime);
     this.modalNotes.set('');
     this.modalPaymentMethod.set('CASH');
     this.modalTransactionId.set('');
+    this.modalPaymentProof.set('');
     this.isModalOpen = true;
+  }
+
+  // Check if form has data
+  isBookingDirty(): boolean {
+    return !!(this.modalDoctorId() || this.modalSpecialtyId() || this.modalPatientId() || this.modalTime());
+  }
+
+  tryCloseBookingModal() {
+    if (this.isBookingDirty()) {
+      if (confirm('¿Estás seguro de que deseas cerrar? Se perderán los datos ingresados.')) {
+        this.closeModal();
+      }
+    } else {
+      this.closeModal();
+    }
+  }
+
+  tryCloseDetailsModal() {
+    if (this.isRescheduling) {
+      if (confirm('Estás reprogramando una cita. ¿Seguro que deseas cerrar sin guardar?')) {
+        this.closeDetailsModal();
+      }
+    } else {
+      this.closeDetailsModal();
+    }
   }
 
   closeModal() {
     this.isModalOpen = false;
+    // Reset state? maybe cleaner to do it on open
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    // Parse ISO YYYY-MM-DD
+    // Note: Creating date from string in local time might be tricky if not careful with T00:00
+    // But since we deal with YYYY-MM-DD visual strings, we can just split and format.
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d); // Local
+
+    // "Día número de día mes y año" e.g. "Lunes 13 Febrero 2026"
+    // Using simple Intl
+    const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
+    const dayNum = date.getDate();
+    const month = date.toLocaleDateString('es-ES', { month: 'long' });
+    const year = date.getFullYear();
+
+    return `${dayName} ${dayNum} ${month} ${year}`;
   }
 
   getDuration(doctorId: string, specialtyId: string): number {
     const assoc = this.doctorSpecialtyService.associations()
       .find(a => a.doctorId === doctorId && a.specialtyId === specialtyId);
     return assoc && assoc.durationMinutes > 0 ? assoc.durationMinutes : 30; // Default 30
+  }
+
+  formatTime12Hour(time: string): string {
+    if (!time) return '';
+    const [h, m] = time.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hours = h % 12 || 12;
+    return `${hours}:${m.toString().padStart(2, '0')} ${period}`;
   }
 
   saveAppointment() {
@@ -458,7 +557,8 @@ export class AppointmentsCalendarComponent {
         notes: this.modalNotes(),
         paymentMethod: this.modalPaymentMethod() as any,
         paymentStatus: this.modalPaymentMethod() === 'CASH' ? 'PENDING' : 'PAID',
-        transactionId: this.modalTransactionId()
+        transactionId: this.modalTransactionId(),
+        paymentProofUrl: this.modalPaymentProof()
       }).subscribe({
         next: () => {
           this.saving.set(false);
@@ -484,6 +584,10 @@ export class AppointmentsCalendarComponent {
     return this.specialties().find(s => s.specialtyId === id)?.name || 'Desconocido';
   }
 
+  getPatientName(id: string) {
+    return this.patients().find(p => p.patientId === id)?.fullName || 'Paciente Desconocido';
+  }
+
   getAppointmentColorClass(app: Appointment): string {
     // Green: Confirmado / Pagado
     if (app.paymentStatus === 'PAID') {
@@ -494,19 +598,8 @@ export class AppointmentsCalendarComponent {
   }
 
   openGenericBooking() {
-    // Find first available slot today or in the week
-    const today = new Date().toISOString().split('T')[0];
-    const slots = this.timeSlots();
-    const firstAvailable = slots.find(slot =>
-      this.getSlotStatus(today, slot, 0).some((item: any) => item.type === 'available')
-    );
-
-    if (firstAvailable) {
-      this.openBookingModal(today, firstAvailable);
-    } else {
-      // Just open with today and first slot if none found
-      this.openBookingModal(today, slots[0] || '09:00');
-    }
+    // Just open with empty values to force selection
+    this.openBookingModal('', '');
   }
 
   openAppointmentDetails(appointment: Appointment) {
@@ -592,6 +685,30 @@ export class AppointmentsCalendarComponent {
     }
   }
 
+  validatePayment() {
+    if (this.selectedAppointment) {
+      // Optimistic update
+      const updated = { ...this.selectedAppointment, paymentStatus: 'PAID' as const, status: 'CONFIRMED' as const };
+
+      // Update in list
+      this.appointments.update(list =>
+        list.map(a => a.appointmentId === updated.appointmentId ? updated : a)
+      );
+
+      // Update current selection so UI reflects changes immediately (header color, button disappearance)
+      this.selectedAppointment = updated;
+
+      // Call service to update payment and status
+      this.appointmentsService.updatePayment(
+        this.selectedAppointment.appointmentId!,
+        this.selectedAppointment.paymentMethod || 'CASH',
+        'PAID'
+      );
+      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, 'CONFIRMED');
+      // ideally we should also update paymentStatus if backend supports it separately, but for now this is the best we can do with current service.
+    }
+  }
+
   getAppointmentStatusLabel(app: Appointment): string {
     if (app.paymentStatus === 'PAID') {
       return 'Pagada';
@@ -601,5 +718,16 @@ export class AppointmentsCalendarComponent {
     }
     // Fallback logic
     return 'Reservada';
+  }
+
+  getDetailsHeaderClass(): string {
+    if (!this.selectedAppointment) return 'bg-blue-600';
+
+    // "Confirmado" (Paid) -> Green
+    if (this.selectedAppointment.paymentStatus === 'PAID') {
+      return 'bg-green-600';
+    }
+    // "Reservado" (Pending) -> Yellow
+    return 'bg-yellow-500';
   }
 }

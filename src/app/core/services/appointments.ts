@@ -19,6 +19,7 @@ export interface Appointment {
   paymentMethod?: 'YAPE' | 'PLIN' | 'CARD' | 'CASH';
   paymentStatus?: 'PENDING' | 'PAID';
   transactionId?: string;
+  paymentProofUrl?: string;
 }
 
 @Injectable({
@@ -29,6 +30,7 @@ export class AppointmentsService {
   private apiUrl = `${environment.apiUrl}/appointments`;
 
   appointments = signal<Appointment[]>([]);
+  pendingAppointments = signal<Appointment[]>([]);
 
   private normalizeTime(t: string): string {
     return t && t.length > 5 ? t.substring(0, 5) : t;
@@ -45,17 +47,73 @@ export class AppointmentsService {
     });
   }
 
+  getAppointmentById(id: string) {
+    return this.http.get<Appointment>(`${this.apiUrl}/${id}`).pipe(
+      tap(app => {
+        // Also update local list if present
+        this.appointments.update(list => {
+          const idx = list.findIndex(a => a.appointmentId === app.appointmentId);
+          if (idx !== -1) {
+            const newList = [...list];
+            newList[idx] = this.normalizeAppointment(app);
+            return newList;
+          }
+          return list;
+        });
+      })
+    );
+  }
+
+  fetchPendingAppointments() {
+    // Assuming endpoint supports filtering or we fetch future and filter
+    // For now, let's fetch 'all' or a wide range, or assume a specific endpoint exists.
+    // I'll try fetching with paymentStatus=PENDING if backend supports, otherwise I'll need to fetch recent/future.
+    // Given I don't want to break things, I'll use a new call to /pending if it existed, but likely I just need to add a param.
+    // Let's try GET /appointments/pending if possible, or just standard GET with params.
+    // I'll assume GET /appointments/pending works as a safe bet for a new feature, or I'll just filter in client from a "current month" fetch?
+    // User requested: "notifications for when admin needs to change status manually".
+    // I will try to fetch ALL pending appointments.
+    const params = new HttpParams().set('paymentStatus', 'PENDING');
+    this.http.get<Appointment[]>(`${this.apiUrl}`, { params }).subscribe({
+      next: (data) => {
+        // Filter mainly for YAPE/PLIN/CASH and PENDING status
+        const pending = data
+          .filter(a => a.paymentStatus === 'PENDING' && ['YAPE', 'PLIN', 'CASH'].includes(a.paymentMethod || ''))
+          .map(a => this.normalizeAppointment(a));
+        this.pendingAppointments.set(pending);
+      },
+      error: () => {
+        // Fallback or ignore
+        console.warn('Failed to fetch pending appointments');
+      }
+    });
+  }
+
   addAppointment(appointment: any) {
     return this.http.post<Appointment>(this.apiUrl, appointment).pipe(
-      tap(newApp => this.appointments.update(list => [...list, this.normalizeAppointment(newApp)]))
+      tap(newApp => {
+        this.appointments.update(list => [...list, this.normalizeAppointment(newApp)]);
+        this.fetchPendingAppointments(); // Refresh pending
+      })
     );
   }
 
   updatestatus(id: string, status: Appointment['status']) {
-    this.http.put<Appointment>(`${this.apiUrl}/${id}/status`, { status }).subscribe(updated => {
+    this.http.patch(`${this.apiUrl}/${id}/status`, { status }).subscribe(() => {
       this.appointments.update(list =>
-        list.map(a => a.appointmentId === id ? this.normalizeAppointment(updated) : a)
+        list.map(a => a.appointmentId === id ? { ...a, status } : a)
       );
+      this.fetchPendingAppointments(); // Refresh pending
+    });
+  }
+
+  updatePayment(id: string, paymentMethod: string, paymentStatus: 'PENDING' | 'PAID', transactionId?: string) {
+    const body = { paymentMethod, paymentStatus, transactionId };
+    this.http.patch(`${this.apiUrl}/${id}/payment`, body).subscribe(() => {
+      this.appointments.update(list =>
+        list.map(a => a.appointmentId === id ? { ...a, paymentStatus, paymentMethod: paymentMethod as any } : a)
+      );
+      this.fetchPendingAppointments();
     });
   }
 
