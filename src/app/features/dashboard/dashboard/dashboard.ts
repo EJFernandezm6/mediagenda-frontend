@@ -8,10 +8,12 @@ import { DoctorsService, Doctor } from '../../../core/services/doctors';
 import { PatientsService, Patient } from '../../../core/services/patients';
 import { forkJoin } from 'rxjs';
 
+import { RecommendationsComponent } from '../recommendations/recommendations.component';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, NgxChartsModule],
+  imports: [CommonModule, LucideAngularModule, NgxChartsModule, RecommendationsComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
