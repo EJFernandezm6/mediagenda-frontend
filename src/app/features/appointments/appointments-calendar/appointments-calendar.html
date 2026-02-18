@@ -18,101 +18,95 @@
             </div>
         </div>
 
-        <!-- Filters Row & Legend -->
-        <div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 pt-2">
-
-            <!-- Filters Group -->
-            <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-                <!-- Specialty Filter -->
-                <div class="relative min-w-[200px] flex-1 xl:flex-none">
-                    <lucide-icon [img]="icons.Search"
-                        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
-                    <select [ngModel]="selectedSpecialtyId()"
-                        (ngModelChange)="selectedSpecialtyId.set($event); selectedDoctorId.set('')"
-                        class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-8 py-2.5 hover:border-gray-300 transition-colors cursor-pointer font-medium">
-                        <option value="">Todas las especialidades</option>
-                        <option *ngFor="let spec of specialties()" [value]="spec.specialtyId">{{ spec.name }}</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                        <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4 rotate-90"></lucide-icon>
-                    </div>
-                </div>
-
-                <!-- Doctor Filter -->
-                <div class="relative min-w-[200px] flex-1 xl:flex-none">
-                    <lucide-icon [img]="icons.User"
-                        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
-                    <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
-                        class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-8 py-2.5 hover:border-gray-300 transition-colors cursor-pointer font-medium">
-                        <option value="">Todos los médicos</option>
-                        <option *ngFor="let doc of filteredDoctors()" [value]="doc.doctorId">{{ doc.fullName }}</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                        <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4 rotate-90"></lucide-icon>
-                    </div>
+        <!-- Filters Row (Only Filters Here) -->
+        <div class="flex flex-wrap items-center gap-3 w-full">
+            <!-- Specialty Filter -->
+            <div class="relative min-w-[200px] flex-1 md:flex-none">
+                <lucide-icon [img]="icons.Search"
+                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
+                <select [ngModel]="selectedSpecialtyId()"
+                    (ngModelChange)="selectedSpecialtyId.set($event); selectedDoctorId.set('')"
+                    class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-8 py-2.5 hover:border-gray-300 transition-colors cursor-pointer font-medium">
+                    <option value="">Todas las especialidades</option>
+                    <option *ngFor="let spec of specialties()" [value]="spec.specialtyId">{{ spec.name }}</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                    <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4 rotate-90"></lucide-icon>
                 </div>
             </div>
 
-            <!-- Legend & Navigation Group -->
-            <div class="flex flex-wrap items-center gap-4 w-full xl:w-auto justify-between xl:justify-end">
-                <!-- Status Legend -->
-                <div
-                    class="flex items-center gap-3 text-[10px] font-medium text-gray-500 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 table-fixed">
-                    <div class="flex items-center gap-1.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div> Pagada
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div> Reservada
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <div class="w-2.5 h-2.5 rounded border border-blue-400 border-dashed bg-blue-50"></div>
-                        Disponible
-                    </div>
-                </div>
-
-                <!-- Date Navigation -->
-                <div class="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-                    <button (click)="changeWeek(-1)"
-                        class="p-1.5 hover:bg-gray-50 rounded-lg transition-all text-gray-500 hover:text-gray-700">
-                        <lucide-icon [img]="icons.ChevronLeft" class="w-4 h-4"></lucide-icon>
-                    </button>
-                    <div class="px-3 text-center min-w-[140px]">
-                        <ng-container *ngIf="viewMode() === 'week'">
-                            <span class="block text-xs font-bold text-gray-800 leading-none mb-0.5">
-                                {{ weekDays()[0].dayNum }} {{ weekDays()[0].monthName }} - {{ weekDays()[6].dayNum }} {{
-                                weekDays()[6].monthName }}
-                            </span>
-                            <span class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-                                {{ weekDays()[0].date.getFullYear() }}
-                            </span>
-                        </ng-container>
-                        <ng-container *ngIf="viewMode() === 'day'">
-                            <span class="block text-xs font-bold text-gray-800 capitalize leading-none">
-                                {{ currentDateStr() | titlecase }}
-                            </span>
-                        </ng-container>
-                    </div>
-                    <button (click)="changeWeek(1)"
-                        class="p-1.5 hover:bg-gray-50 rounded-lg transition-all text-gray-500 hover:text-gray-700">
-                        <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4"></lucide-icon>
-                    </button>
+            <!-- Doctor Filter -->
+            <div class="relative min-w-[200px] flex-1 md:flex-none">
+                <lucide-icon [img]="icons.User"
+                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
+                <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
+                    class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-8 py-2.5 hover:border-gray-300 transition-colors cursor-pointer font-medium">
+                    <option value="">Todos los médicos</option>
+                    <option *ngFor="let doc of filteredDoctors()" [value]="doc.doctorId">{{ doc.fullName }}</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                    <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4 rotate-90"></lucide-icon>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Calendar Grid -->
-    <div class="flex-1 overflow-auto bg-gray-50 p-2 sm:p-6">
+    <!-- Calendar Grid Area -->
+    <div class="flex-1 overflow-auto bg-gray-50 p-2 sm:p-6 flex flex-col">
 
-        <!-- View Controls (Day/Week Toggle) -->
-        <div class="flex items-center justify-end mb-4 px-1">
-            <div class="bg-gray-200 p-1 rounded-lg inline-flex">
+        <!-- Unified Toolbar (Legend + Date Nav + View Toggle) -->
+        <div
+            class="flex flex-col xl:flex-row items-center justify-between gap-4 mb-4 bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
+
+            <!-- Left: Legend -->
+            <div class="flex items-center gap-3 text-[10px] font-medium text-gray-500 px-2">
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div> Pagada
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div> Reservada
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2.5 h-2.5 rounded border border-blue-400 border-dashed bg-blue-50"></div> Disponible
+                </div>
+            </div>
+
+            <!-- Center: Date Navigation -->
+            <div class="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-100">
+                <button (click)="changeWeek(-1)"
+                    class="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-500 hover:text-gray-900">
+                    <lucide-icon [img]="icons.ChevronLeft" class="w-4 h-4"></lucide-icon>
+                </button>
+                <div class="px-4 text-center min-w-[160px]">
+                    <ng-container *ngIf="viewMode() === 'week'">
+                        <span class="block text-xs font-bold text-gray-900 leading-none mb-0.5">
+                            {{ weekDays()[0].dayNum }} {{ weekDays()[0].monthName }} - {{ weekDays()[6].dayNum }} {{
+                            weekDays()[6].monthName }}
+                        </span>
+                        <span class="block text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+                            {{ weekDays()[0].date.getFullYear() }}
+                        </span>
+                    </ng-container>
+                    <ng-container *ngIf="viewMode() === 'day'">
+                        <span class="block text-xs font-bold text-gray-900 capitalize leading-none">
+                            {{ currentDateStr() | titlecase }}
+                        </span>
+                    </ng-container>
+                </div>
+                <button (click)="changeWeek(1)"
+                    class="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-500 hover:text-gray-900">
+                    <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4"></lucide-icon>
+                </button>
+            </div>
+
+            <!-- Right: View Toggle -->
+            <div class="bg-gray-100 p-1 rounded-lg flex">
                 <button (click)="toggleView('day')"
-                    [class]="'px-4 py-1.5 text-sm font-bold rounded-md transition-all ' + (viewMode() === 'day' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800')">
+                    [class]="'px-3 py-1 text-xs font-bold rounded-md transition-all ' + (viewMode() === 'day' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900')">
                     Día
                 </button>
                 <button (click)="toggleView('week')"
-                    [class]="'px-4 py-1.5 text-sm font-bold rounded-md transition-all ' + (viewMode() === 'week' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800')">
+                    [class]="'px-3 py-1 text-xs font-bold rounded-md transition-all ' + (viewMode() === 'week' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900')">
                     Semana
                 </button>
             </div>

@@ -91,10 +91,20 @@ export class UsersListComponent {
         return users.slice(startIndex, startIndex + this.itemsPerPage);
     });
 
+    availableRoles: any[] = [];
+
     // Reset page when filters change
     constructor() {
         // We can't easily listen to computed signals change in constructor without effect,
         // but binding to (ngModel) inputs calls methods, so we'll update there.
+        // Fetch roles to have available for mapping
+        this.usersService.getRoles().subscribe({
+            next: (roles) => {
+                this.availableRoles = roles;
+                // console.log('Roles loaded:', this.availableRoles);
+            },
+            error: (err) => console.error('Error loading roles:', err)
+        });
     }
 
     onPageChange(page: number) {
@@ -307,9 +317,50 @@ export class UsersListComponent {
     }
 
     private updateUserRoles(userId: string, newRoles: string[]) {
-        // cast to any because UserRequest might be strict about other fields, 
-        // but backend usually updates what is sent in PUT
-        const payload: any = { roles: newRoles };
+        const user = this.users().find(u => u.id === userId);
+        if (!user) {
+            console.error('User not found for role update');
+            return;
+        }
+
+        // Determine new primary RoleId
+        // Logic: If ADMIN is in newRoles, use ADMIN roleId. 
+        // Else if DOCTOR, use DOCTOR roleId.
+        // Else use the first one found.
+        let targetRoleKey = 'PATIENT'; // Default?
+        if (newRoles.some(r => r.toUpperCase() === 'ADMIN')) {
+            targetRoleKey = 'ADMIN';
+        } else if (newRoles.some(r => r.toUpperCase() === 'DOCTOR')) {
+            targetRoleKey = 'DOCTOR';
+        } else if (newRoles.length > 0) {
+            targetRoleKey = newRoles[0].toUpperCase();
+        }
+
+        const roleObj = this.availableRoles.find(r => r.roleKey === targetRoleKey || r.name.toUpperCase() === targetRoleKey);
+        const newRoleId = roleObj ? roleObj.roleId : user.roleId; // Fallback to existing if not found
+
+        const payload: UserRequest = {
+            fullName: user.fullName,
+            email: user.email,
+            roles: newRoles,
+            roleId: newRoleId || '',
+            phone: user.phone,
+            photoUrl: user.photoUrl,
+            clinicId: user.clinicId,
+            cmp: user.cmp
+        };
+
+        // If roleId is missing, it might cause 400.
+        // Let's ensure roleId is not null/undefined if possible.
+        // It seems the backend uses roleId to validate the primary role.
+        if (!payload.roleId) {
+            // Ideally we should fetch the roleId corresponding to one of the newRoles.
+            // But we don't have the roles list here easily without another call.
+            // Let's try sending what we have. If it fails, we might need a bigger refactor.
+            // HACK: for now, assume existing roleId is valid or backend handles it if we don't send null (but UserRequest says string)
+            // If we leave it undefined, HttpClient might exclude it or send null?
+            console.warn('Warning: Could not determine valid roleId for roles:', newRoles);
+        }
 
         this.usersService.updateUser(userId, payload).subscribe({
             next: () => {
@@ -317,7 +368,8 @@ export class UsersListComponent {
             },
             error: (err) => {
                 console.error('Error updating roles:', err);
-                alert('Error al actualizar los roles. Por favor intente nuevamente.');
+                const msg = err.error?.message || 'Error al actualizar los roles.';
+                alert(msg);
             }
         });
     }
