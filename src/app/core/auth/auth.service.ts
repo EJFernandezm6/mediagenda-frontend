@@ -52,17 +52,30 @@ export class AuthService {
                     roles: [], // Backend sends roleId (UUID), frontend expects string[]. Initialize empty to avoid crash.
                     photoUrl: `https://ui-avatars.com/api/?name=${response.email}&background=0D8ABC&color=fff`, // Default using email
                     subscriptionStatus: 'ACTIVE', // Mocked
-                    clinicId: response.clinicId // Map clinicId
+                    clinicId: response.clinicId, // Map clinicId
+                    roleId: response.roleId
                 };
 
                 this.currentUser.set(user);
-                localStorage.setItem('token', response.accessToken); // Backend sends accessToken
+                localStorage.setItem('token', response.token); // Backend sends token
                 localStorage.setItem('user', JSON.stringify(user));
 
                 // Navigate
                 this.router.navigate(['/app/dashboard']);
             })
         );
+    }
+
+    forgotPassword(email: string) {
+        return this.http.post<{ message: string, code?: string }>(`${this.apiUrl}/forgot-password`, { email });
+    }
+
+    validateCode(email: string, code: string) {
+        return this.http.post<{ valid: boolean }>(`${this.apiUrl}/validate-code`, { email, code });
+    }
+
+    resetPassword(email: string, code: string, newPassword: string) {
+        return this.http.post<{ message: string }>(`${this.apiUrl}/reset-password`, { email, code, newPassword });
     }
 
 

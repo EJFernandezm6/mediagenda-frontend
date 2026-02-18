@@ -16,6 +16,10 @@ export const routes: Routes = [
             {
                 path: 'plans',
                 loadComponent: () => import('./features/auth/plans/plans').then(m => m.PlansComponent)
+            },
+            {
+                path: 'recover-password',
+                loadComponent: () => import('./features/auth/recover-password/recover-password').then(m => m.RecoverPasswordComponent)
             }
         ]
     },
