@@ -182,7 +182,7 @@
             <div class="h-64 w-full flex items-center justify-center">
                 <ngx-charts-bar-vertical [scheme]="colorScheme" [results]="revenueBySpecialty" [gradient]="gradient"
                     [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="false" [showYAxisLabel]="true"
-                    [yAxisLabel]="'Soles (S/)'" (select)="onSelect($event)">
+                    [yAxisLabel]="currencySymbol()" (select)="onSelect($event)">
                 </ngx-charts-bar-vertical>
             </div>
         </div>
@@ -223,7 +223,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                S/ {{ doc.revenue }}
+                                {{ currencySymbol() }} {{ doc.revenue }}
                             </td>
                         </tr>
                     </tbody>

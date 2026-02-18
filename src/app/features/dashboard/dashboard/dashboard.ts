@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Users, CalendarCheck, FileX, DollarSign, Activity, TrendingUp, Clock, CreditCard } from 'lucide-angular';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
@@ -6,6 +6,7 @@ import { AppointmentsService, Appointment } from '../../../core/services/appoint
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
 import { PatientsService, Patient } from '../../../core/services/patients';
+import { ConfigurationService } from '../../../core/services/configuration';
 import { forkJoin } from 'rxjs';
 
 import { RecommendationsComponent } from '../recommendations/recommendations.component';
@@ -22,6 +23,12 @@ export class DashboardComponent implements OnInit {
   private doctorSpecialtyService = inject(DoctorSpecialtyService);
   private patientsService = inject(PatientsService);
   private doctorsService = inject(DoctorsService);
+  private configService = inject(ConfigurationService);
+
+  // Currency helper
+  currencySymbol = computed(() => {
+    return this.configService.settings().currency === 'USD' ? '$' : 'S/';
+  });
 
   // Icons
   readonly icons = { Users, CalendarCheck, FileX, DollarSign, Activity, TrendingUp, Clock, CreditCard };
@@ -196,7 +203,7 @@ export class DashboardComponent implements OnInit {
       { label: 'Citas de Hoy', value: todayAppointments.length.toString(), subtext: `${confirmedToday} confirmadas`, icon: CalendarCheck, color: 'text-blue-500', bg: 'bg-blue-50' },
       { label: 'Tasa Confirmación', value: `${confirmationRate}%`, subtext: 'Promedio hoy', icon: Activity, color: 'text-green-500', bg: 'bg-green-50' },
       { label: 'Cancelaciones', value: `${cancellationRate}%`, subtext: 'Este mes', icon: FileX, color: 'text-orange-500', bg: 'bg-orange-50' },
-      { label: 'Ingresos (Mes)', value: `S/ ${incomeReal}`, subtext: `Proyectado: S/ ${incomePotential}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' }
+      { label: 'Ingresos (Mes)', value: `${this.currencySymbol()} ${incomeReal}`, subtext: `Proyectado: ${this.currencySymbol()} ${incomePotential}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' }
     ];
 
     // 2. Charts Logic
@@ -281,7 +288,7 @@ export class DashboardComponent implements OnInit {
       ? (incomeReal / monthAppointments.filter(a => a.paymentStatus === 'PAID').length).toFixed(2)
       : '0.00';
 
-    this.kpis.push({ label: 'Ticket Promedio', value: `S/ ${ticketAverage}`, subtext: 'Por cita pagada', icon: CreditCard, color: 'text-purple-600', bg: 'bg-purple-50' });
+    this.kpis.push({ label: 'Ticket Promedio', value: `${this.currencySymbol()} ${ticketAverage}`, subtext: 'Por cita pagada', icon: CreditCard, color: 'text-purple-600', bg: 'bg-purple-50' });
 
     // Revenue by Specialty
     const revenueSpec: any = {};
