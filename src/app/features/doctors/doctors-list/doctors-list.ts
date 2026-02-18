@@ -1,15 +1,16 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-doctors-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule, RouterLink],
+  imports: [CommonModule, LucideAngularModule, FormsModule, RouterLink, PaginationComponent],
   templateUrl: './doctors-list.html',
   styleUrl: './doctors-list.css'
 })
@@ -23,6 +24,10 @@ export class DoctorsListComponent {
   doctors = this.service.doctors;
   searchTerm = '';
 
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+
   // Modal State
   isModalOpen = false;
   isSaving = false;
@@ -34,6 +39,20 @@ export class DoctorsListComponent {
       d.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
       (d.cmp && d.cmp.includes(this.searchTerm))
     );
+  }
+
+  get paginatedDoctors() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredDoctors.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+  }
+
+  // Reset page logic handled in search change if needed, but since it's a simple getter here we can just add a wrapper or modify search binding
+  onSearchChange() {
+    this.currentPage = 1;
   }
 
   get isFormValid() {

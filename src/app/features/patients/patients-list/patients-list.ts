@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,13 +6,12 @@ import { PatientsService, Patient, Consultation } from '../../../core/services/p
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { LucideAngularModule, Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns } from 'lucide-angular';
-
-
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-patients-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent],
   templateUrl: './patients-list.html',
   styleUrl: './patients-list.css'
 })
@@ -29,6 +28,10 @@ export class PatientsListComponent {
   patients = this.service.patients;
   searchTerm = '';
 
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+
   // Column Visibility State
   showColumnFilter = false;
   columns = {
@@ -41,7 +44,7 @@ export class PatientsListComponent {
     lastVisit: true,
     actions: true
   };
-  
+
   toggleColumn(col: keyof typeof this.columns) {
     this.columns[col] = !this.columns[col];
   }
@@ -61,6 +64,19 @@ export class PatientsListComponent {
       p.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
       p.dni.includes(this.searchTerm)
     );
+  }
+
+  get paginatedPatients() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredPatients.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+  }
+
+  onSearchChange() {
+    this.currentPage = 1;
   }
 
   toggleHistory(id: string) {

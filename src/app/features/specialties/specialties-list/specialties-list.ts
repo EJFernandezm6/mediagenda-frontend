@@ -4,11 +4,12 @@ import { SpecialtiesService, Specialty } from '../../../core/services/specialtie
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { LucideAngularModule, Plus, Pencil, Trash2, Search, Power } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-specialties-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule],
+  imports: [CommonModule, LucideAngularModule, FormsModule, PaginationComponent],
   templateUrl: './specialties-list.html',
   styleUrl: './specialties-list.css'
 })
@@ -22,6 +23,10 @@ export class SpecialtiesListComponent {
   specialties = this.service.specialties;
   searchTerm = '';
 
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+
   // Simple Modal State
   isModalOpen = false;
   editingId: string | null = null;
@@ -31,6 +36,19 @@ export class SpecialtiesListComponent {
     return this.specialties().filter(s =>
       s.name.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
+  }
+
+  get paginatedSpecialties() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredSpecialties.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+  }
+
+  onSearchChange() {
+    this.currentPage = 1;
   }
 
   openModal(specialty?: Specialty) {

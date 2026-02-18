@@ -6,11 +6,12 @@ import { UsersService, UserRequest } from '../../../core/services/users';
 import { AuthService, User as AuthUser } from '../../../core/auth/auth.service';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { DoctorsService } from '../../../core/services/doctors';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
     selector: 'app-users-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, LucideAngularModule],
+    imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent],
     templateUrl: './users-list.html',
     styleUrl: './users-list.css'
 })
@@ -28,6 +29,10 @@ export class UsersListComponent {
     searchTerm = signal('');
     selectedRole = signal(''); // Filter by a single role from dropdown
     selectedStatus = signal(''); // Filter by active status
+
+    // Pagination
+    currentPage = signal(1);
+    itemsPerPage = 10;
 
     // Modal Config
     isModalOpen = false;
@@ -80,8 +85,40 @@ export class UsersListComponent {
         return currentUsers;
     });
 
+    paginatedUsers = computed(() => {
+        const users = this.filteredUsers();
+        const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
+        return users.slice(startIndex, startIndex + this.itemsPerPage);
+    });
+
+    // Reset page when filters change
+    constructor() {
+        // We can't easily listen to computed signals change in constructor without effect,
+        // but binding to (ngModel) inputs calls methods, so we'll update there.
+    }
+
+    onPageChange(page: number) {
+        this.currentPage.set(page);
+    }
+
+    // ... existing helpers ...
+
+    filterByRole(role: string) {
+        this.selectedRole.set(role);
+        this.currentPage.set(1);
+    }
+
+    filterByStatus(status: string) {
+        this.selectedStatus.set(status);
+        this.currentPage.set(1);
+    }
+
+    onSearch(term: string) {
+        this.searchTerm.set(term);
+        this.currentPage.set(1);
+    }
+
     // Role Management in Form (Restricted to just viewing or single hidden role for now)
-    // We remove the toggle logic as we only create Admins here.
 
     hasRole(role: string): boolean {
         return (this.formData.roles as string[]).some(r => r.toUpperCase() === role.toUpperCase());
@@ -89,16 +126,6 @@ export class UsersListComponent {
 
     hasRoleInUser(user: AuthUser, role: string): boolean {
         return user.roles.some(r => r.toUpperCase() === role.toUpperCase());
-    }
-
-    constructor() { }
-
-    filterByRole(role: string) {
-        this.selectedRole.set(role);
-    }
-
-    filterByStatus(status: string) {
-        this.selectedStatus.set(status);
     }
 
     openModal() {
