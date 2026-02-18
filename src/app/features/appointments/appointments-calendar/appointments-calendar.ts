@@ -157,14 +157,31 @@ export class AppointmentsCalendarComponent {
     return this.appointments().filter(a => a.appointmentDate === today && a.status !== 'CANCELLED');
   });
 
-  // Dynamic values for Modal
-  filteredDoctorsForModal = computed(() => {
-    const specialtyId = this.modalSpecialtyId();
-    if (!specialtyId) return [];
+  // Dynamic values for Modal & View
+  filteredDoctors = computed(() => {
+    // If a specialty is selected, filter doctors by that specialty
+    const specialtyId = this.selectedSpecialtyId();
+    if (!specialtyId) return this.doctors();
+
     const associations = this.doctorSpecialtyService.associations();
     const doctorIds = associations
       .filter(a => a.specialtyId === specialtyId)
       .map(a => a.doctorId);
+
+    return this.doctors().filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
+  });
+
+  filteredDoctorsForModal = computed(() => {
+    // This logic is now redundant if we use filteredDoctors, but let's keep it specific for modal
+    // if modal has its own specialty selection which might differ from view
+    const specialtyId = this.modalSpecialtyId();
+    if (!specialtyId) return [];
+
+    const associations = this.doctorSpecialtyService.associations();
+    const doctorIds = associations
+      .filter(a => a.specialtyId === specialtyId)
+      .map(a => a.doctorId);
+
     return this.doctors().filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
   });
 

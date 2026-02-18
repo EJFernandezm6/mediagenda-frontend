@@ -49,6 +49,8 @@ export class DoctorSelectorComponent {
         return this.doctors()
             // Filter out ADMINs (just in case service doesn't)
             .filter(u => !u.roles?.some((r: any) => typeof r === 'string' && r.toUpperCase() === 'ADMIN'))
+            // Filter out incomplete profiles
+            .filter(d => this.doctorService.isProfileComplete(d))
             .map(doctor => ({
                 ...doctor,
                 valueId: doctor.doctorId || doctor.id,

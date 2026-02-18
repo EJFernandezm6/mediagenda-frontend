@@ -24,6 +24,13 @@
                 placeholder="Buscar por nombre o CMP...">
         </div>
 
+        <!-- Active Filter Toggle -->
+        <div class="mb-6 flex items-center">
+            <input id="showInactive" type="checkbox" [(ngModel)]="showInactive" (change)="onSearchChange()"
+                class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600">
+            <label for="showInactive" class="ml-2 block text-sm text-gray-900">Mostrar inactivos</label>
+        </div>
+
         <!-- Doctor Cards Grid (More visual than just a table) -->
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div *ngFor="let doctor of paginatedDoctors"
@@ -120,10 +127,6 @@
                             class="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
                             Detalle
                         </a>
-                        <button (click)="delete(doctor.id)"
-                            class="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors">
-                            Eliminar
-                        </button>
                     </div>
                 </div>
             </div>

@@ -208,4 +208,15 @@ export class DoctorsService {
     const nps = ((promoters - detractors) / reviews.length) * 100;
     return Math.round(nps);
   }
+
+  isProfileComplete(doctor: Doctor): boolean {
+    // Required fields: Full Name, CMP, DNI, Phone, Email
+    return !!(
+      doctor.fullName &&
+      doctor.cmp &&
+      doctor.dni &&
+      doctor.phone &&
+      doctor.email
+    );
+  }
 }

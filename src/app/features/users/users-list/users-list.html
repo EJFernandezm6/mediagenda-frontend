@@ -113,8 +113,9 @@
                                 <lucide-icon [img]="Icons.Stethoscope" class="w-4 h-4"></lucide-icon>
                             </button>
                             <button (click)="toggleActive(user)" class="p-2 rounded-lg transition-all"
-                                [ngClass]="user.active ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-red-500 bg-red-50 hover:bg-red-100'"
-                                [title]="user.active ? 'Desactivar Usuario' : 'Activar Usuario'">
+                                [disabled]="user.id === currentUser()?.id"
+                                [ngClass]="user.active ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed' : 'text-red-500 bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed'"
+                                [title]="user.id === currentUser()?.id ? 'No puedes desactivarte a ti mismo' : (user.active ? 'Desactivar Usuario' : 'Activar Usuario')">
                                 <lucide-icon [img]="Icons.Power" class="w-4 h-4"></lucide-icon>
                             </button>
                             <button (click)="editUser(user)"

@@ -34,11 +34,18 @@ export class DoctorsListComponent {
   editingId: string | null = null;
   form: any = { fullName: '', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: '' };
 
+  // Filter State
+  showInactive = false;
+
   get filteredDoctors() {
-    return this.doctors().filter(d =>
-      d.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      (d.cmp && d.cmp.includes(this.searchTerm))
-    );
+    return this.doctors().filter(d => {
+      const matchesSearch = d.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        (d.cmp && d.cmp.includes(this.searchTerm));
+
+      const matchesActive = this.showInactive || d.active;
+
+      return matchesSearch && matchesActive;
+    });
   }
 
   get paginatedDoctors() {
@@ -134,16 +141,4 @@ export class DoctorsListComponent {
     }
   }
 
-  async delete(id: string) {
-    const confirmed = await this.confirmService.confirm({
-      title: 'Eliminar Especialista',
-      message: '¿Estás seguro de que deseas eliminar permanentemente a este médico? Esta acción no se puede deshacer.',
-      confirmText: 'Eliminar',
-      cancelText: 'Cancelar'
-    });
-
-    if (confirmed) {
-      this.service.deleteDoctor(id).subscribe();
-    }
-  }
 }

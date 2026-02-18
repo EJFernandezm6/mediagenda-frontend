@@ -221,27 +221,35 @@ export class UsersListComponent {
     }
 
     async toggleAdmin(user: AuthUser) {
+        const hasRole = this.hasRoleInUser(user, 'ADMIN');
+        const action = hasRole ? 'quitar' : 'asignar';
+
         const confirmed = await this.confirmService.confirm({
             title: 'Cambiar Rol de Administrador',
-            message: `¿Estás seguro de cambiar el rol de Administrador para ${user.fullName}?`,
+            message: `¿Estás seguro de ${action} el rol de Administrador para ${user.fullName}?`,
             confirmText: 'Confirmar',
             cancelText: 'Cancelar'
         });
 
         if (!confirmed) return;
 
-        this.usersService.toggleAdminRole(user.id).subscribe({
-            next: () => {
-                // Success
-            },
-            error: (err) => {
-                console.error('Error toggling admin role:', err);
-                alert('Error al cambiar el rol. Por favor intente nuevamente.');
-            }
-        });
+        // Calculate new roles
+        let newRoles = [...user.roles];
+        if (hasRole) {
+            newRoles = newRoles.filter(r => r.toUpperCase() !== 'ADMIN');
+        } else {
+            newRoles.push('ADMIN');
+        }
+
+        this.updateUserRoles(user.id, newRoles);
     }
 
     async toggleActive(user: AuthUser) {
+        if (user.id === this.currentUser()?.id) {
+            alert('No puedes desactivar tu propia cuenta mientras estás logueado.');
+            return;
+        }
+
         const action = user.active ? 'desactivar' : 'activar';
         const confirmed = await this.confirmService.confirm({
             title: `${action.charAt(0).toUpperCase() + action.slice(1)} Usuario`,
@@ -275,28 +283,41 @@ export class UsersListComponent {
     }
 
     async toggleSpecialist(user: AuthUser) {
-        const isSpecialist = this.hasRoleInUser(user, 'DOCTOR');
-        const title = isSpecialist ? 'Quitar Rol de Especialista' : 'Asignar Rol de Especialista';
-        const message = isSpecialist
-            ? `¿Estás seguro de quitar el rol de Especialista a ${user.fullName}?`
-            : `¿Estás seguro de asignar el rol de Especialista a ${user.fullName}?`;
+        const hasRole = this.hasRoleInUser(user, 'DOCTOR');
+        const action = hasRole ? 'quitar' : 'asignar';
 
         const confirmed = await this.confirmService.confirm({
-            title,
-            message,
+            title: 'Cambiar Rol de Especialista',
+            message: `¿Estás seguro de ${action} el rol de Especialista para ${user.fullName}?`,
             confirmText: 'Confirmar',
             cancelText: 'Cancelar'
         });
 
         if (!confirmed) return;
 
-        this.usersService.toggleSpecialistRole(user.id).subscribe({
+        // Calculate new roles
+        let newRoles = [...user.roles];
+        if (hasRole) {
+            newRoles = newRoles.filter(r => r.toUpperCase() !== 'DOCTOR');
+        } else {
+            newRoles.push('DOCTOR');
+        }
+
+        this.updateUserRoles(user.id, newRoles);
+    }
+
+    private updateUserRoles(userId: string, newRoles: string[]) {
+        // cast to any because UserRequest might be strict about other fields, 
+        // but backend usually updates what is sent in PUT
+        const payload: any = { roles: newRoles };
+
+        this.usersService.updateUser(userId, payload).subscribe({
             next: () => {
-                // Success
+                this.usersService.refreshUsers();
             },
             error: (err) => {
-                console.error('Error toggling specialist role:', err);
-                alert('Error al cambiar el rol. Por favor intente nuevamente.');
+                console.error('Error updating roles:', err);
+                alert('Error al actualizar los roles. Por favor intente nuevamente.');
             }
         });
     }

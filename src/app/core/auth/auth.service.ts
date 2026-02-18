@@ -53,8 +53,13 @@ export class AuthService {
                     photoUrl: `https://ui-avatars.com/api/?name=${response.email}&background=0D8ABC&color=fff`, // Default using email
                     subscriptionStatus: 'ACTIVE', // Mocked
                     clinicId: response.clinicId, // Map clinicId
-                    roleId: response.roleId
+                    roleId: response.roleId,
+                    active: response.active !== undefined ? response.active : true // Default true if not provided, but ideally backend provides it
                 };
+
+                if (user.active === false) {
+                    throw { status: 403, message: 'Usuario inactivo. Contacte al administrador.' };
+                }
 
                 this.currentUser.set(user);
                 localStorage.setItem('token', response.token); // Backend sends token
