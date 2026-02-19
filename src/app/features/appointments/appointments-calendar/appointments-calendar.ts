@@ -45,18 +45,22 @@ export class AppointmentsCalendarComponent {
   }
 
   isBreakTime(time: string): boolean {
+    // Disabled per user request (was showing 13:00-14:00 blocked)
+    return false;
+    /*
     const start = this.config().breakStartTime; // e.g. "13:00"
     const end = this.config().breakEndTime; // e.g. "14:00"
     if (!start || !end) return false;
     // Assuming time slots align perfectly or simply Check if time >= start && time < end
     return time >= start && time < end;
+    */
   }
 
   // View State
   viewMode = signal<'day' | 'week'>('week'); // Default to week per requirements? Or Day? User didn't specify default, but asked for "version semanal Y version diaria".
 
   // Data Sources
-  doctors = this.doctorService.doctors;
+  doctors = computed(() => this.doctorService.doctors().filter(d => d.active));
   specialties = this.specialtyService.specialties;
   patients = this.patientsService.patients;
   appointments = this.appointmentsService.appointments;
@@ -339,6 +343,24 @@ export class AppointmentsCalendarComponent {
     } else {
       newDate.setDate(newDate.getDate() + offset);
     }
+
+    // Restriction: Cannot go before current week/day
+    const today = new Date();
+    const startOfCurrentWeek = this.getStartOfWeek(today);
+    // Reset time for comparison
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+
+    // We check if the new view's start date is before the current week's start
+    // If viewMode is week, newDate is just a date within that week, so getStartOfWeek(newDate) should be >= startOfCurrentWeek
+    // If viewMode is day, newDate should be today or future (or at least within current week? User said "semana actual y posteriores")
+
+    const startOfNewView = this.viewMode() === 'week' ? this.getStartOfWeek(newDate) : newDate;
+    startOfNewView.setHours(0, 0, 0, 0);
+
+    if (startOfNewView < startOfCurrentWeek) {
+      return; // Prevent navigation
+    }
+
     this.currentDate.set(newDate);
   }
 
@@ -396,6 +418,9 @@ export class AppointmentsCalendarComponent {
         items.push({ type: 'booked', appointment: matchingApp });
         continue;
       }
+
+      // If it's a past time/date, do NOT show available slots
+      if (isPast) continue;
 
       // Check Schedule availability
       let isWorking = false;

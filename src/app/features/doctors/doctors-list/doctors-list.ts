@@ -63,11 +63,11 @@ export class DoctorsListComponent {
   }
 
   get isFormValid() {
-    return this.form.fullName?.trim() && this.form.phone?.trim() && this.form.cmp?.trim() && this.form.dni?.trim();
+    return this.form.fullName?.trim() && this.form.phone?.trim() && this.form.cmp?.trim() && this.form.dni?.trim() && this.form.email?.trim();
   }
 
   isMissingData(doctor: Doctor) {
-    return !doctor.fullName?.trim() || !doctor.phone?.trim() || !doctor.cmp?.trim() || !doctor.dni?.trim();
+    return !doctor.fullName?.trim() || !doctor.phone?.trim() || !doctor.cmp?.trim() || !doctor.dni?.trim() || !doctor.email?.trim();
   }
 
   getMissingFields(doctor: Doctor): string[] {
@@ -76,6 +76,7 @@ export class DoctorsListComponent {
     if (!doctor.phone?.trim()) fields.push('Teléfono');
     if (!doctor.cmp?.trim()) fields.push('CMP');
     if (!doctor.dni?.trim()) fields.push('DNI');
+    if (!doctor.email?.trim()) fields.push('Email');
     return fields;
   }
 
