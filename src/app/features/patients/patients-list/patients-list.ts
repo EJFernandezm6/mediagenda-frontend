@@ -76,6 +76,11 @@ export class PatientsListComponent {
   }
 
   onSearchChange() {
+    // Sanitize: allow only letters, numbers, and spaces
+    const clean = this.searchTerm.replace(/[^a-zA-Z0-9\s]/g, '');
+    if (clean !== this.searchTerm) {
+      this.searchTerm = clean;
+    }
     this.currentPage = 1;
   }
 
@@ -120,6 +125,31 @@ export class PatientsListComponent {
   }
 
   save() {
+    const request = this.form.patientId
+      ? this.service.updatePatient(this.form.patientId, this.form)
+      : this.service.addPatient(this.form);
+
+    request.subscribe({
+      next: () => {
+        this.closeModal();
+      },
+      error: (err) => {
+        console.error('Error saving patient', err);
+        let msg = err.error?.message || 'Ocurrió un error al guardar el paciente';
+
+        // Handle Validation Errors
+        if (err.error?.validationErrors && Array.isArray(err.error.validationErrors)) {
+          const detailedErrors = err.error.validationErrors
+            .map((e: any) => `${e.field}: ${e.message}`)
+            .join('\n');
+          msg += `\n\nDetalles:\n${detailedErrors}`;
+        }
+
+        alert(msg);
+      }
+    });
+
+    /*
     if (this.form.patientId) {
       this.service.updatePatient(this.form.patientId, this.form).subscribe(() => {
         this.closeModal();
@@ -129,6 +159,7 @@ export class PatientsListComponent {
         this.closeModal();
       });
     }
+    */
   }
 
 }
