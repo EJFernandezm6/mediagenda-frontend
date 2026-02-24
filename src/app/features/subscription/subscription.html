@@ -26,10 +26,10 @@
     </div>
 
     <!-- Plans Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         <app-plan-card *ngFor="let plan of plans()" [plan]="plan"
-            [isCurrent]="currentSubscriptionId() === plan.subscription_id"
-            [onSelect]="selectPlan.bind(this, plan.subscription_id)">
+            [isCurrent]="currentSubscriptionId() === plan.subscriptionId"
+            [onSelect]="selectPlan.bind(this, plan.subscriptionId)">
         </app-plan-card>
     </div>
 
@@ -39,20 +39,29 @@
             <app-payment-methods></app-payment-methods>
         </div>
 
-        <!-- Billing History or Info (Placeholder) -->
+        <!-- Billing Info -->
         <div class="bg-white shadow rounded-lg p-6 border border-gray-100">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Próxima Facturación</h3>
-            <div class="flex items-center justify-between py-2 border-b border-gray-100">
-                <span class="text-gray-500">Fecha</span>
-                <span class="font-medium">11 Mar, 2026</span>
-            </div>
-            <div class="flex items-center justify-between py-2">
-                <span class="text-gray-500">Monto estimado</span>
-                <span class="font-medium">{{ currentCurrency() === 'USD' ? '$29.00' : 'S/ 110.00' }}</span>
-            </div>
-            <p class="mt-4 text-xs text-gray-400">
-                * El monto puede variar según el uso de características adicionales o prorrateo.
-            </p>
+
+            <ng-container *ngIf="currentPlan(); else noPlan">
+                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-500">Fecha</span>
+                    <span class="font-medium">{{ nextBillingDate() }}</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <span class="text-gray-500">Monto estimado</span>
+                    <span class="font-semibold text-gray-900">
+                        {{ currentCurrency() === 'USD' ? '$' : 'S/ ' }}{{ currentPrice()?.price?.toFixed(2) ?? '—' }}
+                    </span>
+                </div>
+                <p class="mt-4 text-xs text-gray-400">
+                    * El monto puede variar según prorrateo o cambios de plan.
+                </p>
+            </ng-container>
+
+            <ng-template #noPlan>
+                <p class="text-sm text-gray-400 text-center py-4">Sin suscripción activa.</p>
+            </ng-template>
         </div>
     </div>
 </div>

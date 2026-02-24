@@ -1,6 +1,6 @@
 import { Component, Input, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Check, Star, Zap, Crown } from 'lucide-angular';
+import { LucideAngularModule, Check } from 'lucide-angular';
 import { SubscriptionPlan, SubscriptionService } from '../../services/subscription.service';
 
 @Component({
@@ -13,25 +13,31 @@ import { SubscriptionPlan, SubscriptionService } from '../../services/subscripti
       [class.bg-blue-50]="isCurrent"
       [class.border-gray-200]="!isCurrent"
       [class.hover:border-blue-300]="!isCurrent">
-      
+
       <div *ngIf="isCurrent" class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wide rounded-full shadow-sm">
         Plan Actual
       </div>
 
       <h3 class="text-lg font-semibold text-gray-900">{{ plan.name }}</h3>
-      <p class="text-sm text-gray-500 mt-1 h-10">{{ plan.description }}</p>
+      <p class="text-sm text-gray-500 mt-1 min-h-[2.5rem]">{{ plan.description }}</p>
 
       <div class="mt-4 flex items-baseline text-gray-900">
-        <span class="text-3xl font-bold tracking-tight">
-          {{ displayPrice() }}
-        </span>
-        <span class="ml-1 text-sm font-semibold text-gray-500">/{{ plan.payment_period === 'MONTHLY' ? 'mes' : 'año' }}</span>
+        <span class="text-3xl font-bold tracking-tight">{{ displayPrice() }}</span>
+        <span class="ml-1 text-sm font-semibold text-gray-500">/{{ plan.periodUnit === 'MONTHLY' ? 'mes' : 'año' }}</span>
       </div>
 
-      <ul role="list" class="mt-6 space-y-4 flex-1">
-        <li *ngFor="let feature of plan.features" class="flex items-start">
+      <ul role="list" class="mt-6 space-y-3 flex-1">
+        <li class="flex items-start">
           <lucide-icon [img]="checkIcon" class="h-5 w-5 flex-shrink-0 text-green-500"></lucide-icon>
-          <span class="ml-3 text-sm text-gray-700">{{ feature }}</span>
+          <span class="ml-3 text-sm text-gray-700">Hasta {{ plan.maxDoctors }} especialistas</span>
+        </li>
+        <li class="flex items-start">
+          <lucide-icon [img]="checkIcon" class="h-5 w-5 flex-shrink-0 text-green-500"></lucide-icon>
+          <span class="ml-3 text-sm text-gray-700">Hasta {{ plan.maxPatients }} pacientes</span>
+        </li>
+        <li *ngFor="let c of activeCharacteristics" class="flex items-start">
+          <lucide-icon [img]="checkIcon" class="h-5 w-5 flex-shrink-0 text-green-500"></lucide-icon>
+          <span class="ml-3 text-sm text-gray-700">{{ c.title }}</span>
         </li>
       </ul>
 
@@ -57,10 +63,16 @@ export class PlanCardComponent {
 
     checkIcon = Check;
 
+    get activeCharacteristics() {
+        return [...this.plan.characteristics]
+            .filter(c => c.isActive)
+            .sort((a, b) => a.order - b.order);
+    }
+
     displayPrice = computed(() => {
         const currency = this.subService.currentCurrency();
         const priceObj = this.plan.prices.find(p => p.currency === currency);
         const symbol = currency === 'USD' ? '$' : 'S/';
-        return priceObj ? `${symbol} ${priceObj.price}` : 'N/A';
+        return priceObj ? `${symbol} ${priceObj.price.toFixed(2)}` : 'N/A';
     });
 }

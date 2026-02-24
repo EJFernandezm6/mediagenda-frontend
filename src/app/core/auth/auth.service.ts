@@ -29,6 +29,7 @@ export interface User {
     subscriptionStatus?: 'ACTIVE' | 'EXPIRED' | 'PENDING';
     active?: boolean;
     features?: Feature[];
+    subscriptionId?: string;
 }
 
 @Injectable({
@@ -59,7 +60,8 @@ export class AuthService {
                     clinicId: response.clinicId,
                     roleId: response.roleId,
                     active: response.active !== undefined ? response.active : true,
-                    features: response.features ?? []
+                    features: response.features ?? [],
+                    subscriptionId: response.subscriptionId
                 };
 
                 if (user.active === false) {
@@ -95,8 +97,8 @@ export class AuthService {
 
     logout() {
         this.currentUser.set(null);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+        localStorage.clear();
+        sessionStorage.clear();
         this.router.navigate(['/auth/login']);
     }
 
