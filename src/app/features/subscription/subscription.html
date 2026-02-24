@@ -1,3 +1,10 @@
+<div *ngIf="isLoading()" class="fixed inset-0 bg-black/30 z-40 flex items-center justify-center">
+    <div class="bg-white rounded-2xl px-10 py-8 flex flex-col items-center gap-3 shadow-2xl">
+        <lucide-icon [img]="icons.Loader" class="w-10 h-10 text-blue-600 animate-spin"></lucide-icon>
+        <p class="text-sm font-medium text-gray-600">Cargando...</p>
+    </div>
+</div>
+
 <div class="max-w-6xl mx-auto px-4 py-8">
     <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -29,6 +36,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         <app-plan-card *ngFor="let plan of plans()" [plan]="plan"
             [isCurrent]="currentSubscriptionId() === plan.subscriptionId"
+            [upgradeAmount]="getUpgradeAmount(plan)"
             [onSelect]="selectPlan.bind(this, plan.subscriptionId)">
         </app-plan-card>
     </div>
@@ -43,15 +51,27 @@
         <div class="bg-white shadow rounded-lg p-6 border border-gray-100">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Próxima Facturación</h3>
 
-            <ng-container *ngIf="currentPlan(); else noPlan">
+            <ng-container *ngIf="upcomingBilling(); else noBilling">
+                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-500">Plan</span>
+                    <span class="font-medium">{{ billingPlanName() ?? '—' }}</span>
+                </div>
                 <div class="flex items-center justify-between py-2 border-b border-gray-100">
                     <span class="text-gray-500">Fecha</span>
-                    <span class="font-medium">{{ nextBillingDate() }}</span>
+                    <span class="font-medium">{{ upcomingBilling()!.dueDate | date:'dd MMM yyyy' }}</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span class="text-gray-500">Monto</span>
+                    <span class="font-semibold text-gray-900">
+                        {{ upcomingBilling()!.currency === 'USD' ? '$' : 'S/' }}
+                        {{ upcomingBilling()!.amountDue | number:'1.2-2' }}
+                    </span>
                 </div>
                 <div class="flex items-center justify-between py-2">
-                    <span class="text-gray-500">Monto estimado</span>
-                    <span class="font-semibold text-gray-900">
-                        {{ currentCurrency() === 'USD' ? '$' : 'S/ ' }}{{ currentPrice()?.price?.toFixed(2) ?? '—' }}
+                    <span class="text-gray-500">Estado</span>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+                        [ngClass]="statusClass(upcomingBilling()!.status)">
+                        {{ statusLabel(upcomingBilling()!.status) }}
                     </span>
                 </div>
                 <p class="mt-4 text-xs text-gray-400">
@@ -59,8 +79,8 @@
                 </p>
             </ng-container>
 
-            <ng-template #noPlan>
-                <p class="text-sm text-gray-400 text-center py-4">Sin suscripción activa.</p>
+            <ng-template #noBilling>
+                <p class="text-sm text-gray-400 text-center py-4">Sin facturación próxima.</p>
             </ng-template>
         </div>
     </div>

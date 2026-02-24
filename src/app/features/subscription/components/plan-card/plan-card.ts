@@ -26,6 +26,11 @@ import { SubscriptionPlan, SubscriptionService } from '../../services/subscripti
         <span class="ml-1 text-sm font-semibold text-gray-500">/{{ plan.periodUnit === 'MONTHLY' ? 'mes' : 'año' }}</span>
       </div>
 
+      <div *ngIf="upgradeAmount !== null" class="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
+        <p class="text-xs font-semibold text-blue-700">Pagar ahora: {{ currencySymbol() }} {{ upgradeAmount!.toFixed(2) }}</p>
+        <p class="text-[10px] text-blue-500 mt-0.5">Solo por el período actual. Desde el próximo período se cobrará {{ displayPrice() }}/{{ plan.periodUnit === 'MONTHLY' ? 'mes' : 'año' }}.</p>
+      </div>
+
       <ul role="list" class="mt-6 space-y-3 flex-1">
         <li class="flex items-start">
           <lucide-icon [img]="checkIcon" class="h-5 w-5 flex-shrink-0 text-green-500"></lucide-icon>
@@ -57,6 +62,7 @@ import { SubscriptionPlan, SubscriptionService } from '../../services/subscripti
 export class PlanCardComponent {
     @Input({ required: true }) plan!: SubscriptionPlan;
     @Input() isCurrent = false;
+    @Input() upgradeAmount: number | null = null;
     @Input({ required: true }) onSelect!: () => void;
 
     private subService = inject(SubscriptionService);
@@ -75,4 +81,8 @@ export class PlanCardComponent {
         const symbol = currency === 'USD' ? '$' : 'S/';
         return priceObj ? `${symbol} ${priceObj.price.toFixed(2)}` : 'N/A';
     });
+
+    currencySymbol = computed(() =>
+        this.subService.currentCurrency() === 'USD' ? '$' : 'S/'
+    );
 }

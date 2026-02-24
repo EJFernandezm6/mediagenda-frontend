@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, CreditCard, Trash2, Plus, X, Loader2 } from 'lucide-angular';
 import { SubscriptionService } from '../../services/subscription.service';
+import { ConfirmModalService } from '../../../../core/services/confirm.service';
 
 @Component({
     selector: 'app-payment-methods',
@@ -120,7 +121,7 @@ import { SubscriptionService } from '../../services/subscription.service';
         <ul class="divide-y divide-gray-100">
           <li *ngFor="let method of paymentMethods()" class="py-4 flex items-center justify-between">
             <div class="flex items-center gap-4">
-              <div class="h-10 min-w-[5rem] px-2 bg-gray-100 rounded flex items-center justify-center text-gray-500 font-bold text-[10px] uppercase border border-gray-200">
+              <div class="h-10 w-24 flex-shrink-0 px-2 bg-gray-100 rounded flex items-center justify-center text-gray-500 font-bold text-[10px] uppercase border border-gray-200">
                 {{ method.provider || method.type }}
               </div>
               <div>
@@ -146,6 +147,7 @@ import { SubscriptionService } from '../../services/subscription.service';
 })
 export class PaymentMethodsComponent {
     private subService = inject(SubscriptionService);
+    private confirmService = inject(ConfirmModalService);
 
     paymentMethods = this.subService.paymentMethods;
     icons = { CreditCard, Trash2, Plus, X, Loader: Loader2 };
@@ -170,8 +172,14 @@ export class PaymentMethodsComponent {
         };
     }
 
-    deleteMethod(id: string) {
-        if (!confirm('¿Estás seguro de eliminar este método de pago?')) return;
+    async deleteMethod(id: string) {
+        const confirmed = await this.confirmService.confirm({
+            title: 'Eliminar método de pago',
+            message: '¿Estás seguro de eliminar este método de pago?',
+            confirmText: 'Sí, eliminar',
+            cancelText: 'Cancelar'
+        });
+        if (!confirmed) return;
         this.subService.deletePaymentMethod(id).subscribe();
     }
 
