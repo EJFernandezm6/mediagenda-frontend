@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { AuthService } from '../../../core/auth/auth.service';
-import { LucideAngularModule, LogIn } from 'lucide-angular';
+import { LucideAngularModule, LogIn, Loader2 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -14,28 +14,34 @@ import { RouterLink } from '@angular/router';
 })
 export class LoginComponent {
   readonly LogInIcon = LogIn;
+  readonly LoaderIcon = Loader2;
 
   email = '';
   password = '';
 
-  constructor(private authService: AuthService) { }
+  errorMessage = signal('');
+  isLoading = signal(false);
 
-  errorMessage = '';
+  constructor(private authService: AuthService) { }
 
   onLogin() {
     if (this.email && this.password) {
-      this.errorMessage = ''; // Clear previous errors
+      this.errorMessage.set('');
+      this.isLoading.set(true);
       this.authService.login({ email: this.email, password: this.password }).subscribe({
         next: () => {
-          // Navigation is handled in AuthService usually, or here if needed.
-          // Assuming AuthService handles everything on success or we stay here.
-          // If AuthService redirects, we are good.
+          this.isLoading.set(false);
         },
         error: (err) => {
+          this.isLoading.set(false);
           if (err.status === 400) {
-            this.errorMessage = 'Usuario o contraseña incorrectos';
+            this.errorMessage.set('Usuario o contraseña incorrectos');
+          } else if (err.status === 403 && err.code === 'NO_FEATURES') {
+            this.errorMessage.set('No tiene módulos asignados. Contacte al administrador.');
+          } else if (err.status === 403) {
+            this.errorMessage.set('Usuario inactivo. Contacte al administrador.');
           } else {
-            this.errorMessage = 'Ocurrió un error inesperado al iniciar sesión';
+            this.errorMessage.set('Ocurrió un error inesperado al iniciar sesión');
           }
         }
       });

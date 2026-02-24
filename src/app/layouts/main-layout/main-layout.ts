@@ -1,7 +1,7 @@
-import { Component, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, inject, computed, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight } from 'lucide-angular';
+import { LucideAngularModule, LucideIconData, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight } from 'lucide-angular';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentsService } from '../../core/services/appointments';
@@ -41,8 +41,30 @@ export class MainLayoutComponent {
   pendingAppointments = this.appointmentsService.pendingAppointments;
   isNotificationsOpen = false;
 
+  private readonly featureIconMap: Record<string, LucideIconData> = {
+    dashboard: this.icons.LayoutDashboard,
+    appointments: this.icons.Calendar,
+    patients: this.icons.Users,
+    specialists: this.icons.Stethoscope,
+    specialties: this.icons.Award,
+    assignments: this.icons.Users,
+    shifts: this.icons.Clock,
+    roles_permissions: this.icons.Shield,
+    subscription: this.icons.Zap,
+    settings: this.icons.Settings
+  };
+
+  navItems = computed(() =>
+    [...(this.currentUser()?.features ?? [])]
+      .sort((a, b) => a.order - b.order)
+      .map(f => ({
+        label: f.name,
+        icon: this.featureIconMap[f.featureKey] ?? this.icons.LayoutDashboard,
+        route: f.path
+      }))
+  );
+
   constructor() {
-    // Initial fetch
     this.appointmentsService.fetchPendingAppointments();
   }
 
@@ -78,18 +100,5 @@ export class MainLayoutComponent {
   onLogout() {
     this.authService.logout();
   }
-
-  navItems = [
-    { label: 'Dashboard', icon: this.icons.LayoutDashboard, route: '/app/dashboard' },
-    { label: 'Agenda Citas', icon: this.icons.Calendar, route: '/app/appointments' },
-    { label: 'Pacientes', icon: this.icons.Users, route: '/app/patients' },
-    { label: 'Especialistas', icon: this.icons.Stethoscope, route: '/app/doctors' },
-    { label: 'Especialidades', icon: this.icons.Award, route: '/app/specialties' },
-    { label: 'Asignaciones', icon: this.icons.Users, route: '/app/doctor-specialty' },
-    { label: 'Turnos de Atención', icon: this.icons.Clock, route: '/app/schedule-config' },
-    { label: 'Roles y Permisos', icon: this.icons.Shield, route: '/app/users' },
-    { label: 'Suscripción', icon: this.icons.Zap, route: '/app/subscription' },
-    { label: 'Configuración', icon: this.icons.Settings, route: '/app/configuration' }
-  ];
 
 }

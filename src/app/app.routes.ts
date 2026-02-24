@@ -4,6 +4,7 @@ import { MainLayoutComponent } from './layouts/main-layout/main-layout';
 import { LoginComponent } from './features/auth/login/login';
 import { DashboardComponent } from './features/dashboard/dashboard/dashboard';
 import { LandingComponent } from './features/landing/landing';
+import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'landing', pathMatch: 'full' },
@@ -26,6 +27,7 @@ export const routes: Routes = [
     {
         path: 'app',
         component: MainLayoutComponent,
+        canActivate: [authGuard],
         children: [
             { path: 'dashboard', component: DashboardComponent },
             {

@@ -4,27 +4,31 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs/operators';
 
-export interface User {
-    id: string; // UUID from backend
-    fullName: string; // Updated to match Backend
-    email: string;
-    roleId?: string; // Add roleId for update/create payloads
-    photoUrl?: string; // Optional
-    clinicId?: string; // Optional
-
-    roles: string[]; // Updated for Multi-Role
-    cmp?: string; // Doctor specific
-    phone?: string; // Contact info
-    plan?: 'STANDARD' | 'PLUS' | 'PREMIUM'; // Backend might need to send this in extra fields
-    subscriptionStatus?: 'ACTIVE' | 'EXPIRED' | 'PENDING';
-    active?: boolean;
+export interface Feature {
+    featureKey: string;
+    name: string;
+    path: string;
+    order: number;
+    canCreate: boolean;
+    canRead: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
 }
 
-interface AuthResponse {
-    token: string;
-    userId: string;
+export interface User {
+    id: string;
+    fullName: string;
+    email: string;
+    roleId?: string;
+    photoUrl?: string;
+    clinicId?: string;
     roles: string[];
-    name: string;
+    cmp?: string;
+    phone?: string;
+    plan?: 'STANDARD' | 'PLUS' | 'PREMIUM';
+    subscriptionStatus?: 'ACTIVE' | 'EXPIRED' | 'PENDING';
+    active?: boolean;
+    features?: Feature[];
 }
 
 @Injectable({
@@ -46,19 +50,24 @@ export class AuthService {
         return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
             tap(response => {
                 const user: User = {
-                    id: response.userId, // Backend sends userId
-                    fullName: response.fullName || '', // Backend might send fullName or nothing (LoginResponse only has email)
+                    id: response.userId,
+                    fullName: response.fullName || '',
                     email: response.email,
-                    roles: [], // Backend sends roleId (UUID), frontend expects string[]. Initialize empty to avoid crash.
-                    photoUrl: `https://ui-avatars.com/api/?name=${response.email}&background=0D8ABC&color=fff`, // Default using email
-                    subscriptionStatus: 'ACTIVE', // Mocked
-                    clinicId: response.clinicId, // Map clinicId
+                    roles: [],
+                    photoUrl: `https://ui-avatars.com/api/?name=${response.email}&background=0D8ABC&color=fff`,
+                    subscriptionStatus: 'ACTIVE',
+                    clinicId: response.clinicId,
                     roleId: response.roleId,
-                    active: response.active !== undefined ? response.active : true // Default true if not provided, but ideally backend provides it
+                    active: response.active !== undefined ? response.active : true,
+                    features: response.features ?? []
                 };
 
                 if (user.active === false) {
                     throw { status: 403, message: 'Usuario inactivo. Contacte al administrador.' };
+                }
+
+                if (!user.features || user.features.length === 0) {
+                    throw { status: 403, code: 'NO_FEATURES', message: 'No tiene módulos asignados. Contacte al administrador.' };
                 }
 
                 this.currentUser.set(user);
