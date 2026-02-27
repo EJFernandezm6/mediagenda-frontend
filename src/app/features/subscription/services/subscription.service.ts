@@ -55,6 +55,19 @@ export interface UpcomingBilling {
     status: string;
 }
 
+export interface ClinicInfo {
+    clinicId: string;
+    clinicName: string;
+    address: string;
+    phone: string;
+    email: string;
+    subscriptionId: string;
+    startDate: string;
+    expirationDate: string;
+    hadFreePlan: boolean;
+    isActive: boolean;
+}
+
 export interface UpdateSubscriptionRequest {
     subscriptionId: string;
     currency: string;
@@ -83,11 +96,22 @@ export class SubscriptionService {
     paymentMethods = signal<PaymentMethod[]>([]);
     currentSubscriptionId = signal<string | null>(null);
     upcomingBilling = signal<UpcomingBilling | null>(null);
+    clinicInfo = signal<ClinicInfo | null>(null);
 
     constructor() { }
 
     setCurrency(currency: 'USD' | 'PEN') {
         this.currentCurrency.set(currency);
+    }
+
+    loadClinicInfo(): Observable<ClinicInfo | null> {
+        return this.http.get<ClinicInfo>(`${environment.apiUrl}/clinics/my`).pipe(
+            tap(info => {
+                this.clinicInfo.set(info);
+                this.currentSubscriptionId.set(info.subscriptionId);
+            }),
+            catchError(() => { this.clinicInfo.set(null); return of(null); })
+        );
     }
 
     loadPlans(): Observable<SubscriptionPlan[]> {

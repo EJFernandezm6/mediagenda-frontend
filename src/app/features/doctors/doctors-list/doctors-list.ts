@@ -18,6 +18,10 @@ export class DoctorsListComponent {
   private service = inject(DoctorsService);
   private confirmService = inject(ConfirmModalService);
 
+  constructor() {
+    this.service.refreshDoctors();
+  }
+
   // Icons
   readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power };
 

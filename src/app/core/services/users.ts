@@ -14,7 +14,7 @@ export interface UserRequest {
     cmp?: string;
     photoUrl?: string;
     clinicId?: string;
-    roleId?: string;
+    roleIds?: string[];
 }
 
 export interface UpdateProfileRequest {
@@ -90,12 +90,12 @@ export class UsersService {
                     throw new Error(`Role ${targetRole} not found`);
                 }
 
-                // 2. Create STRICT payload for backend (remove 'roles' array, keep only roleId)
+                // 2. Create STRICT payload for backend (remove 'roles' array, send roleIds)
                 const finalPayload = {
                     fullName: user.fullName,
                     email: user.email,
                     password: user.password,
-                    roleId: roleObj.roleId,
+                    roleIds: [roleObj.roleId],
                     phone: user.phone || '', // Ensure string
                     photoUrl: user.photoUrl || '' // Ensure string
                     // Backend infers clinicId from authenticated user's JWT token

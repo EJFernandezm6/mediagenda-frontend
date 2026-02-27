@@ -47,7 +47,7 @@ export class UsersListComponent {
         roles: ['ADMIN'], // Default to ADMIN for new users in this module
         cmp: '', // Kept in model but hidden in UI as requested
         clinicId: '',
-        roleId: '',
+        roleIds: [],
         phone: '',
         photoUrl: ''
     };
@@ -148,7 +148,7 @@ export class UsersListComponent {
             roles: ['ADMIN'], // Always ADMIN
             cmp: '',
             clinicId: '',
-            roleId: '',
+            roleIds: [],
             phone: '',
             photoUrl: ''
         };
@@ -165,7 +165,7 @@ export class UsersListComponent {
             roles: [...user.roles], // Copy roles
             cmp: user.cmp || '',
             clinicId: user.clinicId,
-            roleId: user.roleId,
+            roleIds: user.roleIds ?? [],
             phone: user.phone || '',
             photoUrl: user.photoUrl || ''
         };
@@ -182,7 +182,7 @@ export class UsersListComponent {
             const updatePayload = {
                 fullName: this.formData.fullName,
                 phone: this.formData.phone,
-                roleId: this.formData.roleId || undefined,
+                roleIds: this.formData.roleIds?.length ? this.formData.roleIds : undefined,
                 photoUrl: this.formData.photoUrl
             };
 
@@ -207,7 +207,7 @@ export class UsersListComponent {
 
             // Clean empty strings to undefined to avoid Backend 400 errors on UUID fields
             const payload = { ...this.formData };
-            if (!payload.roleId) delete payload.roleId;
+            if (!payload.roleIds?.length) delete payload.roleIds;
             if (!payload.cmp) delete payload.cmp;
             // Keep clinicId - it's required and copied from current user
 
@@ -337,13 +337,13 @@ export class UsersListComponent {
         }
 
         const roleObj = this.availableRoles.find(r => r.roleKey === targetRoleKey || r.name.toUpperCase() === targetRoleKey);
-        const newRoleId = roleObj ? roleObj.roleId : user.roleId; // Fallback to existing if not found
+        const newRoleId = roleObj ? roleObj.roleId : user.roleIds?.[0]; // Fallback to first existing roleId
 
         const payload: UserRequest = {
             fullName: user.fullName,
             email: user.email,
             roles: newRoles,
-            roleId: newRoleId || '',
+            roleIds: newRoleId ? [newRoleId] : [],
             phone: user.phone,
             photoUrl: user.photoUrl,
             clinicId: user.clinicId,
@@ -353,13 +353,8 @@ export class UsersListComponent {
         // If roleId is missing, it might cause 400.
         // Let's ensure roleId is not null/undefined if possible.
         // It seems the backend uses roleId to validate the primary role.
-        if (!payload.roleId) {
-            // Ideally we should fetch the roleId corresponding to one of the newRoles.
-            // But we don't have the roles list here easily without another call.
-            // Let's try sending what we have. If it fails, we might need a bigger refactor.
-            // HACK: for now, assume existing roleId is valid or backend handles it if we don't send null (but UserRequest says string)
-            // If we leave it undefined, HttpClient might exclude it or send null?
-            console.warn('Warning: Could not determine valid roleId for roles:', newRoles);
+        if (!payload.roleIds?.length) {
+            console.warn('Warning: Could not determine valid roleIds for roles:', newRoles);
         }
 
         this.usersService.updateUser(userId, payload).subscribe({

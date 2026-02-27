@@ -19,7 +19,7 @@ export interface User {
     id: string;
     fullName: string;
     email: string;
-    roleId?: string;
+    roleIds?: string[];
     photoUrl?: string;
     clinicId?: string;
     roles: string[];
@@ -58,7 +58,7 @@ export class AuthService {
                     photoUrl: `https://ui-avatars.com/api/?name=${response.email}&background=0D8ABC&color=fff`,
                     subscriptionStatus: 'ACTIVE',
                     clinicId: response.clinicId,
-                    roleId: response.roleId,
+                    roleIds: response.roleIds ?? [],
                     active: response.active !== undefined ? response.active : true,
                     features: response.features ?? [],
                     subscriptionId: response.subscriptionId

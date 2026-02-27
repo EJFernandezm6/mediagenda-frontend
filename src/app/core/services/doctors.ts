@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { User } from '../auth/auth.service';
-import { tap, switchMap, map } from 'rxjs/operators';
+import { tap, switchMap } from 'rxjs/operators';
 import { Observable, forkJoin } from 'rxjs';
 
 
@@ -39,43 +39,13 @@ export class DoctorsService {
   }
 
   refreshDoctors() {
-    // ForkJoin to get Users (Basic Info) AND Doctor Profiles (CMP, Rating, Status)
-    forkJoin({
-      users: this.http.get<any[]>(`${this.apiUrl}?role=DOCTOR`),
-      profiles: this.http.get<any[]>(this.doctorsUrl)
-    }).pipe(
-      map(({ users, profiles }) => {
-        console.log('🔍 Refreshing Doctors - Raw Users:', users);
-        // Filter out ADMINs (case insensitive check)
-        const doctorUsers = users.filter(u => !u.roles.some((r: string) => r.toUpperCase() === 'ADMIN'));
-
-        return doctorUsers.map(user => {
-          // Find matching profile by userId
-          const profile = profiles.find(p => p.userId === (user.userId || user.id));
-          return {
-            ...user,
-            id: user.userId || user.id, // Primary ID is USER ISO for IAM operations
-            doctorId: profile?.doctorId, // Keep track of Doctor ID
-            userId: user.userId || user.id,
-            cmp: profile?.cmp || '',
-            dni: user.dni || profile?.dni || '',
-            rating: profile?.rating || 0,
-            reviewsCount: profile?.reviewsCount || 0,
-            active: user.active ?? profile?.isActive ?? false // Prioritize User status which is the source of truth for login/access
-          } as Doctor;
-        });
-      })
-    ).subscribe({
-      next: (data) => this.doctors.set(data),
+    this.http.get<any[]>(`${this.doctorsUrl}/with-users`).subscribe({
+      next: (data) => this.doctors.set(data.map(d => ({
+        ...d,
+        id: d.userId,
+        active: d.isActive
+      } as Doctor))),
       error: (err) => console.error('Error fetching doctors:', err)
-    });
-  }
-
-  // Helper to get raw data for Dashboard usage
-  getAllDoctorsRaw() {
-    return forkJoin({
-      users: this.http.get<any[]>(`${this.apiUrl}?role=DOCTOR`),
-      profiles: this.http.get<any[]>(this.doctorsUrl)
     });
   }
 
@@ -99,7 +69,7 @@ export class DoctorsService {
           phone: doctor.phone,
           dni: doctor.dni,
           password: doctor.password || '12345678', // Default password
-          roleId: roleId,
+          roleIds: [roleId],
           photoUrl: doctor.photoUrl
         };
         return this.http.post<any>(this.apiUrl, newUser);
@@ -145,7 +115,7 @@ export class DoctorsService {
       if (!userUpdates.email) userUpdates.email = currentDoctor.email;
       if (!userUpdates.phone) userUpdates.phone = currentDoctor.phone;
       // Ensure roleId is present for validation
-      if (!userUpdates.roleId) userUpdates.roleId = currentDoctor.roleId;
+      if (!userUpdates.roleIds) userUpdates.roleIds = currentDoctor.roleIds ?? [];
     }
 
     const userUpdate$ = this.http.put<any>(`${this.apiUrl}/${id}`, userUpdates);

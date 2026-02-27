@@ -5,7 +5,6 @@ import { forkJoin } from 'rxjs';
 import { SubscriptionService, SubscriptionPlan } from './services/subscription.service';
 import { PlanCardComponent } from './components/plan-card/plan-card';
 import { PaymentMethodsComponent } from './components/payment-methods/payment-methods';
-import { AuthService } from '../../core/auth/auth.service';
 import { ConfirmModalService } from '../../core/services/confirm.service';
 
 @Component({
@@ -17,7 +16,6 @@ import { ConfirmModalService } from '../../core/services/confirm.service';
 })
 export class SubscriptionComponent {
     private subService = inject(SubscriptionService);
-    private authService = inject(AuthService);
     private confirmService = inject(ConfirmModalService);
 
     plans = this.subService.plans;
@@ -39,11 +37,9 @@ export class SubscriptionComponent {
     icons = { Zap, Loader: Loader2 };
 
     constructor() {
-        const subscriptionId = this.authService.currentUser()?.subscriptionId ?? null;
-        this.subService.currentSubscriptionId.set(subscriptionId);
-
         this.isLoading.set(true);
         forkJoin([
+            this.subService.loadClinicInfo(),
             this.subService.loadPlans(),
             this.subService.loadPaymentMethods(),
             this.subService.loadUpcomingBilling()
@@ -62,18 +58,24 @@ export class SubscriptionComponent {
         const newPrice = plan.prices.find(p => p.currency === currency)?.price ?? 0;
         const oldPrice = current.prices.find(p => p.currency === currency)?.price ?? 0;
 
-        const billing = this.subService.upcomingBilling();
-        if (!billing) return newPrice;
+        const clinic = this.subService.clinicInfo();
+        const startAtStr = clinic?.startDate;
+        const expiresAtStr = clinic?.expirationDate;
 
-        const today = new Date();
-        const periodEnd = new Date(billing.billingPeriodEnd);
-        const periodStart = new Date(billing.billingPeriodStart);
-        const totalMs = periodEnd.getTime() - periodStart.getTime();
-        const remainingMs = Math.max(0, periodEnd.getTime() - today.getTime());
+        if (!startAtStr || !expiresAtStr) return newPrice;
 
-        if (totalMs <= 0) return newPrice;
+        const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
-        const proportionalOldPrice = oldPrice * (remainingMs / totalMs);
+        const today = toDay(new Date());
+        const periodStart = toDay(new Date(startAtStr));
+        const periodEnd = toDay(new Date(expiresAtStr));
+        const msPerDay = 86_400_000;
+        const totalDays = Math.round((periodEnd.getTime() - periodStart.getTime()) / msPerDay);
+        const remainingDays = Math.max(0, Math.round((periodEnd.getTime() - today.getTime()) / msPerDay));
+
+        if (totalDays <= 0) return newPrice;
+
+        const proportionalOldPrice = oldPrice * (remainingDays / totalDays);
         return Math.max(0, Math.round((newPrice - proportionalOldPrice) * 100) / 100);
     }
 
@@ -98,6 +100,15 @@ export class SubscriptionComponent {
     async selectPlan(subscriptionId: string) {
         const targetPlan = this.plans().find(p => p.subscriptionId === subscriptionId);
         if (!targetPlan) return;
+
+        const isFreePlan = targetPlan.prices.every(p => p.price === 0);
+        if (isFreePlan && this.subService.clinicInfo()?.hadFreePlan) {
+            await this.confirmService.alert(
+                'Plan no disponible',
+                'Ya utilizaste el plan gratuito anteriormente. No es posible volver a seleccionarlo.'
+            );
+            return;
+        }
 
         const confirmed = await this.confirmService.confirm({
             title: 'Cambiar plan',
