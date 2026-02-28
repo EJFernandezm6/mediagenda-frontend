@@ -50,13 +50,18 @@ export class SpecialtiesService {
   }
 
   addSpecialty(specialty: Omit<Specialty, 'specialtyId'>) {
-    return this.http.post<Specialty>(this.apiUrl, specialty).pipe(
+    const payload = { ...specialty, isActive: specialty.active };
+    return this.http.post<Specialty>(this.apiUrl, payload).pipe(
       tap(() => this.refreshSpecialties())
     );
   }
 
   updateSpecialty(id: string, updates: Partial<Specialty>) {
-    return this.http.put<Specialty>(`${this.apiUrl}/${id}`, updates).pipe(
+    const payload = { ...updates };
+    if (updates.active !== undefined) {
+      (payload as any).isActive = updates.active;
+    }
+    return this.http.put<Specialty>(`${this.apiUrl}/${id}`, payload).pipe(
       tap(() => this.refreshSpecialties())
     );
   }

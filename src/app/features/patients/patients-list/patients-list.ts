@@ -56,7 +56,10 @@ export class PatientsListComponent {
 
   // Modal
   isModalOpen = false;
+  isSaving = false;
   form: any = { fullName: '', dni: '', email: '', phone: '', age: 18, gender: 'M' };
+
+  emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   get patientsList() {
     return this.patients();
@@ -72,13 +75,43 @@ export class PatientsListComponent {
   }
 
   onSearchChange() {
-    // Sanitize: allow only letters, numbers, and spaces
-    const clean = this.searchTerm.replace(/[^a-zA-Z0-9\s]/g, '');
-    if (clean !== this.searchTerm) {
-      this.searchTerm = clean;
-    }
     this.currentPage = 1;
     this.loadPatients();
+  }
+
+  onSearchInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const cleanValue = input.value.replace(/[^a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ]/g, '');
+    if (input.value !== cleanValue) {
+      input.value = cleanValue;
+    }
+    this.searchTerm = cleanValue;
+    this.onSearchChange();
+  }
+
+  onDniInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, ''); // Solo números
+    if (val.length > 8) val = val.substring(0, 8); // Máximo 8 dígitos
+    if (input.value !== val) input.value = val;
+    this.form.dni = val;
+  }
+
+  onPhoneInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, ''); // Solo números
+    if (val.length > 9) val = val.substring(0, 9); // Máximo 9 dígitos
+    if (input.value !== val) input.value = val;
+    this.form.phone = val;
+  }
+
+  get isFormValid() {
+    return this.form.fullName?.trim() &&
+      this.form.phone?.trim()?.length >= 7 &&
+      this.form.dni?.trim()?.length === 8 &&
+      this.form.age > 0 &&
+      this.form.gender &&
+      (!this.form.email || this.emailRegex.test(this.form.email));
   }
 
   private loadPatients() {
@@ -122,22 +155,41 @@ export class PatientsListComponent {
   }
 
   save() {
+    this.isSaving = true;
+
+    // Check duplicates directly on frontend list before sending to backend to avoid generic 400s
+    // Fallback logic in case backend error parsing is clunky
+    const isDuplicate = this.patientsList.some(p => p.dni === this.form.dni && p.patientId !== this.form.patientId);
+
+    if (isDuplicate) {
+      alert('Ya existe un paciente registrado con este DNI.');
+      this.isSaving = false;
+      return;
+    }
+
     const request = this.form.patientId
       ? this.service.updatePatient(this.form.patientId, this.form)
       : this.service.addPatient(this.form);
 
     request.subscribe({
       next: () => {
+        this.isSaving = false;
         this.closeModal();
       },
       error: (err) => {
+        this.isSaving = false;
         console.error('Error saving patient', err);
-        let msg = err.error?.message || 'Ocurrió un error al guardar el paciente';
+        let msg = err.error?.message || 'Ocurrió un error al guardar el paciente. Verifique los datos obligatorios y la longitud de campos requeridos (ej. DNI debe ser de 8 dígitos).';
+
+        // Custom duplicate parsing (just in case)
+        if (msg.toLowerCase().includes('duplicate') || msg.toLowerCase().includes('already exists')) {
+          msg = 'Información duplicada. Verifique que el DNI o correo no existan ya en otro registro.';
+        }
 
         // Handle Validation Errors
         if (err.error?.validationErrors && Array.isArray(err.error.validationErrors)) {
           const detailedErrors = err.error.validationErrors
-            .map((e: any) => `${e.field}: ${e.message}`)
+            .map((e: any) => `- ${e.field}: ${e.message}`)
             .join('\n');
           msg += `\n\nDetalles:\n${detailedErrors}`;
         }
@@ -145,18 +197,6 @@ export class PatientsListComponent {
         alert(msg);
       }
     });
-
-    /*
-    if (this.form.patientId) {
-      this.service.updatePatient(this.form.patientId, this.form).subscribe(() => {
-        this.closeModal();
-      });
-    } else {
-      this.service.addPatient(this.form).subscribe(() => {
-        this.closeModal();
-      });
-    }
-    */
   }
 
 }

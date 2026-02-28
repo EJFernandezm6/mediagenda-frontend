@@ -19,7 +19,7 @@
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <lucide-icon [img]="icons.Search" class="h-5 w-5 text-gray-400"></lucide-icon>
             </div>
-            <input [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" type="text"
+            <input [ngModel]="searchTerm" (input)="onSearchInput($event)" type="text"
                 class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 placeholder="Buscar por nombre o CMP...">
         </div>
@@ -145,7 +145,7 @@
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeModal()"></div>
 
         <div
-            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 max-h-[90vh] overflow-y-auto">
             <div class="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                 <button type="button" class="rounded-md bg-white text-gray-400 hover:text-gray-500"
                     (click)="closeModal()">
@@ -198,23 +198,34 @@
                         <div class="sm:col-span-6 mb-2">
                             <label class="block text-sm font-medium leading-6 text-gray-900 mb-2">Nombre completo <span
                                     class="text-red-500">*</span></label>
-                            <input [(ngModel)]="form.fullName" type="text"
+                            <input [(ngModel)]="form.fullName" type="text" [disabled]="!!editingId"
+                                [class.bg-gray-100]="!!editingId"
                                 class="block w-full rounded-md border-0 py-2.5 px-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
                         </div>
 
-                        <!-- DNI -->
+                        <!-- Document -->
                         <div class="sm:col-span-3 mb-2">
-                            <label class="block text-sm font-medium leading-6 text-gray-900 mb-2">DNI <span
+                            <label class="block text-sm font-medium leading-6 text-gray-900 mb-2">Doc. Identidad <span
                                     class="text-red-500">*</span></label>
-                            <input [(ngModel)]="form.dni" type="text"
-                                class="block w-full rounded-md border-0 py-2.5 px-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
+                            <div class="relative flex rounded-md shadow-sm">
+                                <select [(ngModel)]="form.documentType" (change)="onDocumentInput($event)"
+                                    [disabled]="!!editingId" [class.bg-gray-100]="!!editingId"
+                                    class="inline-flex items-center rounded-l-md border-y border-l border-gray-300 bg-white px-3 text-sm text-gray-500 focus:border-blue-600 focus:outline-none focus:ring-blue-600">
+                                    <option value="DNI">DNI</option>
+                                    <option value="CE">CE</option>
+                                </select>
+                                <input [ngModel]="form.dni" (input)="onDocumentInput($event)" type="text"
+                                    [disabled]="!!editingId" [class.bg-gray-100]="!!editingId"
+                                    class="block w-full min-w-0 flex-1 rounded-none rounded-r-md border-0 py-2.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
+                            </div>
                         </div>
 
                         <!-- CMP -->
                         <div class="sm:col-span-3 mb-2">
                             <label class="block text-sm font-medium leading-6 text-gray-900 mb-2">CMP / colegiatura
                                 <span class="text-red-500">*</span></label>
-                            <input [(ngModel)]="form.cmp" type="text"
+                            <input [ngModel]="form.cmp" (input)="onCmpInput($event)" type="text"
+                                [disabled]="!!editingId" [class.bg-gray-100]="!!editingId"
                                 class="block w-full rounded-md border-0 py-2.5 px-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
                         </div>
 
@@ -227,11 +238,15 @@
                         </div>
 
                         <!-- Email -->
-                        <div class="sm:col-span-3 mb-2">
+                        <div class="sm:col-span-3 mb-2 relative">
                             <label class="block text-sm font-medium leading-6 text-gray-900 mb-2">Email <span
                                     class="text-red-500">*</span></label>
                             <input [(ngModel)]="form.email" type="email"
+                                [class.ring-red-300]="form.email && !emailRegex.test(form.email)"
                                 class="block w-full rounded-md border-0 py-2.5 px-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
+                            <p *ngIf="form.email && !emailRegex.test(form.email)"
+                                class="text-xs text-red-500 mt-1 absolute -bottom-5 left-0">Formato inválido (Ej:
+                                usuario@correo.com)</p>
                         </div>
 
                         <!-- Active status -->
