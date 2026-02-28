@@ -94,6 +94,51 @@ export class DoctorSpecialtyComponent {
   @ViewChild(DoctorSelectorComponent) doctorSelector!: DoctorSelectorComponent;
   @ViewChild(SpecialtySelectorComponent) specialtySelector!: SpecialtySelectorComponent;
 
+  // Input Validations
+  onSearchInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const cleanValue = input.value.replace(/[^a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ]/g, '');
+    if (input.value !== cleanValue) {
+      input.value = cleanValue;
+    }
+    this.searchTerm.set(cleanValue);
+  }
+
+  onCostInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/[^0-9.]/g, '');
+
+    // Prevent multiple dots
+    const parts = val.split('.');
+    if (parts.length > 2) {
+      val = parts[0] + '.' + parts.slice(1).join('').replace(/\./g, '');
+    }
+    // Limit to 2 decimals
+    if (parts.length === 2 && parts[1].length > 2) {
+      val = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+
+    if (input.value !== val) {
+      input.value = val;
+    }
+    this.cost = parseFloat(val) || 0;
+  }
+
+  onDurationInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, ''); // Only digits
+
+    // Limit to 3 digits
+    if (val.length > 3) {
+      val = val.substring(0, 3);
+    }
+
+    if (input.value !== val) {
+      input.value = val;
+    }
+    this.duration = parseInt(val, 10) || 0;
+  }
+
   getDoctorName(id: string) {
     // The id passed here is likely the Doctor Profile ID (from association.doctorId)
     // But our doctors() list is indexed by User ID (d.id)
