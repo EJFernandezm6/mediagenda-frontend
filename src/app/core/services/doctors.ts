@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { User } from '../auth/auth.service';
-import { tap, switchMap } from 'rxjs/operators';
+import { tap, switchMap, map } from 'rxjs/operators';
 import { Observable, forkJoin } from 'rxjs';
 
 
