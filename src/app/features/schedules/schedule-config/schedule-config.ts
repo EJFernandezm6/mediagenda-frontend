@@ -10,11 +10,12 @@ import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-sp
 import { LucideAngularModule, Clock, Plus, Trash2 } from 'lucide-angular';
 
 import { DoctorSelectorComponent } from '../../../shared/components/doctor-selector/doctor-selector';
+import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
 
 @Component({
   selector: 'app-schedule-config',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent, SearchableSelectComponent],
   templateUrl: './schedule-config.html',
   styleUrl: './schedule-config.css'
 })
@@ -72,6 +73,13 @@ export class ScheduleConfigComponent {
     if (!docId) return [];
     const assocs = this.associationService.getSpecialtiesForDoctor(docId);
     return assocs.map(a => this.specialtyService.specialties().find(s => s.specialtyId === a.specialtyId)).filter((s): s is NonNullable<typeof s> => !!s);
+  }
+
+  get specialtyOptions(): SelectOption[] {
+    return this.availableSpecialtiesForDoctor.map(s => ({
+      id: s.specialtyId,
+      label: s.name
+    }));
   }
 
   getDayName(day: number) {

@@ -21,32 +21,19 @@
         <!-- Filters Row (Only Filters Here) -->
         <div class="flex flex-wrap items-center gap-3 w-full">
             <!-- Specialty Filter -->
-            <div class="relative min-w-[200px] flex-1 md:flex-none">
-                <lucide-icon [img]="icons.Search"
-                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
-                <select [ngModel]="selectedSpecialtyId()"
-                    (ngModelChange)="selectedSpecialtyId.set($event); selectedDoctorId.set('')"
-                    class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-8 py-2.5 hover:border-gray-300 transition-colors cursor-pointer font-medium">
-                    <option value="">Todas las especialidades</option>
-                    <option *ngFor="let spec of specialties()" [value]="spec.specialtyId">{{ spec.name }}</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                    <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4 rotate-90"></lucide-icon>
-                </div>
+            <div class="min-w-[250px] flex-1 md:flex-none">
+                <app-searchable-select [options]="specialtyOptions" [ngModel]="selectedSpecialtyId()"
+                    (ngModelChange)="selectedSpecialtyId.set($event.toString()); selectedDoctorId.set('')"
+                    placeholder="Todas las especialidades" displayMode="compact">
+                </app-searchable-select>
             </div>
 
             <!-- Doctor Filter -->
-            <div class="relative min-w-[200px] flex-1 md:flex-none">
-                <lucide-icon [img]="icons.User"
-                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
-                <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
-                    class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-8 py-2.5 hover:border-gray-300 transition-colors cursor-pointer font-medium">
-                    <option value="">Todos los médicos</option>
-                    <option *ngFor="let doc of filteredDoctors()" [value]="doc.doctorId">{{ doc.fullName }}</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                    <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4 rotate-90"></lucide-icon>
-                </div>
+            <div class="min-w-[250px] flex-1 md:flex-none">
+                <app-searchable-select [options]="doctorOptions" [ngModel]="selectedDoctorId()"
+                    (ngModelChange)="selectedDoctorId.set($event.toString())" placeholder="Todos los médicos"
+                    displayMode="compact">
+                </app-searchable-select>
             </div>
         </div>
     </div>
@@ -401,12 +388,10 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                             Especialidad <span class="text-red-500">*</span>
                         </label>
-                        <select [ngModel]="modalSpecialtyId()"
-                            (ngModelChange)="modalSpecialtyId.set($event); modalDoctorId.set('')"
-                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none">
-                            <option value="" disabled selected>Seleccionar especialidad</option>
-                            <option *ngFor="let s of specialties()" [value]="s.specialtyId">{{ s.name }}</option>
-                        </select>
+                        <app-searchable-select [options]="modalSpecialtyOptions" [ngModel]="modalSpecialtyId()"
+                            (ngModelChange)="modalSpecialtyId.set($event.toString()); modalDoctorId.set('')"
+                            placeholder="Seleccionar especialidad" displayMode="default">
+                        </app-searchable-select>
                     </div>
 
                     <!-- Doctor -->
@@ -414,13 +399,10 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                             Médico <span class="text-red-500">*</span>
                         </label>
-                        <select [ngModel]="modalDoctorId()" (ngModelChange)="modalDoctorId.set($event)"
-                            [disabled]="!modalSpecialtyId()"
-                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none disabled:bg-gray-50 disabled:text-gray-400">
-                            <option value="" disabled selected>Seleccionar médico</option>
-                            <option *ngFor="let d of filteredDoctorsForModal()" [value]="d.doctorId">{{ d.fullName }}
-                            </option>
-                        </select>
+                        <app-searchable-select [options]="modalDoctorOptions" [ngModel]="modalDoctorId()"
+                            (ngModelChange)="modalDoctorId.set($event.toString())" [disabled]="!modalSpecialtyId()"
+                            placeholder="Seleccionar médico" displayMode="default">
+                        </app-searchable-select>
                     </div>
 
                     <!-- Date -->
@@ -437,12 +419,10 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                             Paciente <span class="text-red-500">*</span>
                         </label>
-                        <select [ngModel]="modalPatientId()" (ngModelChange)="modalPatientId.set($event)"
-                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none">
-                            <option value="" disabled selected>Seleccionar paciente</option>
-                            <option *ngFor="let p of patients()" [value]="p.patientId">{{ p.fullName }} ({{ p.dni }})
-                            </option>
-                        </select>
+                        <app-searchable-select [options]="modalPatientOptions" [ngModel]="modalPatientId()"
+                            (ngModelChange)="modalPatientId.set($event.toString())" placeholder="Seleccionar paciente"
+                            displayMode="default">
+                        </app-searchable-select>
                     </div>
                 </div>
 
@@ -683,11 +663,10 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Médico</label>
-                            <select [ngModel]="modalDoctorId()" (ngModelChange)="modalDoctorId.set($event)"
-                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option *ngFor="let d of doctorsInCurrentSpecialty()" [value]="d.id">{{ d.fullName }}
-                                </option>
-                            </select>
+                            <app-searchable-select [options]="modalDoctorOptions" [ngModel]="modalDoctorId()"
+                                (ngModelChange)="modalDoctorId.set($event.toString())" placeholder="Seleccionar médico"
+                                displayMode="default">
+                            </app-searchable-select>
                         </div>
                     </div>
 

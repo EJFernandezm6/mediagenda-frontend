@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Search } from 'lucide-angular';
 import { DoctorsService } from '../../../core/services/doctors';
+import { DoctorSpecialtyService, DoctorSpecialty } from '../../../features/doctors/doctor-specialty/doctor-specialty.service';
 
 @Component({
     selector: 'app-doctor-selector',
@@ -20,6 +21,7 @@ import { DoctorsService } from '../../../core/services/doctors';
 })
 export class DoctorSelectorComponent {
     private doctorService = inject(DoctorsService);
+    private doctorSpecialtyService = inject(DoctorSpecialtyService);
 
     // Inputs/Models
     selectedDoctorId = signal('');
@@ -46,12 +48,29 @@ export class DoctorSelectorComponent {
 
     // Computed
     formattedDoctors = computed(() => {
-        return this.doctors()
-            .map(doctor => ({
-                ...doctor,
-                valueId: doctor.doctorId || doctor.id,
-                displayName: doctor.dni ? `${doctor.dni} - ${doctor.fullName}` : doctor.fullName
-            }));
+        const activeAssociations = this.doctorSpecialtyService.associations();
+        // Extract unique doctor IDs that have at least one specialty mapped to them
+        const doctorIdsWithSpecialties = new Set(activeAssociations.map((a: DoctorSpecialty) => a.doctorId));
+
+        const uniqueDoctorsMap = new Map();
+
+        this.doctors()
+            .filter(doctor => {
+                const docId = doctor.doctorId || doctor.id;
+                return doctorIdsWithSpecialties.has(docId);
+            })
+            .forEach(doctor => {
+                const docId = doctor.doctorId || doctor.id;
+                if (!uniqueDoctorsMap.has(docId)) {
+                    uniqueDoctorsMap.set(docId, {
+                        ...doctor,
+                        valueId: docId,
+                        displayName: doctor.dni ? `${doctor.dni} - ${doctor.fullName}` : doctor.fullName
+                    });
+                }
+            });
+
+        return Array.from(uniqueDoctorsMap.values());
     });
 
     filteredOptions = computed(() => {

@@ -15,6 +15,7 @@ export interface Doctor extends User {
   cmp?: string;
   // DNI: Mandatory for Specialists (Not yet implemented in DB/Backend)
   dni?: string;
+  specialties?: any[]; // Array of specialties mapped from backend
   rating?: number;
   reviewsCount?: number;
   active?: boolean;

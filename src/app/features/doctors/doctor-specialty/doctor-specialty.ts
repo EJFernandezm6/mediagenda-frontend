@@ -5,6 +5,7 @@ import { DoctorSpecialtyService, DoctorSpecialty } from './doctor-specialty.serv
 import { DoctorsService } from '../../../core/services/doctors';
 import { DoctorSelectorComponent } from '../../../shared/components/doctor-selector/doctor-selector';
 import { SpecialtySelectorComponent } from '../../../shared/components/specialty-selector/specialty-selector';
+import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { LucideAngularModule, Plus, Trash2, Edit, Search, X, Filter } from 'lucide-angular';
@@ -12,7 +13,7 @@ import { LucideAngularModule, Plus, Trash2, Edit, Search, X, Filter } from 'luci
 @Component({
   selector: 'app-doctor-specialty',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent, SpecialtySelectorComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent, SpecialtySelectorComponent, SearchableSelectComponent],
   templateUrl: './doctor-specialty.html',
   styleUrl: './doctor-specialty.css'
 })
@@ -55,6 +56,16 @@ export class DoctorSpecialtyComponent {
       displayName: doctor.dni ? `${doctor.dni} - ${doctor.fullName}` : doctor.fullName
     }));
   });
+
+  get doctorFilterOptions(): SelectOption[] {
+    const opts = this.formattedDoctors().map(d => ({ id: d.valueId, label: d.displayName }));
+    return [{ id: '', label: 'Todos los especialistas' }, ...opts];
+  }
+
+  get specialtyFilterOptions(): SelectOption[] {
+    const opts = this.specialties().map(s => ({ id: s.specialtyId, label: s.name }));
+    return [{ id: '', label: 'Todas las especialidades' }, ...opts];
+  }
 
   // Computed Methods
   filteredAssociations = computed(() => {

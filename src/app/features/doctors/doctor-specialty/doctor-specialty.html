@@ -26,21 +26,17 @@
         </div>
 
         <div>
-            <select [ngModel]="filterDoctorId()" (ngModelChange)="filterDoctorId.set($event)"
-                class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
-                <option value="">Todos los especialistas</option>
-                <option *ngFor="let doctor of formattedDoctors()" [value]="doctor.valueId">{{ doctor.displayName }}
-                </option>
-            </select>
+            <app-searchable-select [options]="doctorFilterOptions" [ngModel]="filterDoctorId()"
+                (ngModelChange)="filterDoctorId.set($event.toString())" placeholder="Todos los especialistas"
+                displayMode="default">
+            </app-searchable-select>
         </div>
 
         <div>
-            <select [ngModel]="filterSpecialtyId()" (ngModelChange)="filterSpecialtyId.set($event)"
-                class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm border">
-                <option value="">Todas las especialidades</option>
-                <option *ngFor="let specialty of specialties()" [value]="specialty.specialtyId">{{ specialty.name }}
-                </option>
-            </select>
+            <app-searchable-select [options]="specialtyFilterOptions" [ngModel]="filterSpecialtyId()"
+                (ngModelChange)="filterSpecialtyId.set($event.toString())" placeholder="Todas las especialidades"
+                displayMode="default">
+            </app-searchable-select>
         </div>
     </div>
 

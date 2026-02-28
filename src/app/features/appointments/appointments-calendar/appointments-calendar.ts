@@ -10,11 +10,12 @@ import { PatientsService } from '../../../core/services/patients';
 import { ConfigurationService } from '../../../core/services/configuration';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
 import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle } from 'lucide-angular';
+import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
 
 @Component({
   selector: 'app-appointments-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent],
   templateUrl: './appointments-calendar.html',
   styleUrl: './appointments-calendar.css'
 })
@@ -188,6 +189,51 @@ export class AppointmentsCalendarComponent {
 
     return this.doctors().filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
   });
+
+  // Searchable Select Mappings
+  get specialtyOptions(): SelectOption[] {
+    return [
+      { id: '', label: 'Todas las especialidades' },
+      ...this.specialties().map(s => ({ id: s.specialtyId, label: s.name }))
+    ];
+  }
+
+  get doctorOptions(): SelectOption[] {
+    return [
+      { id: '', label: 'Todos los especialistas' },
+      ...this.filteredDoctors().map(d => ({
+        id: d.doctorId || d.id,
+        label: d.dni ? `${d.dni} - ${d.fullName}` : d.fullName
+      }))
+    ];
+  }
+
+  get modalSpecialtyOptions(): SelectOption[] {
+    return [
+      { id: '', label: 'Seleccionar especialidad' },
+      ...this.specialties().map(s => ({ id: s.specialtyId, label: s.name }))
+    ];
+  }
+
+  get modalDoctorOptions(): SelectOption[] {
+    return [
+      { id: '', label: 'Seleccionar especialista' },
+      ...this.filteredDoctorsForModal().map(d => ({
+        id: d.doctorId || d.id,
+        label: d.dni ? `${d.dni} - ${d.fullName}` : d.fullName
+      }))
+    ];
+  }
+
+  get modalPatientOptions(): SelectOption[] {
+    return [
+      { id: '', label: 'Seleccionar paciente' },
+      ...this.patients().map(p => ({
+        id: p.patientId,
+        label: p.dni ? `${p.dni} - ${p.fullName}` : p.fullName
+      }))
+    ];
+  }
 
   availableSlotsForModal = computed(() => {
     const doctorId = this.modalDoctorId();
