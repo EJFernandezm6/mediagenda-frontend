@@ -44,8 +44,8 @@ export class UsersListComponent {
         fullName: '',
         email: '',
         password: '123456',
-        roles: ['ADMIN'], // Default to ADMIN for new users in this module
-        cmp: '', // Kept in model but hidden in UI as requested
+        roles: [],
+        cmp: '',
         clinicId: '',
         roleIds: [],
         phone: '',
@@ -95,9 +95,7 @@ export class UsersListComponent {
 
     // Reset page when filters change
     constructor() {
-        // We can't easily listen to computed signals change in constructor without effect,
-        // but binding to (ngModel) inputs calls methods, so we'll update there.
-        // Fetch roles to have available for mapping
+        this.usersService.refreshUsers();
         this.usersService.getRoles().subscribe({
             next: (roles) => {
                 this.availableRoles = roles;
@@ -144,8 +142,8 @@ export class UsersListComponent {
         this.formData = {
             fullName: '',
             email: '',
-            password: '123456', // Default password
-            roles: ['ADMIN'], // Always ADMIN
+            password: '123456',
+            roles: [],
             cmp: '',
             clinicId: '',
             roleIds: [],
@@ -367,6 +365,21 @@ export class UsersListComponent {
                 alert(msg);
             }
         });
+    }
+
+    toggleRole(role: any) {
+        const idx = this.formData.roleIds!.indexOf(role.roleId);
+        if (idx >= 0) {
+            this.formData.roleIds!.splice(idx, 1);
+            this.formData.roles = this.formData.roles.filter(r => r !== role.roleKey);
+        } else {
+            this.formData.roleIds!.push(role.roleId);
+            this.formData.roles.push(role.roleKey);
+        }
+    }
+
+    isRoleSelected(role: any): boolean {
+        return this.formData.roleIds!.includes(role.roleId);
     }
 
     isValid() {

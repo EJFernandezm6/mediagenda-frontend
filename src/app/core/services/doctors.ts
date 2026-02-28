@@ -57,7 +57,7 @@ export class DoctorsService {
     // 1. Get DOCTOR role ID
     return this.http.get<any[]>(this.rolesUrl).pipe(
       map(roles => {
-        const doctorRole = roles.find(r => r.roleKey === 'DOCTOR' || r.name.toUpperCase() === 'DOCTOR');
+        const doctorRole = roles.find(r => r.roleKey.toUpperCase() === 'DOCTOR');
         if (!doctorRole) throw new Error('Role DOCTOR not found');
         return doctorRole.roleId;
       }),

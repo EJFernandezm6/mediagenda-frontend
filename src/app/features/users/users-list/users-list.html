@@ -155,14 +155,24 @@
         <!-- Modal Body -->
         <div class="p-6 space-y-5 overflow-y-auto">
 
-            <!-- Info Notice -->
-            <div class="bg-blue-50 text-blue-700 p-3 rounded-lg flex gap-3 text-sm items-start" *ngIf="!isEditing">
-                <lucide-icon [img]="Icons.ShieldCheck" class="w-5 h-5 flex-shrink-0 mt-0.5"></lucide-icon>
-                <div>
-                    <span class="font-bold block">Creando Administrador</span>
-                    Este usuario tendrá acceso completo al sistema. Para registrar doctores, usa el módulo de
-                    Especialistas.
+            <!-- Roles -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Roles *</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label *ngFor="let role of availableRoles"
+                           class="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
+                           [class.border-blue-500]="isRoleSelected(role)"
+                           [class.bg-blue-50]="isRoleSelected(role)">
+                        <input type="checkbox"
+                               [checked]="isRoleSelected(role)"
+                               (change)="toggleRole(role)"
+                               class="rounded" />
+                        <span class="text-sm font-medium">{{ role.name }}</span>
+                    </label>
                 </div>
+                <p *ngIf="formData.roles.length === 0" class="text-xs text-red-500 mt-1">
+                    Selecciona al menos un rol
+                </p>
             </div>
 
             <!-- Full Name -->
@@ -193,10 +203,6 @@
 
 
 
-            <!-- Roles (Hidden / Readonly for Admins) -->
-            <div class="hidden">
-                <!-- Hidden input to ensure role logic stays consistent if needed, but handled in controller -->
-            </div>
 
         </div>
 

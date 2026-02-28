@@ -78,33 +78,34 @@ export class UsersService {
     }
 
     addUser(user: UserRequest) {
-        // 1. Fetch Roles to get ADMIN ID
+        if (user.roleIds?.length) {
+            // roleIds already resolved in the component
+            const payload = {
+                fullName: user.fullName,
+                email: user.email,
+                password: user.password,
+                roleIds: user.roleIds,
+                phone: user.phone || '',
+                photoUrl: user.photoUrl || ''
+            };
+            return this.http.post<User>(this.apiUrl, payload).pipe(
+                tap(() => this.refreshUsers())
+            );
+        }
+        // Fallback: resolve by role name (compatibility)
         return this.getRoles().pipe(
             switchMap(roles => {
-                // Default to ADMIN if no specific role is requested (or if user.roles contains ADMIN)
-                // The frontend currently only creates ADMINs via this form
                 const targetRole = user.roles.includes('ADMIN') ? 'ADMIN' : user.roles[0];
                 const roleObj = roles.find(r => r.roleKey === targetRole || r.name.toUpperCase() === targetRole);
-
-                if (!roleObj) {
-                    throw new Error(`Role ${targetRole} not found`);
-                }
-
-                // 2. Create STRICT payload for backend (remove 'roles' array, send roleIds)
+                if (!roleObj) throw new Error(`Role ${targetRole} not found`);
                 const finalPayload = {
                     fullName: user.fullName,
                     email: user.email,
                     password: user.password,
                     roleIds: [roleObj.roleId],
-                    phone: user.phone || '', // Ensure string
-                    photoUrl: user.photoUrl || '' // Ensure string
-                    // Backend infers clinicId from authenticated user's JWT token
+                    phone: user.phone || '',
+                    photoUrl: user.photoUrl || ''
                 };
-
-                console.log('🔍 Role found:', roleObj);
-                console.log('📤 Final payload to send:', finalPayload);
-
-                // 3. Create User
                 return this.http.post<User>(this.apiUrl, finalPayload);
             }),
             tap(() => this.refreshUsers())
