@@ -200,7 +200,6 @@ export class AppointmentsCalendarComponent {
     const duration = this.getDuration(doctorId, specialtyId);
 
     // 2. Obtener horarios del médico para esa especialidad en esa fecha
-    const normalize = (t: string) => t.length > 5 ? t.substring(0, 5) : t;
     const schedules = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId)
       .filter(s => s.date === date);
 
@@ -209,8 +208,8 @@ export class AppointmentsCalendarComponent {
     // 3. Generar slots desde cada bloque de horario
     const slots: string[] = [];
     for (const s of schedules) {
-      const start = this.getMinutes(normalize(s.startTime));
-      const end = this.getMinutes(normalize(s.endTime));
+      const start = this.getMinutes(this.normalizeTime(s.startTime));
+      const end = this.getMinutes(this.normalizeTime(s.endTime));
       let current = start;
       while (current + duration <= end) {
         slots.push(this.formatMinutes(current));
@@ -223,7 +222,7 @@ export class AppointmentsCalendarComponent {
       const isBooked = this.appointments().some(a =>
         a.doctorId === doctorId &&
         a.appointmentDate === date &&
-        a.startTime === time &&
+        this.normalizeTime(a.startTime) === time &&
         a.status !== 'CANCELLED'
       );
       return !isBooked;
@@ -266,67 +265,84 @@ export class AppointmentsCalendarComponent {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   }
 
+  // Safely normalize any time format "HH:mm:ss" or "H:mm" to "HH:mm"
+  private normalizeTime(time: string): string {
+    if (!time) return '';
+    const parts = time.split(':');
+    if (parts.length >= 2) {
+      return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    }
+    return time;
+  }
+
   // Dynamic Time Slots
   timeSlots = computed(() => {
-    // 1. Determine Duration
-    let duration = 30; // Default
     const docId = this.selectedDoctorId();
     const specId = this.selectedSpecialtyId();
+    const mode = this.viewMode();
+    const currentDate = this.currentDate();
 
-    if (docId && specId) {
-      const assoc = this.doctorSpecialtyService.associations()
-        .find(a => a.doctorId === docId && a.specialtyId === specId);
-      if (assoc && assoc.durationMinutes > 0) {
-        duration = assoc.durationMinutes;
+    // Collect distinct time slots in a Set to ensure exact match and sorting
+    const timeSet = new Set<string>();
+
+    let doctorsToCheck = docId ? [docId] : this.doctorsInCurrentSpecialty().map(d => d.doctorId || d.id);
+    let schedules = this.scheduleService.schedules();
+    let appointments = this.appointments();
+
+    // 1. Loop through all relevant schedules to build exact slots based on start time & duration
+    for (const dId of doctorsToCheck) {
+      let docSchedules = schedules.filter(s => s.doctorId === dId);
+      if (specId) docSchedules = docSchedules.filter(s => s.specialtyId === specId);
+
+      // Filter schedules to current view dates
+      if (mode === 'day') {
+        const todayStr = currentDate.toISOString().split('T')[0];
+        docSchedules = docSchedules.filter(s => s.date === todayStr);
+      } else {
+        const startOfWeekStr = this.getStartOfWeek(currentDate).toISOString().split('T')[0];
+        // Simplified check, could check bounds.
+        docSchedules = docSchedules.filter(s => s.date >= startOfWeekStr);
+      }
+
+      for (const s of docSchedules) {
+        const duration = this.getDuration(dId, s.specialtyId);
+        const startMins = this.getMinutes(this.normalizeTime(s.startTime));
+        const endMins = this.getMinutes(this.normalizeTime(s.endTime));
+
+        let current = startMins;
+        while (current < endMins) {
+          timeSet.add(this.formatMinutes(current));
+          current += duration;
+        }
       }
     }
 
-    // 2. Determine Range (Start/End) based on Schedules
-    // If no doctor selected, default 08:00 - 20:00
-    // If doctor selected, find their earliest start and latest end in the current view?
-    // User requirement: "If turn ends at 5, last visible should be 4:30"
+    // 2. Also ensure any existing appointments in view have their start time listed
+    for (const a of appointments) {
+      if (docId && a.doctorId !== docId) continue;
+      if (specId && a.specialtyId !== specId) continue;
+      if (a.status === 'CANCELLED') continue;
 
-    let minStart = 8 * 60; // 08:00
-    let maxEnd = 20 * 60;  // 20:00
+      // In day view, date must match
+      if (mode === 'day' && a.appointmentDate !== currentDate.toISOString().split('T')[0]) continue;
 
-    // Optimality: If we want to be strict, we scan schedules. 
-    // For now, let's keep a reasonable default range but expanded if schedules exist outside.
-    if (docId) {
-      // Get all schedules for this doctor (optionally filtered by specialty if selected?)
-      // We want to show ALL slots where they might work 
-      let schedules = this.scheduleService.schedules().filter(s => s.doctorId === docId);
+      timeSet.add(this.normalizeTime(a.startTime));
+    }
 
-      if (specId) {
-        schedules = schedules.filter(s => s.specialtyId === specId);
-      }
+    // 3. Convert to array and sort chronologically
+    let sortedSlots = Array.from(timeSet).sort((a, b) => this.getMinutes(a) - this.getMinutes(b));
 
-      if (schedules.length > 0) {
-        // Find min start and max end
-        const starts = schedules.map(s => this.getMinutes(s.startTime));
-        const ends = schedules.map(s => this.getMinutes(s.endTime));
-
-        const earliest = Math.min(...starts);
-        const latest = Math.max(...ends);
-
-        // Use these bounds, maybe with a little buffer or strictly?
-        // User example implies strictness relative to shifts.
-        // Let's use the found bounds.
-        minStart = earliest;
-        maxEnd = latest;
+    // Fallback if empty (e.g. no schedules or appointments found) to keep grid alive
+    if (sortedSlots.length === 0) {
+      let current = 8 * 60; // 08:00
+      let maxEnd = 20 * 60; // 20:00
+      while (current < maxEnd) {
+        sortedSlots.push(this.formatMinutes(current));
+        current += 30; // 30 min default
       }
     }
 
-    // 3. Generate Slots
-    const slots: string[] = [];
-    let current = minStart;
-
-    // We generate slots such that (current + duration) <= maxEnd
-    while (current + duration <= maxEnd) {
-      slots.push(this.formatMinutes(current));
-      current += duration;
-    }
-
-    return slots;
+    return sortedSlots;
   });
 
   getStartOfWeek(date: Date) {
@@ -403,6 +419,8 @@ export class AppointmentsCalendarComponent {
       ? [this.selectedDoctorId()]
       : this.doctorsInCurrentSpecialty().map(d => d.doctorId || d.id);
 
+    const timeMins = this.getMinutes(time);
+
     for (const docId of doctorsToCheck) {
       const docName = this.getDoctorName(docId);
 
@@ -410,7 +428,7 @@ export class AppointmentsCalendarComponent {
       const matchingApp = this.appointments().find(a =>
         a.doctorId === docId &&
         a.appointmentDate === dateIso &&
-        a.startTime === time &&
+        this.normalizeTime(a.startTime) === time &&
         a.status !== 'CANCELLED'
       );
 
@@ -426,32 +444,36 @@ export class AppointmentsCalendarComponent {
       let isWorking = false;
       let workingSpecialtyId = '';
 
-      // Helper to normalize time to HH:mm for comparison (backend might send HH:mm:ss)
-      const normalize = (t: string) => t.length > 5 ? t.substring(0, 5) : t;
+      // Helper logic
+      const checkSchedule = (schedulesList: any[]) => {
+        for (const s of schedulesList) {
+          if (s.date === dateIso) {
+            const startStr = this.normalizeTime(s.startTime);
+            const endStr = this.normalizeTime(s.endTime);
+            const startMins = this.getMinutes(startStr);
+            const endMins = this.getMinutes(endStr);
+
+            // Must be within range
+            if (timeMins >= startMins && timeMins < endMins) {
+              // Must align with duration blocks
+              const duration = this.getDuration(docId, s.specialtyId);
+              if ((timeMins - startMins) % duration === 0) {
+                isWorking = true;
+                workingSpecialtyId = s.specialtyId;
+                return;
+              }
+            }
+          }
+        }
+      };
 
       if (this.selectedSpecialtyId()) {
         const schedules = this.scheduleService.getSchedulesForDoctor(docId, this.selectedSpecialtyId());
-
-        isWorking = schedules.some(s =>
-          s.date === dateIso &&
-          time >= normalize(s.startTime) &&
-          time < normalize(s.endTime)
-        );
-        workingSpecialtyId = this.selectedSpecialtyId();
+        checkSchedule(schedules);
       } else {
         // View All: Check any specialty
         const allSchedules = this.scheduleService.schedules().filter(s => s.doctorId === docId);
-
-        const validSchedule = allSchedules.find(s =>
-          s.date === dateIso &&
-          time >= normalize(s.startTime) &&
-          time < normalize(s.endTime)
-        );
-
-        if (validSchedule) {
-          isWorking = true;
-          workingSpecialtyId = validSchedule.specialtyId;
-        }
+        checkSchedule(allSchedules);
       }
 
       if (isWorking) {
