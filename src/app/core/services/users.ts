@@ -37,32 +37,43 @@ export class UsersService {
 
 
     users = signal<User[]>([]);
+    totalElements = signal<number>(0);
     private _currentRole = '';
 
     constructor() {
-        this.refreshUsers();
+        this.refreshUsers(0, 10, '');
     }
 
-    refreshUsers(role?: string) {
+    refreshUsers(page: number = 0, size: number = 10, search: string = '', role?: string, active?: boolean) {
         if (role !== undefined) {
             this._currentRole = role;
         }
 
-        let params = new HttpParams();
+        let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
         if (this._currentRole) params = params.set('role', this._currentRole);
+        if (search) params = params.set('search', search);
+        if (active !== undefined) params = params.set('active', String(active));
 
-        this.http.get<any[]>(this.apiUrl, { params }).pipe(
+        this.http.get<any>(this.apiUrl, { params }).pipe(
             // Map backend response to ensure ID consistency
             tap(data => console.log('Raw users data:', data)), // Debug log
-            map(users => users.map(u => ({
-                ...u,
-                id: u.userId || u.id, // Backend sends 'userId'
-                fullName: u.fullName || u.name, // Handle potential name field
-                // Ensure other fields sort of match or at least don't break
-            } as User)))
+            map(data => {
+                return {
+                    ...data,
+                    content: data.content.map((u: any) => ({
+                        ...u,
+                        id: u.userId || u.id, // Backend sends 'userId'
+                        fullName: u.fullName || u.name, // Handle potential name field
+                        // Ensure other fields sort of match or at least don't break
+                    } as User))
+                };
+            })
 
         ).subscribe({
-            next: (data) => this.users.set(data),
+            next: (data) => {
+                this.users.set(data.content);
+                this.totalElements.set(data.totalElements);
+            },
             error: (err) => console.error('Error fetching users:', err)
         });
     }

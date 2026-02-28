@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { LucideAngularModule, LucideIconData, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight } from 'lucide-angular';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal';
+import { ErrorModalComponent } from '../../shared/components/error-modal/error-modal.component';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentsService } from '../../core/services/appointments';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, ConfirmModalComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, ConfirmModalComponent, ErrorModalComponent],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })

@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap, map } from 'rxjs/operators';
 
@@ -19,19 +19,29 @@ export class SpecialtiesService {
 
 
   specialties = signal<Specialty[]>([]);
+  totalElements = signal<number>(0);
 
   constructor() {
-    this.refreshSpecialties();
+    this.refreshSpecialties(0, 10, '');
   }
 
-  refreshSpecialties() {
-    this.http.get<any[]>(this.apiUrl).pipe(
-      map((data: any[]) => data.map((s: any) => ({
-        ...s,
-        active: s.isActive ?? s.active ?? false
-      }) as Specialty))
-    ).subscribe((data: Specialty[]) => {
-      this.specialties.set(data);
+  refreshSpecialties(page: number = 0, size: number = 10, search: string = '') {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    if (search) params = params.set('search', search);
+
+    this.http.get<any>(this.apiUrl, { params }).pipe(
+      map((data: any) => {
+        return {
+          ...data,
+          content: data.content.map((s: any) => ({
+            ...s,
+            active: s.isActive ?? s.active ?? false
+          }) as Specialty)
+        };
+      })
+    ).subscribe((data: any) => {
+      this.specialties.set(data.content);
+      this.totalElements.set(data.totalElements);
     });
   }
 

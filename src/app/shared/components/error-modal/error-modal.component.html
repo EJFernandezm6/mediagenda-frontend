@@ -1,0 +1,81 @@
+<div *ngIf="error" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" (click)="close()"></div>
+
+    <!-- Alert Dialog -->
+    <div
+        class="bg-white rounded-2xl shadow-xl w-full max-w-lg transform overflow-hidden transition-all relative flex flex-col max-h-[90vh]">
+
+        <!-- Top Bar (Red Warning) -->
+        <div class="h-2 bg-red-500 w-full flex-shrink-0"></div>
+
+        <!-- Header Section -->
+        <div class="p-6 flex flex-col items-center flex-shrink-0">
+            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                <lucide-icon [img]="icons.XOctagon" class="w-8 h-8 text-red-500"></lucide-icon>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 text-center mb-2">Algo salió mal</h2>
+
+            <!-- Business Friendly Message -->
+            <p class="text-gray-600 text-center text-[15px] leading-relaxed max-w-sm">
+                {{ error.businessMessage }}
+            </p>
+        </div>
+
+        <!-- Scrollable Tech Details (Optional) -->
+        <div class="px-6 pb-6 overflow-y-auto" *ngIf="error.technicalDetails">
+            <button (click)="toggleDetails()"
+                class="w-full flex items-center justify-between py-3 px-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100 mt-2 text-sm text-gray-600 font-medium group">
+                <span>Información Técnica Avanzada</span>
+                <lucide-icon [img]="showTechnicalDetails ? icons.ChevronUp : icons.ChevronDown"
+                    class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors"></lucide-icon>
+            </button>
+
+            <!-- Details Container -->
+            <div *ngIf="showTechnicalDetails"
+                class="mt-3 p-4 bg-gray-800 rounded-lg text-white font-mono text-[11px] leading-relaxed break-all overflow-x-auto selection:bg-gray-700 selection:text-white">
+                <div class="space-y-1.5 opacity-90">
+                    <p *ngIf="error.technicalDetails.timestamp"><span
+                            class="text-gray-400 font-semibold w-20 inline-block">TIME:</span> <span
+                            class="text-blue-300">{{ error.technicalDetails.timestamp }}</span></p>
+                    <p *ngIf="error.technicalDetails.status"><span
+                            class="text-gray-400 font-semibold w-20 inline-block">STATUS:</span> <span
+                            class="text-amber-300">HTTP {{ error.technicalDetails.status }}</span></p>
+                    <p *ngIf="error.technicalDetails.errorType"><span
+                            class="text-gray-400 font-semibold w-20 inline-block">TYPE:</span> <span
+                            class="text-pink-300">{{ error.technicalDetails.errorType }}</span></p>
+                    <p *ngIf="error.technicalDetails.path"><span
+                            class="text-gray-400 font-semibold w-20 inline-block">ROUTE:</span> <span
+                            class="text-emerald-300">{{ error.technicalDetails.path }}</span></p>
+                    <p *ngIf="error.technicalDetails.rawMessage"><span
+                            class="text-gray-400 font-semibold w-20 inline-block min-w-fit">MESSAGE:</span> <span
+                            class="text-gray-100">{{ error.technicalDetails.rawMessage }}</span></p>
+                </div>
+
+                <!-- Validation Errors Loop -->
+                <ng-container
+                    *ngIf="error.technicalDetails.validationErrors && error.technicalDetails.validationErrors.length > 0">
+                    <div class="mt-3 border-t border-gray-700 pt-3">
+                        <span class="text-red-400 font-bold mb-2 block">VALIDATION_ERRORS:</span>
+                        <ul class="list-disc pl-5 opacity-90 space-y-1">
+                            <li *ngFor="let valError of error.technicalDetails.validationErrors">
+                                <span class="text-amber-300">[{{ valError.field }}]</span>: {{ valError.message }}
+                                <span *ngIf="valError.rejectedValue" class="text-gray-500 text-[10px]">(Recibido: {{
+                                    valError.rejectedValue }})</span>
+                            </li>
+                        </ul>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+
+        <!-- Footer Action -->
+        <div class="p-6 pt-2 flex-shrink-0">
+            <button (click)="close()"
+                class="w-full bg-gray-900 text-white font-medium py-3 rounded-xl hover:bg-gray-800 transition-colors shadow-sm focus:ring-4 focus:ring-gray-100 focus:outline-none">
+                Entendido, cerrar
+            </button>
+        </div>
+
+    </div>
+</div>

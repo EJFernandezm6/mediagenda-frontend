@@ -55,7 +55,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-                <tr *ngFor="let user of paginatedUsers()" class="hover:bg-gray-50 transition-colors group">
+                <tr *ngFor="let user of usersList" class="hover:bg-gray-50 transition-colors group">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <div
@@ -131,7 +131,7 @@
         </table>
 
         <!-- Pagination -->
-        <app-pagination [currentPage]="currentPage()" [totalItems]="filteredUsers().length" [pageSize]="itemsPerPage"
+        <app-pagination [currentPage]="currentPage()" [totalItems]="totalItems" [pageSize]="itemsPerPage"
             (pageChange)="onPageChange($event)">
         </app-pagination>
     </div>
@@ -160,13 +160,10 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Roles *</label>
                 <div class="grid grid-cols-2 gap-2">
                     <label *ngFor="let role of availableRoles"
-                           class="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
-                           [class.border-blue-500]="isRoleSelected(role)"
-                           [class.bg-blue-50]="isRoleSelected(role)">
-                        <input type="checkbox"
-                               [checked]="isRoleSelected(role)"
-                               (change)="toggleRole(role)"
-                               class="rounded" />
+                        class="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
+                        [class.border-blue-500]="isRoleSelected(role)" [class.bg-blue-50]="isRoleSelected(role)">
+                        <input type="checkbox" [checked]="isRoleSelected(role)" (change)="toggleRole(role)"
+                            class="rounded" />
                         <span class="text-sm font-medium">{{ role.name }}</span>
                     </label>
                 </div>

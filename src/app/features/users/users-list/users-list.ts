@@ -54,48 +54,19 @@ export class UsersListComponent {
 
     currentUser = this.authService.currentUser;
 
-    filteredUsers = computed(() => {
-        let currentUsers = this.users();
-        const term = this.searchTerm().toLowerCase();
-        const role = this.selectedRole();
-        const status = this.selectedStatus();
+    get usersList() {
+        return this.users();
+    }
 
-        // 1. Filter by Search Term
-        if (term) {
-            currentUsers = currentUsers.filter((u: AuthUser) =>
-                u.fullName.toLowerCase().includes(term) ||
-                u.email.toLowerCase().includes(term) ||
-                (u.cmp && u.cmp.toLowerCase().includes(term))
-            );
-        }
-
-        // 2. Filter by Role (if selected)
-        if (role) {
-            currentUsers = currentUsers.filter((u: AuthUser) =>
-                u.roles.some(r => r.toUpperCase() === role.toUpperCase())
-            );
-        }
-
-        // 3. Filter by Status (if selected)
-        if (status) {
-            const isActive = status === 'ACTIVE';
-            currentUsers = currentUsers.filter((u: AuthUser) => u.active === isActive);
-        }
-
-        return currentUsers;
-    });
-
-    paginatedUsers = computed(() => {
-        const users = this.filteredUsers();
-        const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
-        return users.slice(startIndex, startIndex + this.itemsPerPage);
-    });
+    get totalItems() {
+        return this.usersService.totalElements();
+    }
 
     availableRoles: any[] = [];
 
     // Reset page when filters change
     constructor() {
-        this.usersService.refreshUsers();
+        this.loadUsers();
         this.usersService.getRoles().subscribe({
             next: (roles) => {
                 this.availableRoles = roles;
@@ -107,6 +78,7 @@ export class UsersListComponent {
 
     onPageChange(page: number) {
         this.currentPage.set(page);
+        this.loadUsers();
     }
 
     // ... existing helpers ...
@@ -114,16 +86,34 @@ export class UsersListComponent {
     filterByRole(role: string) {
         this.selectedRole.set(role);
         this.currentPage.set(1);
+        this.loadUsers();
     }
 
     filterByStatus(status: string) {
         this.selectedStatus.set(status);
         this.currentPage.set(1);
+        this.loadUsers();
     }
 
     onSearch(term: string) {
         this.searchTerm.set(term);
         this.currentPage.set(1);
+        this.loadUsers();
+    }
+
+    private loadUsers() {
+        // Map string status to boolean or undefined
+        let activeFilter: boolean | undefined = undefined;
+        if (this.selectedStatus() === 'ACTIVE') activeFilter = true;
+        else if (this.selectedStatus() === 'INACTIVE') activeFilter = false;
+
+        this.usersService.refreshUsers(
+            this.currentPage() - 1,
+            this.itemsPerPage,
+            this.searchTerm(),
+            this.selectedRole(),
+            activeFilter
+        );
     }
 
     // Role Management in Form (Restricted to just viewing or single hidden role for now)

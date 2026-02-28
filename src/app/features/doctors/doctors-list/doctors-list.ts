@@ -41,29 +41,32 @@ export class DoctorsListComponent {
   // Filter State
   showInactive = false;
 
-  get filteredDoctors() {
-    return this.doctors().filter(d => {
-      const matchesSearch = d.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        (d.cmp && d.cmp.includes(this.searchTerm));
-
-      const matchesActive = this.showInactive || d.active;
-
-      return matchesSearch && matchesActive;
-    });
+  get doctorsList() {
+    return this.doctors();
   }
 
-  get paginatedDoctors() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredDoctors.slice(startIndex, startIndex + this.itemsPerPage);
+  get totalItems() {
+    return this.service.totalElements();
   }
 
   onPageChange(page: number) {
     this.currentPage = page;
+    this.loadDoctors();
   }
 
-  // Reset page logic handled in search change if needed, but since it's a simple getter here we can just add a wrapper or modify search binding
   onSearchChange() {
     this.currentPage = 1;
+    this.loadDoctors();
+  }
+
+  toggleInactiveFilter() {
+    this.showInactive = !this.showInactive;
+    this.currentPage = 1;
+    this.loadDoctors();
+  }
+
+  private loadDoctors() {
+    this.service.refreshDoctors(this.currentPage - 1, this.itemsPerPage, this.searchTerm);
   }
 
   get isFormValid() {
@@ -119,7 +122,7 @@ export class DoctorsListComponent {
         this.isSaving = false;
         this.closeModal();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error saving doctor:', error);
         this.isSaving = false;
         if (error.status === 500) {

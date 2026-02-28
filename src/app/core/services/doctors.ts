@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { User } from '../auth/auth.service';
 import { tap, switchMap, map } from 'rxjs/operators';
@@ -33,19 +33,43 @@ export class DoctorsService {
 
 
   doctors = signal<Doctor[]>([]);
+  totalElements = signal<number>(0);
+
+  selectableDoctors = signal<Doctor[]>([]);
 
   constructor() {
-    this.refreshDoctors();
+    this.refreshDoctors(0, 10, '');
+    this.refreshSelectableDoctors();
   }
 
-  refreshDoctors() {
-    this.http.get<any[]>(`${this.doctorsUrl}/with-users`).subscribe({
-      next: (data) => this.doctors.set(data.map(d => ({
-        ...d,
-        id: d.userId,
-        active: d.isActive
-      } as Doctor))),
+  refreshDoctors(page: number = 0, size: number = 10, search: string = '') {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    if (search) params = params.set('search', search);
+
+    this.http.get<any>(`${this.doctorsUrl}/with-users`, { params }).subscribe({
+      next: (data) => {
+        this.doctors.set(data.content.map((d: any) => ({
+          ...d,
+          id: d.userId,
+          active: d.isActive
+        } as Doctor)));
+        this.totalElements.set(data.totalElements);
+      },
       error: (err) => console.error('Error fetching doctors:', err)
+    });
+  }
+
+  refreshSelectableDoctors() {
+    this.http.get<any[]>(`${this.doctorsUrl}/selectable`).subscribe({
+      next: (data) => {
+        // Backend maps userId internally but sends it as part of doctor representation? Assuming yes.
+        this.selectableDoctors.set(data.map(d => ({
+          ...d,
+          id: d.userId || d.id, // Ensure ID continuity
+          active: d.isActive ?? d.active
+        })));
+      },
+      error: (err) => console.error('Error fetching selectable doctors:', err)
     });
   }
 

@@ -40,19 +40,13 @@ export class DoctorSelectorComponent {
     searchText = signal('');
 
     // Data
-    doctors = this.doctorService.doctors;
+    doctors = this.doctorService.selectableDoctors;
 
     icons = { Search };
 
     // Computed
     formattedDoctors = computed(() => {
         return this.doctors()
-            // Filter out ADMINs (just in case service doesn't)
-            .filter(u => !u.roles?.some((r: any) => typeof r === 'string' && r.toUpperCase() === 'ADMIN'))
-            // Filter out incomplete profiles
-            .filter(d => this.doctorService.isProfileComplete(d))
-            // Filter out inactive doctors
-            .filter(d => d.active)
             .map(doctor => ({
                 ...doctor,
                 valueId: doctor.doctorId || doctor.id,

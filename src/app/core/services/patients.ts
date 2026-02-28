@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs/operators';
 
@@ -27,6 +27,14 @@ export interface Consultation {
   status: 'SCHEDULED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
 }
 
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,19 +42,21 @@ export class PatientsService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/patients`;
 
-
   patients = signal<Patient[]>([]);
+  totalElements = signal<number>(0);
 
   constructor() {
-    this.refreshPatients();
+    this.refreshPatients(0, 10, '');
   }
 
-  refreshPatients() {
-    this.http.get<Patient[]>(this.apiUrl).subscribe(data => this.patients.set(data));
-  }
+  refreshPatients(page: number = 0, size: number = 10, search: string = '') {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    if (search) params = params.set('search', search);
 
-  getAllPatients() {
-    return this.http.get<Patient[]>(this.apiUrl);
+    this.http.get<PaginatedResponse<Patient>>(this.apiUrl, { params }).subscribe(data => {
+      this.patients.set(data.content);
+      this.totalElements.set(data.totalElements);
+    });
   }
 
   getPatients() {

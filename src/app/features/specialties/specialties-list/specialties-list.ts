@@ -32,23 +32,26 @@ export class SpecialtiesListComponent {
   editingId: string | null = null;
   form = { name: '', description: '', active: true };
 
-  get filteredSpecialties() {
-    return this.specialties().filter(s =>
-      s.name.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
+  get specialtiesList() {
+    return this.specialties();
   }
 
-  get paginatedSpecialties() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredSpecialties.slice(startIndex, startIndex + this.itemsPerPage);
+  get totalItems() {
+    return this.service.totalElements();
   }
 
   onPageChange(page: number) {
     this.currentPage = page;
+    this.loadSpecialties();
   }
 
   onSearchChange() {
     this.currentPage = 1;
+    this.loadSpecialties();
+  }
+
+  private loadSpecialties() {
+    this.service.refreshSpecialties(this.currentPage - 1, this.itemsPerPage, this.searchTerm);
   }
 
   openModal(specialty?: Specialty) {

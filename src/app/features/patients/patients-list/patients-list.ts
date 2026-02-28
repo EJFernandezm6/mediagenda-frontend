@@ -59,20 +59,17 @@ export class PatientsListComponent {
   isModalOpen = false;
   form: any = { fullName: '', dni: '', email: '', phone: '', age: 18, gender: 'M' };
 
-  get filteredPatients() {
-    return this.patients().filter(p =>
-      p.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      p.dni.includes(this.searchTerm)
-    );
+  get patientsList() {
+    return this.patients();
   }
 
-  get paginatedPatients() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredPatients.slice(startIndex, startIndex + this.itemsPerPage);
+  get totalItems() {
+    return this.service.totalElements();
   }
 
   onPageChange(page: number) {
     this.currentPage = page;
+    this.loadPatients();
   }
 
   onSearchChange() {
@@ -82,6 +79,11 @@ export class PatientsListComponent {
       this.searchTerm = clean;
     }
     this.currentPage = 1;
+    this.loadPatients();
+  }
+
+  private loadPatients() {
+    this.service.refreshPatients(this.currentPage - 1, this.itemsPerPage, this.searchTerm);
   }
 
   toggleHistory(id: string) {

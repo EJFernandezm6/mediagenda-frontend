@@ -116,7 +116,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody *ngFor="let patient of paginatedPatients" class="bg-white border-b border-gray-200">
+                <tbody *ngFor="let patient of patientsList" class="bg-white border-b border-gray-200">
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td *ngIf="columns.name" class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                             <div class="flex items-center">
@@ -253,7 +253,7 @@
         </div>
 
         <!-- Pagination -->
-        <app-pagination [currentPage]="currentPage" [totalItems]="filteredPatients.length" [pageSize]="itemsPerPage"
+        <app-pagination [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="itemsPerPage"
             (pageChange)="onPageChange($event)">
         </app-pagination>
     </div>
