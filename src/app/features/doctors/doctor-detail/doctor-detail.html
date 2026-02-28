@@ -8,10 +8,6 @@
         </a>
     </div>
 
-    <div *ngIf="isLoading()" class="flex justify-center py-20">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    </div>
-
     <div *ngIf="!isLoading() && doctor()" class="space-y-8 animate-fade-in">
         <!-- Main Info Card -->
         <div class="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden">

@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LoadingService } from '../../../core/services/loading.service';
 import { LucideAngularModule, LogIn, Loader2 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,12 +23,15 @@ export class LoginComponent {
   errorMessage = signal('');
   isLoading = signal(false);
 
+  private loadingService = inject(LoadingService);
+
   constructor(private authService: AuthService) { }
 
   onLogin() {
     if (this.email && this.password) {
       this.errorMessage.set('');
       this.isLoading.set(true);
+      this.loadingService.setMessage('Iniciando sesión...');
       this.authService.login({ email: this.email, password: this.password }).subscribe({
         next: () => {
           this.isLoading.set(false);

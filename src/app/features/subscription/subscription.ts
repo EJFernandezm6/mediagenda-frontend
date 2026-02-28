@@ -1,6 +1,6 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Zap, Loader2 } from 'lucide-angular';
+import { LucideAngularModule, Zap } from 'lucide-angular';
 import { forkJoin } from 'rxjs';
 import { SubscriptionService, SubscriptionPlan } from './services/subscription.service';
 import { PlanCardComponent } from './components/plan-card/plan-card';
@@ -22,8 +22,6 @@ export class SubscriptionComponent {
     currentSubscriptionId = this.subService.currentSubscriptionId;
     currentCurrency = this.subService.currentCurrency;
     upcomingBilling = this.subService.upcomingBilling;
-    isLoading = signal(false);
-
     currentPlan = computed(() =>
         this.plans().find(p => p.subscriptionId === this.currentSubscriptionId()) ?? null
     );
@@ -34,16 +32,15 @@ export class SubscriptionComponent {
         return this.plans().find(p => p.subscriptionId === billing.subscriptionId)?.name ?? null;
     });
 
-    icons = { Zap, Loader: Loader2 };
+    icons = { Zap };
 
     constructor() {
-        this.isLoading.set(true);
         forkJoin([
             this.subService.loadClinicInfo(),
             this.subService.loadPlans(),
             this.subService.loadPaymentMethods(),
             this.subService.loadUpcomingBilling()
-        ]).subscribe({ next: () => this.isLoading.set(false), error: () => this.isLoading.set(false) });
+        ]).subscribe();
     }
 
     toggleCurrency(currency: 'USD' | 'PEN') {
@@ -125,18 +122,15 @@ export class SubscriptionComponent {
             ? (this.getUpgradeAmount(targetPlan) ?? newPrice)
             : newPrice;
 
-        this.isLoading.set(true);
         this.subService.updateSubscription({ subscriptionId, currency, amountPaid }).subscribe({
             next: async () => {
                 if (current && targetPlan.order > current.order) {
                     this.subService.currentSubscriptionId.set(subscriptionId);
                 }
                 this.subService.loadUpcomingBilling().subscribe();
-                this.isLoading.set(false);
                 await this.confirmService.alert('Plan actualizado', 'Tu plan ha sido actualizado con éxito.');
             },
             error: async () => {
-                this.isLoading.set(false);
                 await this.confirmService.alert('Error', 'Ocurrió un error al actualizar el plan. Intenta nuevamente.');
             }
         });

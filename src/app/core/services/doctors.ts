@@ -130,19 +130,21 @@ export class DoctorsService {
     delete userUpdates.roles; // Roles are not updated here
     delete userUpdates.doctorId; // DoctorID is not in User entity
 
-    // 1. Update User Basic Info
-    // If userUpdates is empty (e.g. only active status changed), we must still send required fields like fullName
-    // or the backend validation will fail.
-    const currentDoctor = this.doctors().find(d => d.id === id);
-    if (currentDoctor) {
-      if (!userUpdates.fullName) userUpdates.fullName = currentDoctor.fullName;
-      if (!userUpdates.email) userUpdates.email = currentDoctor.email;
-      if (!userUpdates.phone) userUpdates.phone = currentDoctor.phone;
-      // Ensure roleId is present for validation
-      if (!userUpdates.roleIds) userUpdates.roleIds = currentDoctor.roleIds ?? [];
-    }
+    // 1. Update User Basic Info — only if there are actual user fields to update.
+    // When only toggling active status, skip the PUT to avoid sending empty/invalid body.
+    const hasUserFieldUpdates = Object.keys(userUpdates).length > 0;
+    let userUpdate$: Observable<any> = new Observable(obs => { obs.next(null); obs.complete(); });
 
-    const userUpdate$ = this.http.put<any>(`${this.apiUrl}/${id}`, userUpdates);
+    if (hasUserFieldUpdates) {
+      const currentDoctor = this.doctors().find(d => d.id === id);
+      if (currentDoctor) {
+        if (!userUpdates.fullName) userUpdates.fullName = currentDoctor.fullName;
+        if (!userUpdates.email) userUpdates.email = currentDoctor.email;
+        if (!userUpdates.phone) userUpdates.phone = currentDoctor.phone;
+        if (!userUpdates.roleIds) userUpdates.roleIds = currentDoctor.roleIds ?? [];
+      }
+      userUpdate$ = this.http.put<any>(`${this.apiUrl}/${id}`, userUpdates);
+    }
 
     // 2. Update Status if changed (IAM User)
     let statusUpdate$ = new Observable(obs => { obs.next(null); obs.complete(); });

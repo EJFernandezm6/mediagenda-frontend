@@ -52,7 +52,6 @@ export class PatientsListComponent {
   // Expanded Row State
   expandedPatientId: string | null = null;
   patientHistory: Consultation[] = [];
-  isLoadingHistory = false;
 
 
   // Modal
@@ -92,13 +91,9 @@ export class PatientsListComponent {
       this.patientHistory = [];
     } else {
       this.expandedPatientId = id;
-      this.isLoadingHistory = true;
       this.service.getPatientHistory(id).subscribe({
-        next: (data) => {
-          this.patientHistory = data;
-          this.isLoadingHistory = false;
-        },
-        error: () => this.isLoadingHistory = false
+        next: (data) => { this.patientHistory = data; },
+        error: () => { this.patientHistory = []; }
       });
     }
   }

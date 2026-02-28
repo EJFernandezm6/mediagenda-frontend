@@ -5,6 +5,7 @@ import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS, withInter
 import localeEs from '@angular/common/locales/es';
 import { AuthInterceptor } from './core/auth/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 
 import { routes } from './app.routes';
 
@@ -18,7 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideAnimations(),
-    provideHttpClient(withInterceptors([errorInterceptor]), withInterceptorsFromDi()),
+    provideHttpClient(withInterceptors([errorInterceptor, loadingInterceptor]), withInterceptorsFromDi()),
     { provide: LOCALE_ID, useValue: 'es' },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ]
