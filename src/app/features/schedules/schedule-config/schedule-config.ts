@@ -56,10 +56,9 @@ export class ScheduleConfigComponent {
     return time.substring(0, 5);
   }
 
-  // Modal State
-  isModalOpen = false;
-  modalData = {
-    date: '', // specific date
+  // Inline Form State
+  formData = {
+    date: new Date().toISOString().split('T')[0],
     startTime: '09:00',
     endTime: '',
     specialtyId: '',
@@ -87,7 +86,7 @@ export class ScheduleConfigComponent {
     return this.specialtyService.specialties().find(s => s.specialtyId === id)?.name || '';
   }
 
-  // Doctor Name for Modal
+  // Doctor Name for Form
   selectedDoctorName = computed(() => {
     const docId = this.selectedDoctorId();
     if (!docId) return '';
@@ -112,13 +111,30 @@ export class ScheduleConfigComponent {
     return `Fecha no válida`;
   }
 
+  // Calculate Duration for Table
+  calculateDuration(schedule: Schedule): string {
+    if (!schedule.startTime || !schedule.endTime) return '-';
+    const start = this.dateFromTime(schedule.startTime);
+    const end = this.dateFromTime(schedule.endTime);
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs <= 0) return '-';
+
+    const minutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
+    if (hours > 0) return `${hours}h`;
+    return `${mins}m`;
+  }
+
   // Duration Logic
   validEndTimes = signal<string[]>([]);
 
   updateValidEndTimes() {
     const docId = this.selectedDoctorId();
-    const specId = this.modalData.specialtyId;
-    const startTime = this.modalData.startTime;
+    const specId = this.formData.specialtyId;
+    const startTime = this.formData.startTime;
 
     if (!docId || !specId || !startTime) {
       this.validEndTimes.set([]);
@@ -135,10 +151,6 @@ export class ScheduleConfigComponent {
     const closeTimeStr = this.configService.settings().clinicCloseTime || '20:00';
     const closeDate = this.dateFromTime(closeTimeStr);
 
-    // Ensure closeDate is set to the same day base as current for comparison
-    // input of dateFromTime uses "new Date()" which is today.
-    // So both are today.
-
     const endLimit = closeDate;
 
     current.setMinutes(current.getMinutes() + duration);
@@ -151,8 +163,8 @@ export class ScheduleConfigComponent {
 
     this.validEndTimes.set(times);
 
-    if (!times.includes(this.modalData.endTime)) {
-      this.modalData.endTime = times[0];
+    if (!times.includes(this.formData.endTime)) {
+      this.formData.endTime = times[0];
     }
   }
 
@@ -172,43 +184,33 @@ export class ScheduleConfigComponent {
   }
 
   onSpecialtyChange(specId: string) {
-    this.modalData.specialtyId = specId;
+    this.formData.specialtyId = specId;
     this.updateValidEndTimes();
   }
 
-  openAddModal() {
-    if (!this.selectedDoctorId()) return;
-
-    const specId = this.availableSpecialtiesForDoctor[0]?.specialtyId || '';
-    const today = new Date().toISOString().split('T')[0];
-
-    this.modalData = {
-      date: today,
-      startTime: '09:00',
-      endTime: '',
-      specialtyId: specId,
-      weeksToRepeat: 0
-    };
-
-    this.updateValidEndTimes();
-    this.isModalOpen = true;
+  onDoctorSelectionChange(doctorId: string) {
+    this.selectedDoctorId.set(doctorId);
+    if (doctorId) {
+      const assocs = this.availableSpecialtiesForDoctor;
+      this.formData.specialtyId = assocs.length > 0 ? assocs[0].specialtyId : '';
+      this.updateValidEndTimes();
+    } else {
+      this.formData.specialtyId = '';
+      this.validEndTimes.set([]);
+    }
   }
-
-
-
-  // ...
 
   saveSchedule() {
     const docId = this.selectedDoctorId();
-    if (docId && this.modalData.specialtyId && this.modalData.endTime) {
+    if (docId && this.formData.specialtyId && this.formData.endTime) {
       // Clean payload
       const formatTime = (t: string) => t.length === 5 ? `${t}:00` : t;
       const payloads: any[] = [];
-      const [sy, sm, sd] = this.modalData.date.split('-').map(Number);
+      const [sy, sm, sd] = this.formData.date.split('-').map(Number);
       // Create date at noon to avoid timezone rollover issues
       const startDate = new Date(sy, sm - 1, sd, 12, 0, 0);
 
-      const totalOccurrences = 1 + this.modalData.weeksToRepeat;
+      const totalOccurrences = 1 + this.formData.weeksToRepeat;
 
       for (let i = 0; i < totalOccurrences; i++) {
         const currentDate = new Date(startDate);
@@ -221,17 +223,22 @@ export class ScheduleConfigComponent {
         ].join('-');
 
         payloads.push({
-          specialtyId: this.modalData.specialtyId,
+          specialtyId: this.formData.specialtyId,
           date: isoDate,
-          startTime: formatTime(this.modalData.startTime),
-          endTime: formatTime(this.modalData.endTime)
+          startTime: formatTime(this.formData.startTime),
+          endTime: formatTime(this.formData.endTime)
         });
       }
 
       this.scheduleService.addSchedule(docId, payloads).subscribe({
         next: () => {
-          this.closeModal();
           this.scheduleService.refreshSchedules({ doctorId: docId }); // Ensure refresh
+
+          // Reset form to default values to avoid adding duplicate schedules easily
+          this.formData.startTime = '09:00';
+          this.formData.endTime = '';
+          this.formData.weeksToRepeat = 0;
+          this.updateValidEndTimes();
         },
         error: (err) => {
           console.error('Error saving schedule', err);
@@ -239,10 +246,6 @@ export class ScheduleConfigComponent {
         }
       });
     }
-  }
-
-  closeModal() {
-    this.isModalOpen = false;
   }
 
   async remove(schedule: Schedule) {

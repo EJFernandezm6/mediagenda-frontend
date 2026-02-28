@@ -33,7 +33,15 @@ export class SchedulesService {
     }
 
     this.http.get<Schedule[]>(url).subscribe(data => {
-      this.schedules.set(data);
+      if (filters?.doctorId) {
+        // We only fetched for one doctor. Don't overwrite everyone else. 
+        // Remove old schedules for this doctor, and append the new ones.
+        const currentRest = this.schedules().filter(s => s.doctorId !== filters.doctorId);
+        this.schedules.set([...currentRest, ...data]);
+      } else {
+        // Fetched for all doctors
+        this.schedules.set(data);
+      }
     });
   }
 
