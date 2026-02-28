@@ -50,6 +50,16 @@ export class SpecialtiesListComponent {
     this.loadSpecialties();
   }
 
+  onSearchInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const cleanValue = input.value.replace(/[^a-zA-Z áéíóúÁÉÍÓÚñÑ]/g, '');
+    if (input.value !== cleanValue) {
+      input.value = cleanValue;
+    }
+    this.searchTerm = cleanValue;
+    this.onSearchChange();
+  }
+
   private loadSpecialties() {
     this.service.refreshSpecialties(this.currentPage - 1, this.itemsPerPage, this.searchTerm);
   }
@@ -70,13 +80,25 @@ export class SpecialtiesListComponent {
   }
 
   save() {
+    const isDuplicate = this.specialtiesList.some(s =>
+      s.name.toLowerCase().trim() === this.form.name.toLowerCase().trim() &&
+      s.specialtyId !== this.editingId
+    );
+
+    if (isDuplicate) {
+      alert(`La especialidad "${this.form.name}" ya existe.`);
+      return;
+    }
+
     if (this.editingId) {
-      this.service.updateSpecialty(this.editingId, this.form).subscribe(() => {
-        this.closeModal();
+      this.service.updateSpecialty(this.editingId, this.form).subscribe({
+        next: () => this.closeModal(),
+        error: (err) => alert('Error al actualizar especialidad: ' + (err.error?.message || err.message))
       });
     } else {
-      this.service.addSpecialty(this.form).subscribe(() => {
-        this.closeModal();
+      this.service.addSpecialty(this.form).subscribe({
+        next: () => this.closeModal(),
+        error: (err) => alert('Error al crear especialidad: ' + (err.error?.message || err.message))
       });
     }
   }
@@ -94,7 +116,9 @@ export class SpecialtiesListComponent {
     });
 
     if (confirmed) {
-      this.service.deleteSpecialty(id).subscribe();
+      this.service.deleteSpecialty(id).subscribe({
+        error: () => alert('No se pudo eliminar la especialidad. Es posible que esté asignada a uno o más médicos en este momento.')
+      });
     }
   }
 }

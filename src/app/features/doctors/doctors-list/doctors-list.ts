@@ -36,10 +36,13 @@ export class DoctorsListComponent {
   isModalOpen = false;
   isSaving = false;
   editingId: string | null = null;
-  form: any = { fullName: '', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: '' };
+  form: any = { fullName: '', documentType: 'DNI', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: '' };
 
   // Filter State
   showInactive = false;
+
+  // Validation
+  emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   get doctorsList() {
     return this.doctors();
@@ -59,6 +62,40 @@ export class DoctorsListComponent {
     this.loadDoctors();
   }
 
+  onSearchInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const cleanValue = input.value.replace(/[^a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ]/g, '');
+    if (input.value !== cleanValue) {
+      input.value = cleanValue;
+    }
+    this.searchTerm = cleanValue;
+    this.onSearchChange();
+  }
+
+  onDocumentInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // DNI only digits (8 max). CE digits+letters (9 max).
+    if (this.form.documentType === 'DNI') {
+      let val = input.value.replace(/\D/g, '');
+      if (val.length > 8) val = val.substring(0, 8);
+      if (input.value !== val) input.value = val;
+      this.form.dni = val;
+    } else {
+      let val = input.value.replace(/[^a-zA-Z0-9]/g, '');
+      if (val.length > 9) val = val.substring(0, 9);
+      if (input.value !== val) input.value = val;
+      this.form.dni = val; // Store CE in DNI field for DB simplicity
+    }
+  }
+
+  onCmpInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    if (val.length > 6) val = val.substring(0, 6);
+    if (input.value !== val) input.value = val;
+    this.form.cmp = val;
+  }
+
   toggleInactiveFilter() {
     this.showInactive = !this.showInactive;
     this.currentPage = 1;
@@ -70,7 +107,13 @@ export class DoctorsListComponent {
   }
 
   get isFormValid() {
-    return this.form.fullName?.trim() && this.form.phone?.trim() && this.form.cmp?.trim() && this.form.dni?.trim() && this.form.email?.trim();
+    const isDocValid = this.form.documentType === 'DNI' ? this.form.dni?.length === 8 : this.form.dni?.length > 4;
+    return this.form.fullName?.trim() &&
+      this.form.phone?.trim() &&
+      this.form.cmp?.trim() &&
+      this.form.dni?.trim() &&
+      isDocValid &&
+      this.emailRegex.test(this.form.email || '');
   }
 
   isMissingData(doctor: Doctor) {
@@ -82,18 +125,19 @@ export class DoctorsListComponent {
     if (!doctor.fullName?.trim()) fields.push('Nombre');
     if (!doctor.phone?.trim()) fields.push('Teléfono');
     if (!doctor.cmp?.trim()) fields.push('CMP');
-    if (!doctor.dni?.trim()) fields.push('DNI');
+    if (!doctor.dni?.trim()) fields.push('Doc. Identidad');
     if (!doctor.email?.trim()) fields.push('Email');
+    if (doctor.email && !this.emailRegex.test(doctor.email)) fields.push('Email Inválido');
     return fields;
   }
 
   openModal(doctor?: Doctor) {
     if (doctor) {
       this.editingId = doctor.id;
-      this.form = { ...doctor };
+      this.form = { ...doctor, documentType: doctor.dni?.length === 8 && /^\d+$/.test(doctor.dni) ? 'DNI' : 'CE' };
     } else {
       this.editingId = null;
-      this.form = { fullName: '', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: 'https://ui-avatars.com/api/?background=random' };
+      this.form = { fullName: '', documentType: 'DNI', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: 'https://ui-avatars.com/api/?background=random' };
     }
     this.isModalOpen = true;
   }
@@ -104,6 +148,20 @@ export class DoctorsListComponent {
 
   save() {
     this.isSaving = true;
+
+    // Check Duplicates
+    const docExists = this.doctorsList.some(d =>
+      d.id !== this.editingId && (
+        (d.dni && this.form.dni && d.dni.trim() === this.form.dni.trim()) ||
+        (d.cmp && this.form.cmp && d.cmp.trim() === this.form.cmp.trim())
+      )
+    );
+
+    if (docExists) {
+      alert('Ya existe un especialista registrado con este Documento o CMP.');
+      this.isSaving = false;
+      return;
+    }
 
     // Generate avatar if name changed AND no photo is set/uploaded (or if it's the default ui-avatar)
     if (!this.form.photoUrl || this.form.photoUrl.includes('ui-avatars')) {
@@ -141,6 +199,21 @@ export class DoctorsListComponent {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      // Validate Match
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (!validTypes.includes(file.type)) {
+        alert('Formato no válido. Solo se permiten imágenes JPG, JPEG o PNG.');
+        event.target.value = '';
+        return;
+      }
+
+      // Max 2MB Size (2 * 1024 * 1024 bytes)
+      if (file.size > 2097152) {
+        alert('El archivo es muy pesado. El tamaño máximo permitido es 2MB.');
+        event.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.form.photoUrl = e.target.result;
