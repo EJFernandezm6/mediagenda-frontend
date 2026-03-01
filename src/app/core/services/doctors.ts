@@ -43,7 +43,7 @@ export class DoctorsService {
     this.refreshSelectableDoctors();
   }
 
-  refreshDoctors(page: number = 0, size: number = 10, search: string = '', showInactive: boolean = false) {
+  refreshDoctors(page: number = 0, size: number = 9, search: string = '', showInactive: boolean = false) {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     if (search) params = params.set('search', search);
 
@@ -59,11 +59,6 @@ export class DoctorsService {
           id: d.userId,
           active: d.isActive
         } as Doctor));
-
-        // Local fallback filter just in case backend ignores the parameter
-        if (!showInactive) {
-          docs = docs.filter((d: Doctor) => d.active);
-        }
 
         this.doctors.set(docs);
         this.totalElements.set(data.totalElements);

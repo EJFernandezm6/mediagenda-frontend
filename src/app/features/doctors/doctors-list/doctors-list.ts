@@ -19,7 +19,7 @@ export class DoctorsListComponent {
   private confirmService = inject(ConfirmModalService);
 
   constructor() {
-    this.service.refreshDoctors();
+    this.loadDoctors();
   }
 
   // Icons
@@ -30,7 +30,7 @@ export class DoctorsListComponent {
 
   // Pagination
   currentPage = 1;
-  itemsPerPage = 6;
+  itemsPerPage = 9;
 
   // Modal State
   isModalOpen = false;

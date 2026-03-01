@@ -1,8 +1,7 @@
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-semibold text-gray-900">Especialistas</h1>
-            <p class="mt-2 text-sm text-gray-700">Gestión de especialistas, colegiatura y estado.</p>
+            <h1 class="text-xl font-bold text-gray-900">Especialistas</h1>
         </div>
         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
             <button (click)="openModal()"
@@ -13,136 +12,130 @@
         </div>
     </div>
 
-    <div class="mt-8 flow-root">
-        <!-- Search Bar -->
-        <div class="mb-6 relative max-w-sm">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <lucide-icon [img]="icons.Search" class="h-5 w-5 text-gray-400"></lucide-icon>
+    <div class="mt-4 flow-root">
+        <!-- Search & Filter Row -->
+        <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="relative max-w-sm w-full">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <lucide-icon [img]="icons.Search" class="h-5 w-5 text-gray-400"></lucide-icon>
+                </div>
+                <input [ngModel]="searchTerm" (input)="onSearchInput($event)" type="text"
+                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    placeholder="Buscar por nombre o CMP...">
             </div>
-            <input [ngModel]="searchTerm" (input)="onSearchInput($event)" type="text"
-                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                placeholder="Buscar por nombre o CMP...">
+
+            <div class="flex items-center">
+                <input id="showInactive" type="checkbox" [(ngModel)]="showInactive" (change)="onSearchChange()"
+                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                <label for="showInactive" class="ml-2 block text-sm text-gray-900">Mostrar inactivos</label>
+            </div>
         </div>
 
-        <!-- Active Filter Toggle -->
-        <div class="mb-6 flex items-center">
-            <input id="showInactive" type="checkbox" [(ngModel)]="showInactive" (change)="onSearchChange()"
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
-            <label for="showInactive" class="ml-2 block text-sm text-gray-900">Mostrar inactivos</label>
-        </div>
 
-        <!-- Pagination -->
-        <div class="mb-6">
-            <app-pagination [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="itemsPerPage"
-                (pageChange)="onPageChange($event)">
-            </app-pagination>
-        </div>
 
         <!-- Doctor Cards Grid (More visual than just a table) -->
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
             <div *ngFor="let doctor of doctorsList"
                 class="col-span-1 divide-y divide-gray-200 rounded-xl bg-white shadow-float border border-gray-100 transition-all hover:shadow-lg relative">
 
-                <div class="p-5 relative">
-                    <div class="flex justify-between items-center">
-                        <div class="flex-1 pr-2">
-                            <div class="flex items-center gap-2 mb-1">
-                                <h3 class="text-base font-bold text-gray-900 leading-tight block truncate">{{
+                <div class="p-3 relative">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-2 min-w-0">
+                            <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                <h3 class="text-base font-bold text-gray-900 leading-tight truncate max-w-[150px]">{{
                                     doctor.fullName }}</h3>
-                                <span *ngIf="doctor.active"
-                                    class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium text-main whitespace-nowrap">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-success"></div>Activo
-                                </span>
-                                <span *ngIf="!doctor.active"
-                                    class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium text-main whitespace-nowrap">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>Inactivo
-                                </span>
-
-                                <!-- Missing Data Warning -->
-                                <div *ngIf="isMissingData(doctor)"
-                                    class="tooltip-container cursor-help relative group ml-1">
-                                    <lucide-icon [img]="icons.AlertCircle"
-                                        class="w-4 h-4 text-amber-500 animate-pulse"></lucide-icon>
-                                    <div
-                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-gray-800 text-white text-xs rounded z-50 shadow-lg">
-                                        Faltan: {{ getMissingFields(doctor).join(', ') }}
-                                    </div>
+                                <div
+                                    class="flex items-center gap-1.5 px-2 py-0.5 bg-gray-50 rounded-full border border-gray-100">
+                                    <div class="w-2 h-2 rounded-full" [class.bg-success]="doctor.active"
+                                        [class.bg-red-500]="!doctor.active"></div>
+                                    <span class="text-xs font-medium text-gray-600">{{ doctor.active ? 'Activo' :
+                                        'Inactivo' }}</span>
+                                </div>
+                                <!-- Rating moved here -->
+                                <div class="flex items-center text-xs ml-auto bg-amber-50 px-2 py-0.5 rounded-full">
+                                    <lucide-icon [img]="icons.Star"
+                                        class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></lucide-icon>
+                                    <span class="ml-1 font-bold text-gray-900">{{ doctor.rating || '4.5' }}</span>
                                 </div>
                             </div>
 
-                            <div class="flex flex-col gap-1 text-sm text-gray-500 mt-2">
-                                <div class="flex items-center gap-2 text-gray-500">
-                                    <span class="text-xs text-gray-400 font-medium w-9">CMP:</span>
+                            <!-- Missing Data Warning -->
+                            <div *ngIf="isMissingData(doctor)"
+                                class="flex items-center gap-1.5 mb-3 px-2 py-1 bg-amber-50 rounded-md border border-amber-100">
+                                <lucide-icon [img]="icons.AlertCircle" class="w-4 h-4 text-amber-500"></lucide-icon>
+                                <span class="text-xs text-amber-700 font-semibold">Perfil incompleto</span>
+                            </div>
+
+                            <!-- CMP & DNI in one row -->
+                            <div class="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                                <div class="flex items-center gap-2">
                                     <span
-                                        class="font-bold text-gray-900 border border-gray-100 bg-gray-50 rounded px-1.5 py-0.5">
-                                        {{ doctor.cmp || '---' }}
-                                    </span>
+                                        class="text-gray-400 font-medium font-mono uppercase tracking-wider text-[10px]">CMP</span>
+                                    <span class="font-bold text-gray-900">{{ doctor.cmp || '---' }}</span>
                                 </div>
-                                <div class="flex items-center gap-2 text-gray-500">
-                                    <span class="text-xs text-gray-400 font-medium w-9">DNI:</span>
+                                <div class="flex items-center gap-2 border-l pl-4 border-gray-200">
                                     <span
-                                        class="font-bold text-gray-900 border border-gray-100 bg-gray-50 rounded px-1.5 py-0.5">
-                                        {{ doctor.dni || '---' }}
-                                    </span>
+                                        class="text-gray-400 font-medium font-mono uppercase tracking-wider text-[10px]">DNI</span>
+                                    <span class="font-bold text-gray-900">{{ doctor.dni || '---' }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Avatar & Rating -->
-                        <div class="flex-shrink-0 flex flex-col items-center gap-2">
+                        <!-- Compact Avatar -->
+                        <div class="flex-shrink-0">
                             <div
-                                class="h-14 w-14 rounded-full bg-primary flex items-center justify-center text-white text-xl font-bold uppercase overflow-hidden ring-4 ring-white shadow-sm">
+                                class="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-white text-base font-bold uppercase overflow-hidden ring-2 ring-white shadow-md">
                                 <img *ngIf="doctor.photoUrl && !doctor.photoUrl.includes('ui-avatars')"
                                     [src]="doctor.photoUrl" class="h-full w-full object-cover">
                                 <span *ngIf="!doctor.photoUrl || doctor.photoUrl.includes('ui-avatars')">
                                     {{ doctor.fullName.substring(0, 2) }}
                                 </span>
                             </div>
-                            <div class="flex flex-col items-center">
-                                <div class="flex items-center text-sm">
-                                    <lucide-icon [img]="icons.Star"
-                                        class="w-4 h-4 text-yellow-400 fill-yellow-400"></lucide-icon>
-                                    <span class="ml-1 font-bold text-gray-900">{{ doctor.rating || '4.5' }}</span>
-                                </div>
-                                <span class="text-gray-400 text-[10px] text-center">({{ doctor.reviewsCount || 40 }}
-                                    reviews)</span>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Contact Actions -->
-                <div class="border-t border-gray-100 grid grid-cols-2 divide-x divide-gray-100">
-                    <a [href]="'https://wa.me/' + doctor.phone" target="_blank"
-                        class="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                        <lucide-icon [img]="icons.MessageCircle" class="h-5 w-5 text-gray-400"></lucide-icon>
-                        WhatsApp
-                    </a>
-                    <a [href]="'mailto:' + doctor.email"
-                        class="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                        <lucide-icon [img]="icons.Mail" class="h-5 w-5 text-gray-400"></lucide-icon>
-                        Email
-                    </a>
-                </div>
-
-                <!-- Bottom Actions -->
-                <div class="border-t border-gray-100 p-3 flex gap-2 bg-gray-50/50 rounded-b-lg">
+                <!-- Bottom Actions with Integrated Contacts -->
+                <div class="border-t border-gray-100 p-2 flex items-center gap-1.5 bg-gray-50/50 rounded-b-lg">
+                    <!-- Toggle -->
                     <button (click)="toggleActive(doctor)"
-                        [class]="doctor.active ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200' : 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200'"
-                        class="p-2 rounded-md transition-all flex-shrink-0 focus:outline-none border shadow-sm"
+                        [class]="doctor.active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-red-600 hover:bg-red-50'"
+                        class="p-1.5 rounded-md transition-all flex-shrink-0 focus:outline-none border border-transparent"
                         [title]="doctor.active ? 'Desactivar' : 'Activar'">
                         <lucide-icon [img]="icons.Power" class="w-4 h-4"></lucide-icon>
                     </button>
-                    <button (click)="openModal(doctor)"
-                        class="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors border border-primary shadow-sm">
-                        Editar
-                    </button>
-                    <a [routerLink]="['/app/doctors', doctor.id]"
-                        class="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200 shadow-sm">
-                        Detalle
+
+                    <!-- Contacts -->
+                    <a [href]="'https://wa.me/' + doctor.phone" target="_blank"
+                        class="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
+                        title="WhatsApp">
+                        <lucide-icon [img]="icons.MessageCircle" class="h-4 w-4"></lucide-icon>
                     </a>
+                    <a [href]="'mailto:' + doctor.email"
+                        class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                        title="Email">
+                        <lucide-icon [img]="icons.Mail" class="h-4 w-4"></lucide-icon>
+                    </a>
+
+                    <div class="flex-1 flex gap-2 ml-1">
+                        <button (click)="openModal(doctor)"
+                            class="flex-1 flex items-center justify-center py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-md transition-colors shadow-sm">
+                            Editar
+                        </button>
+                        <a [routerLink]="['/app/doctors', doctor.id]"
+                            class="flex-1 flex items-center justify-center py-2 text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 rounded-md transition-colors border border-gray-200 shadow-sm">
+                            Detalle
+                        </a>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Pagination at the bottom -->
+        <div class="mt-6 flex justify-center pb-8">
+            <app-pagination [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="itemsPerPage"
+                (pageChange)="onPageChange($event)">
+            </app-pagination>
         </div>
     </div>
 </div>
