@@ -1,7 +1,7 @@
 import { Component, computed, signal, input, output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Search } from 'lucide-angular';
+import { LucideAngularModule, Search, X } from 'lucide-angular';
 
 export interface SelectOption {
     id: string | number;
@@ -24,6 +24,7 @@ export interface SelectOption {
   `]
 })
 export class SearchableSelectComponent {
+    private static activeSelect: SearchableSelectComponent | null = null;
     // Inputs (Using older @Input syntax for broad compatibility with forms, though input() is nice)
     // We will use standard model binding compatible approach
 
@@ -54,7 +55,7 @@ export class SearchableSelectComponent {
     // Internal UI State
     isOpen = signal(false);
     searchText = signal('');
-    icons = { Search };
+    icons = { Search, X };
 
     // Computed filtered list
     filteredOptions = computed(() => {
@@ -69,7 +70,24 @@ export class SearchableSelectComponent {
 
     onSearchChange(text: string) {
         this.searchText.set(text);
+        this.openDropdown();
+    }
+
+    openDropdown() {
+        if (SearchableSelectComponent.activeSelect && SearchableSelectComponent.activeSelect !== this) {
+            SearchableSelectComponent.activeSelect.isOpen.set(false);
+        }
+        SearchableSelectComponent.activeSelect = this;
         this.isOpen.set(true);
+    }
+
+    clearSelection(event?: Event) {
+        if (event) event.stopPropagation();
+        this.currentValue.set('');
+        this.searchText.set('');
+        this.isOpen.set(false);
+        this.selectionChanged.emit('');
+        this.ngModelChange.emit('');
     }
 
     selectOption(option: SelectOption) {

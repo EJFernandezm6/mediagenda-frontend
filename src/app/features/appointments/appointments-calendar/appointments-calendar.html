@@ -54,7 +54,7 @@
                     <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div> Reservada
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <div class="w-2.5 h-2.5 rounded border border-primary border-dashed bg-primary"></div> Disponible
+                    <div class="w-2.5 h-2.5 rounded border border-blue-400 bg-blue-50"></div> Disponible
                 </div>
             </div>
 
@@ -166,16 +166,16 @@
                                             (click)="!item.isPast && openBookingModal(day.iso, time, item.doctorId, item.specialtyId)"
                                             [disabled]="item.isPast"
                                             [ngClass]="(items.length >= 3 ? 'w-8 h-8 p-0 justify-center ' : 'w-full min-h-[30px] p-0.5 ') + 
-                                                       (item.isPast ? 'opacity-100 cursor-not-allowed bg-gray-200 border-gray-300 border-dashed text-gray-500' : 'cursor-pointer hover:bg-primary hover:border-solid hover:shadow-md bg-primary border-primary border-dashed')"
+                                                       (item.isPast ? 'opacity-100 cursor-not-allowed bg-gray-200 border-gray-300 border-dashed text-gray-500' : 'cursor-pointer hover:bg-blue-100 hover:border-solid hover:shadow-md bg-blue-50 border-blue-300 border-dashed')"
                                             class="rounded border transition-all group flex flex-col justify-center items-center gap-0.5 relative">
 
                                             <!-- Normal View -->
                                             <ng-container *ngIf="items.length < 3">
                                                 <span
-                                                    [class]="item.isPast ? 'text-[9px] font-medium truncate w-full text-center' : 'text-[9px] font-medium text-primary truncate w-full text-center'">{{
+                                                    [class]="item.isPast ? 'text-[9px] font-medium truncate w-full text-center' : 'text-[9px] font-medium text-blue-700 truncate w-full text-center'">{{
                                                     item.doctorName }}</span>
                                                 <span
-                                                    class="text-[9px] text-primary opacity-80 truncate w-full text-center pb-0.5">{{
+                                                    class="text-[9px] text-blue-600 opacity-80 truncate w-full text-center pb-0.5">{{
                                                     getSpecialtyName(item.specialtyId) }}</span>
                                             </ng-container>
 
@@ -265,20 +265,20 @@
                                         <button *ngIf="item.type === 'available'"
                                             (click)="openBookingModal(currentDate().toISOString().split('T')[0], time, item.doctorId, item.specialtyId)"
                                             [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center' : 'flex-1 p-2 justify-between min-w-[140px]'"
-                                            class="rounded-lg bg-primary border border-primary border-dashed hover:bg-primary hover:border-solid hover:shadow-md transition-all flex items-center gap-2 group/card cursor-pointer relative">
+                                            class="rounded-lg bg-blue-50 border border-blue-300 border-dashed hover:bg-blue-100 hover:border-solid hover:shadow-md transition-all flex items-center gap-2 group/card cursor-pointer relative">
 
                                             <!-- Normal View Content -->
                                             <div *ngIf="items.length < 3" class="text-left overflow-hidden">
                                                 <div
-                                                    class="text-xs font-bold text-primary truncate group-hover/card:text-primary">
+                                                    class="text-xs font-bold text-blue-700 truncate group-hover/card:text-blue-800">
                                                     {{ item.doctorName }}</div>
-                                                <div class="text-[10px] text-primary font-medium truncate">{{
+                                                <div class="text-[10px] text-blue-600 font-medium truncate">{{
                                                     getSpecialtyName(item.specialtyId) }}</div>
                                             </div>
                                             <div *ngIf="items.length < 3"
-                                                class="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 group-hover/card:bg-primary transition-colors">
+                                                class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover/card:bg-blue-200 transition-colors">
                                                 <lucide-icon [img]="icons.Plus"
-                                                    class="w-3 h-3 text-primary"></lucide-icon>
+                                                    class="w-3 h-3 text-blue-600"></lucide-icon>
                                             </div>
 
                                             <!-- Condensed View Content (Icon Only) -->
