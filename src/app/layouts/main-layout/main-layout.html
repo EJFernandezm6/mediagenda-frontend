@@ -1,8 +1,8 @@
 <div class="flex h-screen bg-gray-50">
     <!-- Mobile Header -->
     <div
-        class="md:hidden bg-white shadow-sm p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-20 h-16">
-        <h1 class="text-xl font-bold text-blue-600">MediAgenda</h1>
+        class="md:hidden bg-white shadow-sm border-b border-gray-200 p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-20 h-16">
+        <h1 class="text-xl font-bold text-primary">MediAgenda</h1>
         <button (click)="toggleMobileMenu()" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
             <lucide-icon [img]="isMobileMenuOpen ? icons.X : icons.Menu" class="w-6 h-6"></lucide-icon>
         </button>
@@ -15,26 +15,26 @@
     <!-- Sidebar -->
     <aside [class.translate-x-0]="isMobileMenuOpen" [class.-translate-x-full]="!isMobileMenuOpen"
         [class.w-64]="!isSidebarCollapsed" [class.w-20]="isSidebarCollapsed"
-        class="bg-white border-r border-gray-200 flex flex-col fixed h-full z-30 transition-all duration-300 ease-in-out md:translate-x-0 pt-16 md:pt-0 shadow-xl md:shadow-none">
+        class="bg-sidebar text-white border-none flex flex-col fixed h-full z-30 transition-all duration-300 ease-in-out md:translate-x-0 pt-16 md:pt-0 shadow-xl md:shadow-none">
 
-        <div class="hidden md:flex items-center border-b border-gray-100 transition-all duration-300 ease-in-out h-16"
+        <!-- Logo Area -->
+        <div class="hidden md:flex items-center border-b border-white/10 transition-all duration-300 ease-in-out h-16"
             [class.px-4]="!isSidebarCollapsed" [class.px-0]="isSidebarCollapsed"
             [class.justify-between]="!isSidebarCollapsed" [class.justify-center]="isSidebarCollapsed"
             [class.gap-2]="isSidebarCollapsed">
 
-            <div class="flex items-center gap-3 overflow-hidden transition-all duration-300"
-                [class.w-auto]="!isSidebarCollapsed" [class.w-auto]="isSidebarCollapsed"
-                [class.pl-2]="isSidebarCollapsed">
-                <lucide-icon [img]="icons.Stethoscope" class="w-8 h-8 text-blue-600 flex-shrink-0"></lucide-icon>
-                <div class="transition-all duration-300 ease-in-out overflow-hidden"
-                    [class.w-full]="!isSidebarCollapsed" [class.w-0]="isSidebarCollapsed"
-                    [class.opacity-100]="!isSidebarCollapsed" [class.opacity-0]="isSidebarCollapsed">
-                    <h1 class="text-xl font-bold text-blue-600 tracking-tight whitespace-nowrap">MediAgenda</h1>
+            <!-- Logo and Text (Hidden when collapsed) -->
+            <div *ngIf="!isSidebarCollapsed"
+                class="flex items-center gap-3 overflow-hidden transition-all duration-300">
+                <lucide-icon [img]="icons.Stethoscope" class="w-8 h-8 text-primary flex-shrink-0"></lucide-icon>
+                <div class="transition-all duration-300 ease-in-out overflow-hidden w-full opacity-100">
+                    <h1 class="text-xl font-bold text-white tracking-tight whitespace-nowrap">MediAgenda</h1>
                 </div>
             </div>
 
+            <!-- Hamburger Button (Always visible, centers when collapsed) -->
             <button (click)="toggleSidebar()"
-                class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
+                class="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
                 [title]="isSidebarCollapsed ? 'Expandir menú' : 'Contraer menú'">
                 <lucide-icon [img]="icons.Menu" class="w-5 h-5"></lucide-icon>
             </button>
@@ -42,38 +42,39 @@
 
         <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto overflow-x-hidden">
             <a *ngFor="let item of navItems()" [routerLink]="item.route" (click)="isMobileMenuOpen = false"
-                [title]="isSidebarCollapsed ? item.label : ''" routerLinkActive="bg-blue-50 text-blue-600"
-                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors group whitespace-nowrap"
+                [title]="isSidebarCollapsed ? item.label : ''"
+                routerLinkActive="bg-white/10 text-white border-l-4 border-primary"
+                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-gray-400 rounded-lg hover:bg-white/5 hover:text-gray-200 transition-colors group whitespace-nowrap border-l-4 border-transparent"
                 [class.justify-center]="isSidebarCollapsed">
                 <lucide-icon [img]="item.icon"
-                    class="w-5 h-5 group-hover:text-blue-600 transition-colors flex-shrink-0"></lucide-icon>
+                    class="w-5 h-5 group-hover:text-primary transition-colors flex-shrink-0"></lucide-icon>
                 <span *ngIf="!isSidebarCollapsed" class="transition-opacity duration-200">{{ item.label }}</span>
             </a>
         </nav>
 
-        <div class="p-3 border-t border-gray-100">
+        <div class="p-3 border-t border-white/10">
             <a (click)="onLogout()"
-                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap cursor-pointer"
+                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-red-400 rounded-lg hover:bg-white/5 transition-colors whitespace-nowrap cursor-pointer"
                 [class.justify-center]="isSidebarCollapsed" [title]="isSidebarCollapsed ? 'Cerrar Sesión' : ''">
                 <lucide-icon [img]="icons.LogOut" class="w-5 h-5 flex-shrink-0"></lucide-icon>
                 <span *ngIf="!isSidebarCollapsed">Cerrar Sesión</span>
             </a>
         </div>
 
-        <div class="p-4 border-t border-gray-100 bg-gray-50 overflow-hidden cursor-pointer hover:bg-gray-100 transition-colors"
+        <div class="p-4 border-t border-white/10 bg-sidebar overflow-hidden cursor-pointer hover:bg-white/5 transition-colors"
             routerLink="/app/profile" [title]="'Ver mi perfil'">
             <div class="flex items-center gap-3" [class.justify-center]="isSidebarCollapsed">
                 <div class="flex-shrink-0">
                     <img *ngIf="currentUser()?.photoUrl" [src]="currentUser()?.photoUrl"
-                        class="h-10 w-10 rounded-full bg-gray-300 object-cover" alt="Profile">
+                        class="h-10 w-10 rounded-full bg-gray-600 object-cover" alt="Profile">
                     <lucide-icon *ngIf="!currentUser()?.photoUrl" [img]="icons.UserCircle"
                         class="h-10 w-10 text-gray-400"></lucide-icon>
                 </div>
                 <div class="flex-1 min-w-0" *ngIf="!isSidebarCollapsed">
-                    <p class="text-sm font-medium text-gray-900 truncate">
+                    <p class="text-sm font-medium text-white truncate">
                         {{ currentUser()?.fullName || 'Usuario' }}
                     </p>
-                    <p class="text-xs text-gray-500 truncate">
+                    <p class="text-xs text-gray-400 truncate">
                         {{ currentUser()?.roles?.[0] || 'Invitado' }}
                     </p>
                 </div>
@@ -82,20 +83,17 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 ml-0 transition-all duration-300 ease-in-out md:ml-64 overflow-y-auto h-full pt-16 md:pt-0"
+    <main
+        class="flex-1 ml-0 transition-all duration-300 ease-in-out md:ml-64 overflow-y-auto h-full flex flex-col pt-16 md:pt-0"
         [class.md:ml-64]="!isSidebarCollapsed" [class.md:ml-20]="isSidebarCollapsed">
 
-        <!-- Desktop Header / Toolbar -->
+        <!-- Top Bar Header -->
         <header
-            class="hidden md:flex items-center justify-between px-8 py-4 bg-white border-b border-gray-200 sticky top-0 z-10 transition-shadow">
-            <div>
-                <!-- Breadcrumbs or Page Title could go here -->
-            </div>
-
-            <div class="flex items-center gap-4 relative" #notificationsContainer>
-                <!-- Notifications -->
+            class="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-4 sm:px-8 shrink-0 relative z-40 hidden md:flex">
+            <!-- Notifications Container mapped to the new Top Bar -->
+            <div class="relative flex items-center gap-4" #notificationsContainer>
                 <button (click)="toggleNotifications()"
-                    class="relative p-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-200 hover:shadow-md transition-all focus:outline-none shadow-sm">
+                    class="relative p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 transition-colors focus:outline-none">
                     <lucide-icon [img]="icons.Bell" class="w-5 h-5"></lucide-icon>
                     <span *ngIf="pendingAppointments().length > 0" class="absolute -top-1 -right-1 flex h-5 w-5">
                         <span
@@ -106,15 +104,13 @@
                         </span>
                     </span>
                 </button>
-
-                <!-- Dropdown -->
                 <div *ngIf="isNotificationsOpen"
                     class="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in-up origin-top-right ring-1 ring-black/5">
                     <div
                         class="p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center">
                         <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Validaciones</h3>
                         <span
-                            class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-200">
+                            class="text-[10px] bg-primary text-primary px-2 py-0.5 rounded-full font-bold border border-primary">
                             {{ pendingAppointments().length }} Pendientes
                         </span>
                     </div>
@@ -131,7 +127,7 @@
 
                         <div *ngFor="let app of pendingAppointments()"
                             (click)="navigateToAppointment(app.appointmentId!)"
-                            class="p-4 border-b border-gray-50 hover:bg-blue-50/50 cursor-pointer transition-colors group flex gap-3 relative overflow-hidden">
+                            class="p-4 border-b border-gray-50 hover:bg-primary/50 cursor-pointer transition-colors group flex gap-3 relative overflow-hidden">
                             <!-- Indicator Stripe -->
                             <div
                                 class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -149,7 +145,7 @@
                             <div class="flex-1 min-w-0 pt-0.5">
                                 <div class="flex justify-between items-start mb-0.5">
                                     <h4
-                                        class="text-sm font-bold text-gray-900 truncate pr-2 group-hover:text-blue-700 transition-colors">
+                                        class="text-sm font-bold text-gray-900 truncate pr-2 group-hover:text-primary transition-colors">
                                         {{ app.patientName || 'Paciente' }}</h4>
                                     <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">{{
                                         app.appointmentDate }}</span>
@@ -158,7 +154,7 @@
                                         class="font-bold text-gray-700">({{ app.paymentMethod }})</span></p>
 
                                 <span
-                                    class="inline-flex items-center text-[10px] font-bold text-blue-600 group-hover:underline decoration-blue-300 underline-offset-2 transition-all">
+                                    class="inline-flex items-center text-[10px] font-bold text-primary group-hover:underline decoration-primary underline-offset-2 transition-all">
                                     Revisar comprobante <lucide-icon [img]="icons.ChevronRight"
                                         class="w-3 h-3 ml-0.5"></lucide-icon>
                                 </span>
@@ -174,7 +170,7 @@
             </div>
         </header>
 
-        <div class="p-4 sm:p-8 max-w-7xl mx-auto">
+        <div class="flex-1 px-4 py-8 sm:px-8 max-w-7xl mx-auto w-full">
             <router-outlet></router-outlet>
         </div>
     </main>

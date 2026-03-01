@@ -43,21 +43,45 @@ export class DoctorsService {
     this.refreshSelectableDoctors();
   }
 
-  refreshDoctors(page: number = 0, size: number = 10, search: string = '') {
+  refreshDoctors(page: number = 0, size: number = 10, search: string = '', showInactive: boolean = false) {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     if (search) params = params.set('search', search);
 
+    // Some backends might support filtering by active status
+    if (!showInactive) {
+      params = params.set('isActive', 'true');
+    }
+
     this.http.get<any>(`${this.doctorsUrl}/with-users`, { params }).subscribe({
       next: (data) => {
-        this.doctors.set(data.content.map((d: any) => ({
+        let docs = data.content.map((d: any) => ({
           ...d,
           id: d.userId,
           active: d.isActive
-        } as Doctor)));
+        } as Doctor));
+
+        // Local fallback filter just in case backend ignores the parameter
+        if (!showInactive) {
+          docs = docs.filter((d: Doctor) => d.active);
+        }
+
+        this.doctors.set(docs);
         this.totalElements.set(data.totalElements);
       },
       error: (err) => console.error('Error fetching doctors:', err)
     });
+  }
+
+  getAllDoctorsForValidation(): Observable<Doctor[]> {
+    // Fetch a large page size to validate against all doctors
+    const params = new HttpParams().set('page', '0').set('size', '10000');
+    return this.http.get<any>(`${this.doctorsUrl}/with-users`, { params }).pipe(
+      map(data => data.content.map((d: any) => ({
+        ...d,
+        id: d.userId,
+        active: d.isActive
+      } as Doctor)))
+    );
   }
 
   refreshSelectableDoctors() {

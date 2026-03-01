@@ -36,7 +36,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de atención</label>
                         <input [(ngModel)]="formData.date" (ngModelChange)="onDateChange($event)" [min]="minDate"
                             type="date" [disabled]="!selectedDoctorId()"
-                            class="block w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-400">
+                            class="block w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm disabled:bg-gray-100 disabled:text-gray-400">
                     </div>
                 </div>
 
@@ -48,13 +48,13 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
                             <input [(ngModel)]="formData.startTime" (ngModelChange)="onStartTimeChange()" type="time"
                                 [disabled]="!selectedDoctorId()"
-                                class="block w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-400">
+                                class="block w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm disabled:bg-gray-100 disabled:text-gray-400">
                         </div>
                         <span class="text-gray-400 font-bold self-end pb-3 px-1">-</span>
                         <div class="w-full relative">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
                             <select [(ngModel)]="formData.endTime" [disabled]="!selectedDoctorId()"
-                                class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
+                                class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
                                 <option *ngFor="let time of validEndTimes()" [value]="time">{{ time }}</option>
                             </select>
                             <div
@@ -72,7 +72,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Repetir asignación:</label>
                         <div class="relative">
                             <select [(ngModel)]="formData.weeksToRepeat" [disabled]="!selectedDoctorId()"
-                                class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
+                                class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
                                 <option [ngValue]="0">Solo esta fecha</option>
                                 <option [ngValue]="4">Repetir por 1 mes</option>
                                 <option [ngValue]="8">Repetir por 2 meses</option>
@@ -92,7 +92,7 @@
                     <div class="lg:col-span-3">
                         <button (click)="saveSchedule()"
                             [disabled]="!selectedDoctorId() || !formData.specialtyId || !formData.endTime"
-                            class="w-full h-[42px] inline-flex items-center justify-center px-4 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                            class="w-full h-[42px] inline-flex items-center justify-center px-4 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
                             <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
                             Asignar Turno
                         </button>
@@ -108,7 +108,7 @@
                     {{ selectedDoctorName() ? 'Horarios Registrados - ' + selectedDoctorName() : 'Horarios Registrados'
                     }}
                 </h3>
-                <span class="text-sm py-1 px-3 bg-blue-100 text-blue-700 rounded-full font-medium"
+                <span class="text-sm py-1 px-3 bg-primary text-primary rounded-full font-medium"
                     *ngIf="selectedDoctorId() && currentSchedules().length > 0">
                     {{ currentSchedules().length }} turnos asignados
                 </span>
@@ -155,14 +155,14 @@
 
                         <!-- Rows -->
                         <tr *ngFor="let schedule of currentSchedules()"
-                            class="hover:bg-blue-50/50 hover:shadow-sm outline-none focus-within:bg-gray-50 transition-all duration-200 group border-b border-gray-100 last:border-0 relative z-0 hover:z-10">
+                            class="hover:bg-primary/50 hover:shadow-sm outline-none focus-within:bg-gray-50 transition-all duration-200 group border-b border-gray-100 last:border-0 relative z-0 hover:z-10">
                             <td class="px-6 py-5 whitespace-nowrap">
                                 <div class="flex flex-col">
                                     <span
-                                        class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">{{
+                                        class="text-sm font-semibold text-gray-900 group-hover:text-primary transition-colors">{{
                                         selectedDoctorName() }}</span>
                                     <span
-                                        class="inline-flex items-center mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 border border-blue-200 text-blue-700 w-fit">
+                                        class="inline-flex items-center mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary border border-primary text-primary w-fit">
                                         {{ getSpecialtyName(schedule.specialtyId) }}
                                     </span>
                                 </div>

@@ -30,7 +30,7 @@ export class DoctorsListComponent {
 
   // Pagination
   currentPage = 1;
-  itemsPerPage = 10;
+  itemsPerPage = 6;
 
   // Modal State
   isModalOpen = false;
@@ -72,6 +72,18 @@ export class DoctorsListComponent {
     this.onSearchChange();
   }
 
+  onDocumentTypeChange() {
+    let val = this.form.dni || '';
+    if (this.form.documentType === 'DNI') {
+      val = val.replace(/\D/g, '');
+      if (val.length > 8) val = val.substring(0, 8);
+    } else {
+      val = val.replace(/[^a-zA-Z0-9]/g, '');
+      if (val.length > 9) val = val.substring(0, 9);
+    }
+    this.form.dni = val;
+  }
+
   onDocumentInput(event: Event) {
     const input = event.target as HTMLInputElement;
     // DNI only digits (8 max). CE digits+letters (9 max).
@@ -103,7 +115,7 @@ export class DoctorsListComponent {
   }
 
   private loadDoctors() {
-    this.service.refreshDoctors(this.currentPage - 1, this.itemsPerPage, this.searchTerm);
+    this.service.refreshDoctors(this.currentPage - 1, this.itemsPerPage, this.searchTerm, this.showInactive);
   }
 
   get isFormValid() {
@@ -149,20 +161,6 @@ export class DoctorsListComponent {
   save() {
     this.isSaving = true;
 
-    // Check Duplicates
-    const docExists = this.doctorsList.some(d =>
-      d.id !== this.editingId && (
-        (d.dni && this.form.dni && d.dni.trim() === this.form.dni.trim()) ||
-        (d.cmp && this.form.cmp && d.cmp.trim() === this.form.cmp.trim())
-      )
-    );
-
-    if (docExists) {
-      alert('Ya existe un especialista registrado con este Documento o CMP.');
-      this.isSaving = false;
-      return;
-    }
-
     // Generate avatar if name changed AND no photo is set/uploaded (or if it's the default ui-avatar)
     if (!this.form.photoUrl || this.form.photoUrl.includes('ui-avatars')) {
       // Only update default avatar if user hasn't uploaded a custom one (custom ones are base64 data:image...)
@@ -171,23 +169,46 @@ export class DoctorsListComponent {
       }
     }
 
-    const request$ = this.editingId
-      ? this.service.updateDoctor(this.editingId, this.form)
-      : this.service.addDoctor(this.form);
+    this.service.getAllDoctorsForValidation().subscribe({
+      next: (allDoctors) => {
+        // Check Duplicates
+        const docExists = allDoctors.some(d =>
+          d.id !== this.editingId && (
+            (d.dni && this.form.dni && d.dni.trim() === this.form.dni.trim()) ||
+            (d.cmp && this.form.cmp && d.cmp.trim() === this.form.cmp.trim())
+          )
+        );
 
-    request$.subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.closeModal();
-      },
-      error: (error: any) => {
-        console.error('Error saving doctor:', error);
-        this.isSaving = false;
-        if (error.status === 500) {
-          alert('Error interno. Es posible que el correo ya esté registrado o haya datos inválidos.');
-        } else {
-          alert('Ocurrió un error al guardar el médico. Por favor intente nuevamente.');
+        if (docExists) {
+          alert('Ya existe un especialista registrado con este Documento o CMP.');
+          this.isSaving = false;
+          return;
         }
+
+        const request$ = this.editingId
+          ? this.service.updateDoctor(this.editingId, this.form)
+          : this.service.addDoctor(this.form);
+
+        request$.subscribe({
+          next: () => {
+            this.isSaving = false;
+            this.closeModal();
+          },
+          error: (error: any) => {
+            console.error('Error saving doctor:', error);
+            this.isSaving = false;
+            if (error.status === 500) {
+              alert('Error interno. Es posible que el correo ya esté registrado o haya datos inválidos.');
+            } else {
+              alert('Ocurrió un error al guardar el médico. Por favor intente nuevamente.');
+            }
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error validating duplicates:', err);
+        alert('Ocurrió un error al validar los datos. Por favor intente nuevamente.');
+        this.isSaving = false;
       }
     });
   }

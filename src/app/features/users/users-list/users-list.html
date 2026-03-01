@@ -5,7 +5,8 @@
             <h1 class="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
             <p class="text-gray-500">Administra el acceso y roles del sistema</p>
         </div>
-        <button (click)="openModal()" class="btn btn-primary flex items-center gap-2">
+        <button (click)="openModal()"
+            class="block rounded-md bg-primary px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary flex items-center gap-2">
             <lucide-icon [img]="Icons.Plus" class="w-4 h-4"></lucide-icon>
             Nuevo Usuario
         </button>
@@ -38,25 +39,34 @@
         </select>
     </div>
 
+    <!-- Pagination -->
+    <div class="mb-4">
+        <app-pagination [currentPage]="currentPage()" [totalItems]="totalItems" [pageSize]="itemsPerPage"
+            (pageChange)="onPageChange($event)">
+        </app-pagination>
+    </div>
+
     <!-- Users Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-float border border-gray-100 overflow-hidden">
         <table class="w-full">
             <thead class="bg-gray-50 border-b border-gray-100">
                 <tr>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Usuario
+                    <th class="px-6 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Usuario
                     </th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Rol
+                    <th class="px-6 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Rol
                     </th>
                     <!-- CMP Column Removed -->
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado
+                    <th class="px-6 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Estado
                     </th>
-                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th class="px-6 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Acciones</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-gray-200">
                 <tr *ngFor="let user of usersList" class="hover:bg-gray-50 transition-colors group">
-                    <td class="px-6 py-4">
+                    <td class="px-6 py-2">
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm overflow-hidden border border-gray-100">
@@ -72,13 +82,13 @@
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-6 py-2">
                         <div class="flex gap-1 flex-wrap">
                             <ng-container *ngFor="let role of user.roles">
                                 <span *ngIf="role.toUpperCase() !== 'STAFF'"
                                     class="px-2.5 py-0.5 rounded-full text-xs font-medium border shadow-sm" [ngClass]="{
                                     'bg-purple-50 text-purple-700 border-purple-100': role.toUpperCase() === 'ADMIN',
-                                    'bg-blue-50 text-blue-700 border-blue-100': role.toUpperCase() === 'DOCTOR'
+                                    'bg-primary/10 text-primary border-primary/20': role.toUpperCase() === 'DOCTOR'
                                   }">
                                     {{ role.toUpperCase() === 'DOCTOR' ? 'Especialista' : 'Administrador' }}
                                 </span>
@@ -86,19 +96,19 @@
                         </div>
                     </td>
                     <!-- CMP Cell Removed -->
-                    <td class="px-6 py-4">
+                    <td class="px-6 py-2">
                         <span *ngIf="user.active"
-                            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                            <div class="w-2 h-2 rounded-full bg-success"></div>
                             Activo
                         </span>
                         <span *ngIf="!user.active"
-                            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100">
-                            <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                            <div class="w-2 h-2 rounded-full bg-red-500"></div>
                             Inactivo
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-right">
+                    <td class="px-6 py-2 text-right">
                         <!-- Actions always visible (removed opacity-0 group-hover:opacity-100) -->
                         <div class="flex justify-end gap-2">
                             <button (click)="toggleAdmin(user)" [disabled]="user.id === currentUser()?.id"
@@ -108,7 +118,7 @@
                                 <lucide-icon [img]="Icons.Shield" class="w-4 h-4"></lucide-icon>
                             </button>
                             <button (click)="toggleSpecialist(user)" class="p-2 rounded-lg transition-all"
-                                [ngClass]="hasRoleInUser(user, 'DOCTOR') ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'"
+                                [ngClass]="hasRoleInUser(user, 'DOCTOR') ? 'text-white bg-primary hover:bg-primary/90' : 'text-gray-400 hover:text-primary hover:bg-primary/10'"
                                 title="Alternar Especialista">
                                 <lucide-icon [img]="Icons.Stethoscope" class="w-4 h-4"></lucide-icon>
                             </button>
@@ -119,7 +129,7 @@
                                 <lucide-icon [img]="Icons.Power" class="w-4 h-4"></lucide-icon>
                             </button>
                             <button (click)="editUser(user)"
-                                class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                class="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
                                 title="Editar">
                                 <lucide-icon [img]="Icons.Pencil" class="w-4 h-4"></lucide-icon>
                             </button>
@@ -129,11 +139,6 @@
                 </tr>
             </tbody>
         </table>
-
-        <!-- Pagination -->
-        <app-pagination [currentPage]="currentPage()" [totalItems]="totalItems" [pageSize]="itemsPerPage"
-            (pageChange)="onPageChange($event)">
-        </app-pagination>
     </div>
 </div>
 
@@ -161,7 +166,7 @@
                 <div class="grid grid-cols-2 gap-2">
                     <label *ngFor="let role of availableRoles"
                         class="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
-                        [class.border-blue-500]="isRoleSelected(role)" [class.bg-blue-50]="isRoleSelected(role)">
+                        [class.border-primary]="isRoleSelected(role)" [class.bg-primary]="isRoleSelected(role)">
                         <input type="checkbox" [checked]="isRoleSelected(role)" (change)="toggleRole(role)"
                             class="rounded" />
                         <span class="text-sm font-medium">{{ role.name }}</span>

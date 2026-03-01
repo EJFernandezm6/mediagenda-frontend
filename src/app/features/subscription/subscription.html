@@ -11,13 +11,13 @@
         <!-- Currency Toggle -->
         <div class="bg-gray-100 p-1 rounded-lg inline-flex items-center">
             <button (click)="toggleCurrency('PEN')" [class.bg-white]="currentCurrency() === 'PEN'"
-                [class.text-blue-600]="currentCurrency() === 'PEN'" [class.shadow-sm]="currentCurrency() === 'PEN'"
+                [class.text-primary]="currentCurrency() === 'PEN'" [class.shadow-sm]="currentCurrency() === 'PEN'"
                 [class.text-gray-500]="currentCurrency() !== 'PEN'"
                 class="px-4 py-1.5 text-sm font-medium rounded-md transition-all">
                 Soles (PEN)
             </button>
             <button (click)="toggleCurrency('USD')" [class.bg-white]="currentCurrency() === 'USD'"
-                [class.text-blue-600]="currentCurrency() === 'USD'" [class.shadow-sm]="currentCurrency() === 'USD'"
+                [class.text-primary]="currentCurrency() === 'USD'" [class.shadow-sm]="currentCurrency() === 'USD'"
                 [class.text-gray-500]="currentCurrency() !== 'USD'"
                 class="px-4 py-1.5 text-sm font-medium rounded-md transition-all">
                 Dólares (USD)

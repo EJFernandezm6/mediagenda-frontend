@@ -6,7 +6,15 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                primary: '#2563eb', // blue-600
+                primary: 'var(--primary-color)',
+                success: 'var(--success-color)',
+                app: 'var(--bg-app)',
+                sidebar: 'var(--sidebar-bg)',
+                'text-main': 'var(--text-main)',
+                'text-muted': 'var(--text-muted)',
+            },
+            boxShadow: {
+                float: 'var(--shadow-float)',
             }
         },
     },

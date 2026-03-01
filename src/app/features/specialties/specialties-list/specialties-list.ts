@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpecialtiesService, Specialty } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
-import { LucideAngularModule, Plus, Pencil, Trash2, Search, Power } from 'lucide-angular';
+import { LucideAngularModule, Plus, Pencil, Trash2, Search, Power, Activity } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
@@ -18,14 +18,14 @@ export class SpecialtiesListComponent {
   private confirmService = inject(ConfirmModalService);
 
   // Icons
-  readonly icons = { Plus, Pencil, Trash2, Search, Power };
+  readonly icons = { Plus, Pencil, Trash2, Search, Power, Activity };
 
   specialties = this.service.specialties;
   searchTerm = '';
 
   // Pagination
   currentPage = 1;
-  itemsPerPage = 10;
+  itemsPerPage = 6;
 
   // Simple Modal State
   isModalOpen = false;

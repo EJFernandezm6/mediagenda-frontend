@@ -2,10 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
+:root {
+  /* Paleta Principal */
+  --primary-color: #1E293B;
+  --success-color: #10B981;
+  --bg-app: #F8FAFC;
+
+  /* Textos y Sidebar */
+  --sidebar-bg: #1E293B;
+  --text-main: #1E293B;
+  --text-muted: #64748B;
+
+  /* Efecto Antigravity */
+  --shadow-float: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --card-bg: #FFFFFF;
+}
+
+html,
+body {
   height: 100%;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
 }

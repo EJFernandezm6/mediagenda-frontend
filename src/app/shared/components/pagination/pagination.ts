@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ChevronLeft, ChevronRight } from 'lucide-angular';
 
 @Component({
-    selector: 'app-pagination',
-    standalone: true,
-    imports: [CommonModule, LucideAngularModule],
-    template: `
+  selector: 'app-pagination',
+  standalone: true,
+  imports: [CommonModule, LucideAngularModule],
+  template: `
     <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4" *ngIf="totalPages > 1">
       <!-- Mobile View -->
       <div class="flex flex-1 justify-between sm:hidden">
@@ -43,7 +43,7 @@ import { LucideAngularModule, ChevronLeft, ChevronRight } from 'lucide-angular';
             
             <ng-container *ngFor="let page of pages">
                 <button *ngIf="page !== -1" (click)="changePage(page)" 
-                    [class.bg-blue-600]="page === currentPage"
+                    [class.bg-primary]="page === currentPage"
                     [class.text-white]="page === currentPage"
                     [class.text-gray-900]="page !== currentPage"
                     [class.ring-gray-300]="page !== currentPage"
@@ -66,75 +66,75 @@ import { LucideAngularModule, ChevronLeft, ChevronRight } from 'lucide-angular';
   `
 })
 export class PaginationComponent implements OnChanges {
-    @Input() currentPage: number = 1;
-    @Input() totalItems: number = 0;
-    @Input() pageSize: number = 10;
-    @Output() pageChange = new EventEmitter<number>();
+  @Input() currentPage: number = 1;
+  @Input() totalItems: number = 0;
+  @Input() pageSize: number = 10;
+  @Output() pageChange = new EventEmitter<number>();
 
-    totalPages: number = 0;
-    pages: number[] = [];
-    startIndex: number = 0;
-    endIndex: number = 0;
+  totalPages: number = 0;
+  pages: number[] = [];
+  startIndex: number = 0;
+  endIndex: number = 0;
 
-    readonly Icons = { ChevronLeft, ChevronRight };
+  readonly Icons = { ChevronLeft, ChevronRight };
 
-    ngOnChanges(changes: SimpleChanges): void {
-        if (changes['totalItems'] || changes['pageSize'] || changes['currentPage']) {
-            this.calculatePagination();
-        }
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['totalItems'] || changes['pageSize'] || changes['currentPage']) {
+      this.calculatePagination();
+    }
+  }
+
+  calculatePagination() {
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+
+    // Ensure current page is valid
+    if (this.currentPage < 1) this.currentPage = 1;
+    if (this.currentPage > this.totalPages && this.totalPages > 0) this.currentPage = this.totalPages;
+
+    this.startIndex = (this.currentPage - 1) * this.pageSize;
+    this.endIndex = Math.min(this.startIndex + this.pageSize, this.totalItems);
+
+    this.pages = this.getVisiblePages();
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      this.pageChange.emit(page);
+    }
+  }
+
+  getVisiblePages(): number[] {
+    const total = this.totalPages;
+    const current = this.currentPage;
+    const delta = 2; // Number of pages to show around current
+    const range: number[] = [];
+    const rangeWithDots: number[] = [];
+    let l: number | undefined;
+
+    range.push(1);
+
+    if (total <= 1) return [1];
+
+    for (let i = current - delta; i <= current + delta; i++) {
+      if (i < total && i > 1) {
+        range.push(i);
+      }
     }
 
-    calculatePagination() {
-        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    range.push(total);
 
-        // Ensure current page is valid
-        if (this.currentPage < 1) this.currentPage = 1;
-        if (this.currentPage > this.totalPages && this.totalPages > 0) this.currentPage = this.totalPages;
-
-        this.startIndex = (this.currentPage - 1) * this.pageSize;
-        this.endIndex = Math.min(this.startIndex + this.pageSize, this.totalItems);
-
-        this.pages = this.getVisiblePages();
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push(-1); // -1 represents '...'
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
     }
 
-    changePage(page: number) {
-        if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-            this.pageChange.emit(page);
-        }
-    }
-
-    getVisiblePages(): number[] {
-        const total = this.totalPages;
-        const current = this.currentPage;
-        const delta = 2; // Number of pages to show around current
-        const range: number[] = [];
-        const rangeWithDots: number[] = [];
-        let l: number | undefined;
-
-        range.push(1);
-
-        if (total <= 1) return [1];
-
-        for (let i = current - delta; i <= current + delta; i++) {
-            if (i < total && i > 1) {
-                range.push(i);
-            }
-        }
-
-        range.push(total);
-
-        for (let i of range) {
-            if (l) {
-                if (i - l === 2) {
-                    rangeWithDots.push(l + 1);
-                } else if (i - l !== 1) {
-                    rangeWithDots.push(-1); // -1 represents '...'
-                }
-            }
-            rangeWithDots.push(i);
-            l = i;
-        }
-
-        return rangeWithDots;
-    }
+    return rangeWithDots;
+  }
 }

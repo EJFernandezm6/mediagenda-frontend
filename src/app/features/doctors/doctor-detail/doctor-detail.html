@@ -38,7 +38,7 @@
                             </span>
                         </div>
                         <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mt-1">
-                            <p class="text-lg text-blue-600 font-semibold flex items-center">
+                            <p class="text-lg text-primary font-semibold flex items-center">
                                 <lucide-icon [img]="icons.Award" class="w-5 h-5 mr-2"></lucide-icon>
                                 CMP: {{ doctor()?.cmp }}
                             </p>
@@ -50,9 +50,9 @@
 
                         <div class="flex flex-wrap gap-x-8 gap-y-4 pt-6 mt-2 border-t border-gray-100">
                             <a [href]="'mailto:' + doctor()?.email"
-                                class="flex items-center text-gray-600 hover:text-blue-600 transition-colors group">
+                                class="flex items-center text-gray-600 hover:text-primary transition-colors group">
                                 <lucide-icon [img]="icons.Mail"
-                                    class="w-5 h-5 mr-3 text-gray-400 group-hover:text-blue-500"></lucide-icon>
+                                    class="w-5 h-5 mr-3 text-gray-400 group-hover:text-primary"></lucide-icon>
                                 <span class="font-medium">{{ doctor()?.email }}</span>
                             </a>
                             <a [href]="'https://wa.me/' + doctor()?.phone" target="_blank"
@@ -89,7 +89,7 @@
             <div class="lg:col-span-1 bg-white rounded-[32px] shadow-sm border border-gray-100 p-8">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-xl font-bold text-gray-900">Satisfaction (NPS)</h2>
-                    <div class="bg-blue-50 p-2 rounded-xl text-blue-600">
+                    <div class="bg-primary p-2 rounded-xl text-primary">
                         <lucide-icon [img]="icons.TrendingUp" class="w-6 h-6"></lucide-icon>
                     </div>
                 </div>
@@ -150,7 +150,7 @@
                         <div class="flex justify-between items-start mb-4">
                             <div class="flex items-center">
                                 <div
-                                    class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold mr-3">
+                                    class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary font-bold mr-3">
                                     P
                                 </div>
                                 <div>

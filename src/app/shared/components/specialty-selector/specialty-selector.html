@@ -7,7 +7,7 @@
         <input type="text" [ngModel]="searchText()" (ngModelChange)="onSearchChange($event)"
             [disabled]="disabled()"
             (focus)="isOpen.set(true)"
-            class="block w-full rounded-md border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border py-2 disabled:bg-gray-100 disabled:text-gray-500"
+            class="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm border py-2 disabled:bg-gray-100 disabled:text-gray-500"
             placeholder="Buscar especialidad...">
     </div>
 
@@ -20,7 +20,7 @@
         <ul tabindex="-1" role="listbox">
             <li *ngFor="let specialty of filteredOptions()"
                 (click)="selectSpecialty(specialty)"
-                class="relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-blue-50 text-gray-900 group">
+                class="relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-primary text-gray-900 group">
                 <div class="flex items-center">
                     <span class="font-normal block truncate group-hover:font-semibold">
                         {{ specialty.name }}
@@ -28,7 +28,7 @@
                 </div>
 
                 <span *ngIf="specialty.specialtyId === selectedSpecialtyId()"
-                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600">
+                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary">
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

@@ -30,7 +30,7 @@ export class PatientsListComponent {
 
   // Pagination
   currentPage = 1;
-  itemsPerPage = 10;
+  itemsPerPage = 5;
 
   // Column Visibility State
   showColumnFilter = false;
@@ -49,8 +49,9 @@ export class PatientsListComponent {
     this.columns[col] = !this.columns[col];
   }
 
-  // Expanded Row State
-  expandedPatientId: string | null = null;
+  // Expanded Row State (Now Modal)
+  isHistoryModalOpen = false;
+  selectedHistoryPatient: Patient | null = null;
   patientHistory: Consultation[] = [];
 
 
@@ -118,17 +119,20 @@ export class PatientsListComponent {
     this.service.refreshPatients(this.currentPage - 1, this.itemsPerPage, this.searchTerm);
   }
 
-  toggleHistory(id: string) {
-    if (this.expandedPatientId === id) {
-      this.expandedPatientId = null;
-      this.patientHistory = [];
-    } else {
-      this.expandedPatientId = id;
-      this.service.getPatientHistory(id).subscribe({
-        next: (data) => { this.patientHistory = data; },
-        error: () => { this.patientHistory = []; }
-      });
-    }
+  openHistoryModal(patient: Patient) {
+    this.selectedHistoryPatient = patient;
+    this.isHistoryModalOpen = true;
+    this.patientHistory = []; // clear previous
+    this.service.getPatientHistory(patient.patientId).subscribe({
+      next: (data) => { this.patientHistory = data; },
+      error: () => { this.patientHistory = []; }
+    });
+  }
+
+  closeHistoryModal() {
+    this.isHistoryModalOpen = false;
+    this.selectedHistoryPatient = null;
+    this.patientHistory = [];
   }
 
   getDoctorName(id: string) {

@@ -24,22 +24,22 @@
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700">Nombre de la clínica</label>
                     <input [(ngModel)]="settings.clinicName" type="text"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Dirección</label>
                     <input [(ngModel)]="settings.clinicAddress" type="text"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Teléfono general</label>
                     <input [(ngModel)]="settings.clinicPhone" type="text"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Moneda referencial</label>
                     <select [(ngModel)]="settings.currency"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2 bg-white">
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2 bg-white">
                         <option value="PEN">Soles (PEN)</option>
                         <option value="USD">Dólares (USD)</option>
                     </select>
@@ -60,7 +60,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Días laborables</label>
                     <div class="flex flex-wrap gap-2">
                         <button *ngFor="let day of availableDays" (click)="toggleDay(day.id)"
-                            [class]="settings.workingDays.includes(day.id) ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'"
+                            [class]="settings.workingDays.includes(day.id) ? 'bg-primary text-primary border-primary' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'"
                             class="px-3 py-1.5 rounded-lg border text-sm font-medium transition-all">
                             {{ day.name }}
                         </button>
@@ -72,12 +72,12 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Hora apertura</label>
                     <input [(ngModel)]="settings.clinicOpenTime" type="time"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Hora cierre</label>
                     <input [(ngModel)]="settings.clinicCloseTime" type="time"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2">
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
                 </div>
 
             </div>
@@ -95,7 +95,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Stripe Public Key (Opcional)</label>
                     <input [(ngModel)]="settings.stripePublicKey" type="text" placeholder="pk_test_..."
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border px-3 py-2 font-mono text-sm">
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2 font-mono text-sm">
                     <p class="mt-1 text-sm text-gray-500">Se usará para procesar pagos de citas en línea.</p>
                 </div>
 
@@ -108,7 +108,7 @@
                         <div class="flex items-start">
                             <div class="flex h-5 items-center">
                                 <input [(ngModel)]="settings.emailNotifications" type="checkbox"
-                                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
                             </div>
                             <div class="ml-3 text-sm">
                                 <label class="font-medium text-gray-700">Email</label>
@@ -120,7 +120,7 @@
                         <div class="flex items-start">
                             <div class="flex h-5 items-center">
                                 <input [(ngModel)]="settings.whatsappNotifications" type="checkbox"
-                                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
                             </div>
                             <div class="ml-3 text-sm">
                                 <label class="font-medium text-gray-700">WhatsApp</label>
@@ -135,7 +135,7 @@
 
         <div class="flex justify-end pt-4">
             <button (click)="save()"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                 <lucide-icon [img]="icons.Save" class="w-4 h-4 mr-2"></lucide-icon>
                 Guardar cambios
             </button>

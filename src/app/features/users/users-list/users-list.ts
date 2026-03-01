@@ -32,7 +32,7 @@ export class UsersListComponent {
 
     // Pagination
     currentPage = signal(1);
-    itemsPerPage = 10;
+    itemsPerPage = 5;
 
     // Modal Config
     isModalOpen = false;
