@@ -38,19 +38,19 @@ export class SearchableSelectComponent {
         this.disabledState.set(value);
     }
 
-    // NgModel value binding
+    // Value binding
     currentValue = signal<string | number>('');
-    @Input('ngModel')
-    set ngModel(value: string | number) {
-        this.currentValue.set(value || '');
-        this.updateSearchTextFromValue(value);
+    @Input()
+    set value(v: string | number) {
+        this.currentValue.set(v || '');
+        this.updateSearchTextFromValue(v);
     }
 
     @Input() displayMode: 'default' | 'compact' = 'default';
 
     // Outputs
     selectionChanged = output<string | number>();
-    ngModelChange = output<string | number>();
+    valueChange = output<string | number>();
 
     // Internal UI State
     isOpen = signal(false);
@@ -87,7 +87,7 @@ export class SearchableSelectComponent {
         this.searchText.set('');
         this.isOpen.set(false);
         this.selectionChanged.emit('');
-        this.ngModelChange.emit('');
+        this.valueChange.emit('');
     }
 
     selectOption(option: SelectOption) {
@@ -95,7 +95,7 @@ export class SearchableSelectComponent {
         this.searchText.set(option.label);
         this.isOpen.set(false);
         this.selectionChanged.emit(option.id);
-        this.ngModelChange.emit(option.id);
+        this.valueChange.emit(option.id);
     }
 
     private updateSearchTextFromValue(val: string | number) {

@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <div class="mt-8 flow-root">
+    <div class="mt-6 flow-root">
         <!-- Search Bar -->
         <div class="mb-4 relative max-w-xs">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -31,52 +31,57 @@
             </app-pagination>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div *ngFor="let specialty of specialtiesList"
-                class="col-span-1 divide-y divide-gray-200 rounded-xl bg-white shadow-float border border-gray-100 transition-all hover:shadow-lg relative pt-4">
+                class="col-span-1 flex flex-col justify-between bg-white rounded-xl shadow-float border border-gray-100 transition-all duration-300 hover:shadow-lg overflow-hidden">
 
-                <!-- Actions Top Right -->
-                <div class="absolute top-3 right-3 flex items-center gap-1 z-10">
-                    <button (click)="toggleActive(specialty)"
-                        [class]="specialty.active ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-red-600 bg-red-50 hover:bg-red-100'"
-                        class="p-1.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary"
-                        [title]="specialty.active ? 'Desactivar' : 'Activar'">
-                        <lucide-icon [img]="icons.Power" class="w-4 h-4"></lucide-icon>
-                    </button>
-                    <button (click)="openModal(specialty)"
-                        class="p-1.5 text-primary hover:text-blue-900 bg-primary hover:bg-primary rounded-md transition-colors"
-                        title="Editar">
-                        <lucide-icon [img]="icons.Pencil" class="w-4 h-4"></lucide-icon>
-                    </button>
-                    <button (click)="delete(specialty.specialtyId)"
-                        class="p-1.5 text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
-                        title="Eliminar">
-                        <lucide-icon [img]="icons.Trash2" class="w-4 h-4"></lucide-icon>
-                    </button>
-                </div>
-
-                <div class="p-6 relative">
-                    <div class="flex items-start mt-2">
+                <div class="p-4 relative flex-1">
+                    <div class="flex items-start">
                         <div [class]="specialty.active ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400'"
-                            class="p-3 rounded-lg mr-4 flex-shrink-0">
-                            <lucide-icon [img]="icons.Activity" class="w-6 h-6"></lucide-icon>
+                            class="p-2.5 rounded-lg mr-3 flex-shrink-0">
+                            <lucide-icon [img]="icons.Activity" class="w-5 h-5"></lucide-icon>
                         </div>
-                        <div class="flex-1 pr-24">
-                            <h3 class="text-lg font-bold text-gray-900 leading-tight block truncate mb-1">{{
+                        <div class="flex-1">
+                            <h3 class="text-base font-bold text-gray-900 leading-tight block truncate mb-1">{{
                                 specialty.name }}</h3>
-                            <div class="mb-3">
+                            <div class="mb-2">
                                 <span *ngIf="specialty.active"
-                                    class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium text-main whitespace-nowrap">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-success"></div>Activo
+                                    class="inline-flex items-center gap-1.5 pl-0 pr-2 py-0.5 text-xs font-medium text-main whitespace-nowrap">
+                                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>Activo
                                 </span>
                                 <span *ngIf="!specialty.active"
-                                    class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium text-main whitespace-nowrap">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>Inactivo
+                                    class="inline-flex items-center gap-1.5 pl-0 pr-2 py-0.5 text-xs font-medium text-gray-600 whitespace-nowrap">
+                                    <div class="w-2 h-2 rounded-full bg-gray-400"></div>Inactivo
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-500 line-clamp-3" [title]="specialty.description">{{
+                            <p class="text-xs text-gray-500 line-clamp-2" [title]="specialty.description">{{
                                 specialty.description || 'Sin descripción' }}</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="bg-gray-50/50 px-4 py-2.5 border-t border-gray-100 flex items-center justify-between">
+                    <!-- Quick Actions Left -->
+                    <div class="flex items-center gap-1.5">
+                        <button (click)="toggleActive(specialty)"
+                            class="p-2 rounded-full transition-colors focus:outline-none"
+                            [ngClass]="specialty.active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'"
+                            [title]="specialty.active ? 'Desactivar' : 'Activar'">
+                            <lucide-icon [img]="icons.Power" class="w-4 h-4"></lucide-icon>
+                        </button>
+                    </div>
+
+                    <!-- Primary Actions Right -->
+                    <div class="flex items-center gap-2">
+                        <button (click)="openModal(specialty)"
+                            class="px-5 py-1.5 bg-[#1e293b] hover:bg-[#0f172a] text-white text-sm font-semibold rounded-md shadow-sm transition-colors">
+                            Editar
+                        </button>
+                        <button (click)="delete(specialty.specialtyId)"
+                            class="px-5 py-1.5 bg-white border border-red-200 hover:bg-red-50 hover:text-red-700 text-red-600 text-sm font-semibold rounded-md shadow-sm transition-all">
+                            Eliminar
+                        </button>
                     </div>
                 </div>
             </div>

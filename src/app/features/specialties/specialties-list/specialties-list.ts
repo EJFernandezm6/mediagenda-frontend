@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpecialtiesService, Specialty } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
@@ -13,7 +13,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   templateUrl: './specialties-list.html',
   styleUrl: './specialties-list.css'
 })
-export class SpecialtiesListComponent {
+export class SpecialtiesListComponent implements OnInit {
   private service = inject(SpecialtiesService);
   private confirmService = inject(ConfirmModalService);
 
@@ -34,6 +34,10 @@ export class SpecialtiesListComponent {
 
   get specialtiesList() {
     return this.specialties();
+  }
+
+  ngOnInit() {
+    this.loadSpecialties();
   }
 
   get totalItems() {

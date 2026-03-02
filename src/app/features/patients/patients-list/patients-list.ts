@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +15,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   templateUrl: './patients-list.html',
   styleUrl: './patients-list.css'
 })
-export class PatientsListComponent {
+export class PatientsListComponent implements OnInit {
   private service = inject(PatientsService);
   private router = inject(Router);
   private doctorService = inject(DoctorsService);
@@ -30,7 +30,11 @@ export class PatientsListComponent {
 
   // Pagination
   currentPage = 1;
-  itemsPerPage = 5;
+  itemsPerPage = 8; // Increased to 8 to fill the compressed table nicely
+
+  ngOnInit() {
+    this.loadPatients();
+  }
 
   // Column Visibility State
   showColumnFilter = false;
@@ -179,6 +183,7 @@ export class PatientsListComponent {
       next: () => {
         this.isSaving = false;
         this.closeModal();
+        this.loadPatients(); // Re-sync pagination after save
       },
       error: (err) => {
         this.isSaving = false;

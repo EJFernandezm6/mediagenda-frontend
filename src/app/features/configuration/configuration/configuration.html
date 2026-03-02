@@ -20,21 +20,31 @@
                 <lucide-icon [img]="icons.Building" class="w-5 h-5 text-gray-500"></lucide-icon>
                 <h3 class="text-lg font-medium text-gray-900">Datos de la clínica</h3>
             </div>
-            <div class="p-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div class="col-span-2">
+            <div class="p-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="lg:col-span-2">
                     <label class="block text-sm font-medium text-gray-700">Nombre de la clínica</label>
-                    <input [(ngModel)]="settings.clinicName" type="text"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
+                    <input [(ngModel)]="settings.clinicName" type="text" disabled
+                        class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-500 shadow-sm border px-3 py-2 cursor-not-allowed">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700">RUC</label>
+                    <input [(ngModel)]="settings.clinicRuc" type="text" disabled
+                        class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-500 shadow-sm border px-3 py-2 cursor-not-allowed">
+                </div>
+                <div class="lg:col-span-3">
                     <label class="block text-sm font-medium text-gray-700">Dirección</label>
-                    <input [(ngModel)]="settings.clinicAddress" type="text"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
+                    <input [(ngModel)]="settings.clinicAddress" type="text" disabled
+                        class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-500 shadow-sm border px-3 py-2 cursor-not-allowed">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Teléfono general</label>
                     <input [(ngModel)]="settings.clinicPhone" type="text"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Teléfono asociado al WhatsApp</label>
+                    <input [(ngModel)]="settings.clinicWhatsappPhone" type="text" disabled
+                        class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-500 shadow-sm border px-3 py-2 cursor-not-allowed">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Moneda referencial</label>
@@ -92,14 +102,9 @@
                 <h3 class="text-lg font-medium text-gray-900">Pagos e integraciones</h3>
             </div>
             <div class="p-6 space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Stripe Public Key (Opcional)</label>
-                    <input [(ngModel)]="settings.stripePublicKey" type="text" placeholder="pk_test_..."
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2 font-mono text-sm">
-                    <p class="mt-1 text-sm text-gray-500">Se usará para procesar pagos de citas en línea.</p>
-                </div>
+                <!-- Stripe Key removed as requested -->
 
-                <div class="border-t border-gray-100 pt-6">
+                <div class="pt-2">
                     <h4 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
                         <lucide-icon [img]="icons.Bell" class="w-4 h-4 text-gray-500"></lucide-icon>
                         Notificaciones
@@ -119,8 +124,8 @@
                         </div>
                         <div class="flex items-start">
                             <div class="flex h-5 items-center">
-                                <input [(ngModel)]="settings.whatsappNotifications" type="checkbox"
-                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                                <input [(ngModel)]="settings.whatsappNotifications" type="checkbox" disabled
+                                    class="h-4 w-4 rounded border-gray-300 text-primary bg-gray-100 cursor-not-allowed">
                             </div>
                             <div class="ml-3 text-sm">
                                 <label class="font-medium text-gray-700">WhatsApp</label>

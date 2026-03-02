@@ -26,15 +26,15 @@
         </div>
 
         <div>
-            <app-searchable-select [options]="doctorFilterOptions" [ngModel]="filterDoctorId()"
-                (ngModelChange)="filterDoctorId.set($event.toString())" placeholder="Todos los especialistas"
+            <app-searchable-select [options]="doctorFilterOptions" [value]="filterDoctorId()"
+                (valueChange)="filterDoctorId.set($event.toString())" placeholder="Todos los especialistas"
                 displayMode="default">
             </app-searchable-select>
         </div>
 
         <div>
-            <app-searchable-select [options]="specialtyFilterOptions" [ngModel]="filterSpecialtyId()"
-                (ngModelChange)="filterSpecialtyId.set($event.toString())" placeholder="Todas las especialidades"
+            <app-searchable-select [options]="specialtyFilterOptions" [value]="filterSpecialtyId()"
+                (valueChange)="filterSpecialtyId.set($event.toString())" placeholder="Todas las especialidades"
                 displayMode="default">
             </app-searchable-select>
         </div>

@@ -22,16 +22,16 @@
         <div class="flex flex-wrap items-center gap-3 w-full">
             <!-- Specialty Filter -->
             <div class="min-w-[250px] flex-1 md:flex-none">
-                <app-searchable-select [options]="specialtyOptions" [ngModel]="selectedSpecialtyId()"
-                    (ngModelChange)="selectedSpecialtyId.set($event.toString()); selectedDoctorId.set('')"
+                <app-searchable-select [options]="specialtyOptions" [value]="selectedSpecialtyId()"
+                    (valueChange)="selectedSpecialtyId.set($event.toString()); selectedDoctorId.set('')"
                     placeholder="Todas las especialidades" displayMode="compact">
                 </app-searchable-select>
             </div>
 
             <!-- Doctor Filter -->
             <div class="min-w-[250px] flex-1 md:flex-none">
-                <app-searchable-select [options]="doctorOptions" [ngModel]="selectedDoctorId()"
-                    (ngModelChange)="selectedDoctorId.set($event.toString())" placeholder="Todos los médicos"
+                <app-searchable-select [options]="doctorOptions" [value]="selectedDoctorId()"
+                    (valueChange)="selectedDoctorId.set($event.toString())" placeholder="Todos los médicos"
                     displayMode="compact">
                 </app-searchable-select>
             </div>
@@ -388,8 +388,8 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                             Especialidad <span class="text-red-500">*</span>
                         </label>
-                        <app-searchable-select [options]="modalSpecialtyOptions" [ngModel]="modalSpecialtyId()"
-                            (ngModelChange)="modalSpecialtyId.set($event.toString()); modalDoctorId.set('')"
+                        <app-searchable-select [options]="modalSpecialtyOptions" [value]="modalSpecialtyId()"
+                            (valueChange)="modalSpecialtyId.set($event.toString()); modalDoctorId.set('')"
                             placeholder="Seleccionar especialidad" displayMode="default">
                         </app-searchable-select>
                     </div>
@@ -399,8 +399,8 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                             Médico <span class="text-red-500">*</span>
                         </label>
-                        <app-searchable-select [options]="modalDoctorOptions" [ngModel]="modalDoctorId()"
-                            (ngModelChange)="modalDoctorId.set($event.toString())" [disabled]="!modalSpecialtyId()"
+                        <app-searchable-select [options]="modalDoctorOptions" [value]="modalDoctorId()"
+                            (valueChange)="modalDoctorId.set($event.toString())" [disabled]="!modalSpecialtyId()"
                             placeholder="Seleccionar médico" displayMode="default">
                         </app-searchable-select>
                     </div>
@@ -419,8 +419,8 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                             Paciente <span class="text-red-500">*</span>
                         </label>
-                        <app-searchable-select [options]="modalPatientOptions" [ngModel]="modalPatientId()"
-                            (ngModelChange)="modalPatientId.set($event.toString())" placeholder="Seleccionar paciente"
+                        <app-searchable-select [options]="modalPatientOptions" [value]="modalPatientId()"
+                            (valueChange)="modalPatientId.set($event.toString())" placeholder="Seleccionar paciente"
                             displayMode="default">
                         </app-searchable-select>
                     </div>
@@ -663,8 +663,8 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Médico</label>
-                            <app-searchable-select [options]="modalDoctorOptions" [ngModel]="modalDoctorId()"
-                                (ngModelChange)="modalDoctorId.set($event.toString())" placeholder="Seleccionar médico"
+                            <app-searchable-select [options]="modalDoctorOptions" [value]="modalDoctorId()"
+                                (valueChange)="modalDoctorId.set($event.toString())" placeholder="Seleccionar médico"
                                 displayMode="default">
                             </app-searchable-select>
                         </div>

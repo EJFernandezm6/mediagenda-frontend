@@ -26,17 +26,34 @@ export class SpecialtiesService {
   }
 
   refreshSpecialties(page: number = 0, size: number = 10, search: string = '') {
-    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
-    if (search) params = params.set('search', search);
+    let params = new HttpParams().set('page', '0').set('size', '1000'); // Request all to paginate on frontend
 
     this.http.get<any>(this.apiUrl, { params }).pipe(
       map((data: any) => {
+        let items: any[] = data.content || (Array.isArray(data) ? data : []);
+
+        let mapped = items.map(s => ({
+          ...s,
+          active: s.isActive ?? s.active ?? false
+        }) as Specialty);
+
+        // Apply frontend filtering
+        if (search) {
+          const term = search.toLowerCase();
+          mapped = mapped.filter(s =>
+            s.name.toLowerCase().includes(term) ||
+            (s.description && s.description.toLowerCase().includes(term))
+          );
+        }
+
+        // Apply frontend pagination
+        const total = mapped.length;
+        const start = page * size;
+        const paginated = mapped.slice(start, start + size);
+
         return {
-          ...data,
-          content: data.content.map((s: any) => ({
-            ...s,
-            active: s.isActive ?? s.active ?? false
-          }) as Specialty)
+          content: paginated,
+          totalElements: total
         };
       })
     ).subscribe((data: any) => {
