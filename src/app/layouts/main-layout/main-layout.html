@@ -47,7 +47,7 @@
                 class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-gray-400 rounded-lg hover:bg-white/5 hover:text-gray-200 transition-colors group whitespace-nowrap border-l-4 border-transparent"
                 [class.justify-center]="isSidebarCollapsed">
                 <lucide-icon [img]="item.icon"
-                    class="w-5 h-5 group-hover:text-primary transition-colors flex-shrink-0"></lucide-icon>
+                    class="w-5 h-5 group-[.active]:text-white group-hover:text-white transition-colors flex-shrink-0"></lucide-icon>
                 <span *ngIf="!isSidebarCollapsed" class="transition-opacity duration-200">{{ item.label }}</span>
             </a>
         </nav>
@@ -89,7 +89,14 @@
 
         <!-- Top Bar Header -->
         <header
-            class="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-4 sm:px-8 shrink-0 relative z-40 hidden md:flex">
+            class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 shrink-0 relative z-40 hidden md:flex">
+
+            <!-- Welcome / Clinic Info -->
+            <div class="flex items-center gap-2">
+                <span class="text-xl font-bold text-gray-800 uppercase tracking-wide">{{ clinicSettings().clinicName
+                    }}</span>
+            </div>
+
             <!-- Notifications Container mapped to the new Top Bar -->
             <div class="relative flex items-center gap-4" #notificationsContainer>
                 <button (click)="toggleNotifications()"

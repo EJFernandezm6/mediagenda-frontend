@@ -1,7 +1,7 @@
 import { Component, computed, signal, input, output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Search } from 'lucide-angular';
+import { LucideAngularModule, Search, X } from 'lucide-angular';
 
 export interface SelectOption {
     id: string | number;
@@ -24,6 +24,7 @@ export interface SelectOption {
   `]
 })
 export class SearchableSelectComponent {
+    private static activeSelect: SearchableSelectComponent | null = null;
     // Inputs (Using older @Input syntax for broad compatibility with forms, though input() is nice)
     // We will use standard model binding compatible approach
 
@@ -37,24 +38,24 @@ export class SearchableSelectComponent {
         this.disabledState.set(value);
     }
 
-    // NgModel value binding
+    // Value binding
     currentValue = signal<string | number>('');
-    @Input('ngModel')
-    set ngModel(value: string | number) {
-        this.currentValue.set(value || '');
-        this.updateSearchTextFromValue(value);
+    @Input()
+    set value(v: string | number) {
+        this.currentValue.set(v || '');
+        this.updateSearchTextFromValue(v);
     }
 
     @Input() displayMode: 'default' | 'compact' = 'default';
 
     // Outputs
     selectionChanged = output<string | number>();
-    ngModelChange = output<string | number>();
+    valueChange = output<string | number>();
 
     // Internal UI State
     isOpen = signal(false);
     searchText = signal('');
-    icons = { Search };
+    icons = { Search, X };
 
     // Computed filtered list
     filteredOptions = computed(() => {
@@ -69,7 +70,24 @@ export class SearchableSelectComponent {
 
     onSearchChange(text: string) {
         this.searchText.set(text);
+        this.openDropdown();
+    }
+
+    openDropdown() {
+        if (SearchableSelectComponent.activeSelect && SearchableSelectComponent.activeSelect !== this) {
+            SearchableSelectComponent.activeSelect.isOpen.set(false);
+        }
+        SearchableSelectComponent.activeSelect = this;
         this.isOpen.set(true);
+    }
+
+    clearSelection(event?: Event) {
+        if (event) event.stopPropagation();
+        this.currentValue.set('');
+        this.searchText.set('');
+        this.isOpen.set(false);
+        this.selectionChanged.emit('');
+        this.valueChange.emit('');
     }
 
     selectOption(option: SelectOption) {
@@ -77,7 +95,7 @@ export class SearchableSelectComponent {
         this.searchText.set(option.label);
         this.isOpen.set(false);
         this.selectionChanged.emit(option.id);
-        this.ngModelChange.emit(option.id);
+        this.valueChange.emit(option.id);
     }
 
     private updateSearchTextFromValue(val: string | number) {

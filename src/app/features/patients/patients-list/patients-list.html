@@ -98,68 +98,67 @@
                 <thead class="bg-gray-50 border-b border-gray-100">
                     <tr>
                         <th *ngIf="columns.name" scope="col"
-                            class="py-2.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                            class="py-2 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 sm:pl-6">
                             Paciente</th>
                         <th *ngIf="columns.email" scope="col"
-                            class="px-3 py-2.5 text-left text-sm font-semibold text-gray-900">
+                            class="px-3 py-2 text-left text-xs font-semibold text-gray-900">
                             Email</th>
                         <th *ngIf="columns.dni" scope="col"
-                            class="px-3 py-2.5 text-left text-sm font-semibold text-gray-900">
+                            class="px-3 py-2 text-left text-xs font-semibold text-gray-900">
                             DNI</th>
                         <th *ngIf="columns.phone" scope="col"
-                            class="px-3 py-2.5 text-left text-sm font-semibold text-gray-900">
+                            class="px-3 py-2 text-left text-xs font-semibold text-gray-900">
                             Teléfono</th>
                         <th *ngIf="columns.age" scope="col"
-                            class="px-3 py-2.5 text-left text-sm font-semibold text-gray-900">
+                            class="px-3 py-2 text-left text-xs font-semibold text-gray-900">
                             Edad</th>
                         <th *ngIf="columns.gender" scope="col"
-                            class="px-3 py-2.5 text-left text-sm font-semibold text-gray-900">
+                            class="px-3 py-2 text-left text-xs font-semibold text-gray-900">
                             Género</th>
                         <th *ngIf="columns.lastVisit" scope="col"
-                            class="px-3 py-2.5 text-left text-sm font-semibold text-gray-900">
+                            class="px-3 py-2 text-left text-xs font-semibold text-gray-900">
                             Última visita</th>
-                        <th *ngIf="columns.actions" scope="col" class="relative py-2.5 pl-3 pr-4 sm:pr-6">
+                        <th *ngIf="columns.actions" scope="col" class="relative py-2 pl-3 pr-4 sm:pr-6">
                             <span class="sr-only">Acciones</span>
                         </th>
                     </tr>
                 </thead>
                 <tbody *ngFor="let patient of patientsList" class="bg-white border-b border-gray-200">
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td *ngIf="columns.name" class="whitespace-nowrap py-3 pl-4 pr-3 text-sm sm:pl-6">
+                        <td *ngIf="columns.name" class="whitespace-nowrap py-1.5 pl-4 pr-3 text-xs sm:pl-6">
                             <div class="flex items-center">
-                                <div class="h-10 w-10 flex-shrink-0">
+                                <div class="h-8 w-8 flex-shrink-0">
                                     <span
-                                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                                        <span class="font-medium leading-none text-primary">{{
-                                            patient.fullName.charAt(0) }}</span>
+                                        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                                        <lucide-icon [img]="icons.User" class="w-4 h-4 text-primary"></lucide-icon>
                                     </span>
                                 </div>
-                                <div class="ml-4">
+                                <div class="ml-3">
                                     <div class="font-medium text-gray-900">{{ patient.fullName }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td *ngIf="columns.email" class="whitespace-nowrap px-3 py-3 text-sm text-gray-500">
+                        <td *ngIf="columns.email" class="whitespace-nowrap px-3 py-1.5 text-xs text-gray-500">
                             {{ patient.email }}
                         </td>
-                        <td *ngIf="columns.dni" class="whitespace-nowrap px-3 py-3 text-sm text-gray-500"
+                        <td *ngIf="columns.dni" class="whitespace-nowrap px-3 py-1.5 text-xs text-gray-500"
                             [title]="patient.dni">
                             {{ patient.dni | slice:0:8 }}{{ patient.dni.length > 8 ? '...' : '' }}
                         </td>
-                        <td *ngIf="columns.phone" class="whitespace-nowrap px-3 py-3 text-sm text-gray-500">
+                        <td *ngIf="columns.phone" class="whitespace-nowrap px-3 py-1.5 text-xs text-gray-500">
                             {{ patient.phone }}
                         </td>
-                        <td *ngIf="columns.age" class="whitespace-nowrap px-3 py-3 text-sm text-gray-500">
+                        <td *ngIf="columns.age" class="whitespace-nowrap px-3 py-1.5 text-xs text-gray-500">
                             {{ patient.age }} años
                         </td>
-                        <td *ngIf="columns.gender" class="whitespace-nowrap px-3 py-3 text-sm text-gray-500">
+                        <td *ngIf="columns.gender" class="whitespace-nowrap px-3 py-1.5 text-xs text-gray-500">
                             {{ patient.gender }}
                         </td>
-                        <td *ngIf="columns.lastVisit" class="whitespace-nowrap px-3 py-3 text-sm text-gray-500">
+                        <td *ngIf="columns.lastVisit" class="whitespace-nowrap px-3 py-1.5 text-xs text-gray-500">
                             {{ patient.lastVisit || 'N/A' }}
                         </td>
                         <td *ngIf="columns.actions"
-                            class="relative whitespace-nowrap py-3 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            class="relative whitespace-nowrap py-1.5 pl-3 pr-4 text-right text-xs font-medium sm:pr-6">
                             <button (click)="editPatient(patient)" class="text-primary hover:text-blue-900 mr-4">
                                 <lucide-icon [img]="icons.Pencil" class="w-4 h-4"></lucide-icon>
                             </button>

@@ -1,7 +1,7 @@
 import { Component, computed, signal, inject, output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Search } from 'lucide-angular';
+import { LucideAngularModule, Search, X } from 'lucide-angular';
 import { DoctorsService } from '../../../core/services/doctors';
 import { DoctorSpecialtyService, DoctorSpecialty } from '../../../features/doctors/doctor-specialty/doctor-specialty.service';
 
@@ -44,7 +44,7 @@ export class DoctorSelectorComponent {
     // Data
     doctors = this.doctorService.selectableDoctors;
 
-    icons = { Search };
+    icons = { Search, X };
 
     // Computed
     formattedDoctors = computed(() => {
@@ -101,6 +101,11 @@ export class DoctorSelectorComponent {
         this.selectedDoctorId.set('');
         this.searchText.set('');
         this.selectionChanged.emit('');
+    }
+
+    clearSelection(event?: Event) {
+        if (event) event.stopPropagation();
+        this.clear();
     }
 
     // Public method to set initial value

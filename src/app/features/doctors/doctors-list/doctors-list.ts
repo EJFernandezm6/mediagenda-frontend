@@ -163,52 +163,31 @@ export class DoctorsListComponent {
 
     // Generate avatar if name changed AND no photo is set/uploaded (or if it's the default ui-avatar)
     if (!this.form.photoUrl || this.form.photoUrl.includes('ui-avatars')) {
-      // Only update default avatar if user hasn't uploaded a custom one (custom ones are base64 data:image...)
+      // Only update default avatar if user hasn't uploaded a custom one (custom ones are base664 data:image...)
       if (!this.form.photoUrl?.startsWith('data:image')) {
         this.form.photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.form.fullName)}&background=random`;
       }
     }
 
-    this.service.getAllDoctorsForValidation().subscribe({
-      next: (allDoctors) => {
-        // Check Duplicates
-        const docExists = allDoctors.some(d =>
-          d.id !== this.editingId && (
-            (d.dni && this.form.dni && d.dni.trim() === this.form.dni.trim()) ||
-            (d.cmp && this.form.cmp && d.cmp.trim() === this.form.cmp.trim())
-          )
-        );
+    const request$ = this.editingId
+      ? this.service.updateDoctor(this.editingId, this.form)
+      : this.service.addDoctor(this.form);
 
-        if (docExists) {
-          alert('Ya existe un especialista registrado con este Documento o CMP.');
-          this.isSaving = false;
-          return;
-        }
-
-        const request$ = this.editingId
-          ? this.service.updateDoctor(this.editingId, this.form)
-          : this.service.addDoctor(this.form);
-
-        request$.subscribe({
-          next: () => {
-            this.isSaving = false;
-            this.closeModal();
-          },
-          error: (error: any) => {
-            console.error('Error saving doctor:', error);
-            this.isSaving = false;
-            if (error.status === 500) {
-              alert('Error interno. Es posible que el correo ya esté registrado o haya datos inválidos.');
-            } else {
-              alert('Ocurrió un error al guardar el médico. Por favor intente nuevamente.');
-            }
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Error validating duplicates:', err);
-        alert('Ocurrió un error al validar los datos. Por favor intente nuevamente.');
+    request$.subscribe({
+      next: () => {
         this.isSaving = false;
+        this.closeModal();
+      },
+      error: (error: any) => {
+        console.error('Error saving doctor:', error);
+        this.isSaving = false;
+        if (error.status === 409 || error.status === 400) {
+          alert(error.error?.message || 'Ya existe un especialista registrado con este Documento, CMP o Correo electrónico.');
+        } else if (error.status === 500) {
+          alert('Error del servidor: Es posible que los datos ya estén registrados en otro especialista (Ej: CMP o Documento duplicado).');
+        } else {
+          alert('Ocurrió un error al guardar el médico. Por favor intente nuevamente.');
+        }
       }
     });
   }

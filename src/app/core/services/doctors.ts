@@ -44,13 +44,8 @@ export class DoctorsService {
   }
 
   refreshDoctors(page: number = 0, size: number = 9, search: string = '', showInactive: boolean = false) {
-    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    let params = new HttpParams().set('page', '0').set('size', '1000');
     if (search) params = params.set('search', search);
-
-    // Some backends might support filtering by active status
-    if (!showInactive) {
-      params = params.set('isActive', 'true');
-    }
 
     this.http.get<any>(`${this.doctorsUrl}/with-users`, { params }).subscribe({
       next: (data) => {
@@ -60,8 +55,12 @@ export class DoctorsService {
           active: d.isActive
         } as Doctor));
 
-        this.doctors.set(docs);
-        this.totalElements.set(data.totalElements);
+        if (!showInactive) {
+          docs = docs.filter((d: Doctor) => d.active);
+        }
+
+        this.totalElements.set(docs.length);
+        this.doctors.set(docs.slice(page * size, (page + 1) * size));
       },
       error: (err) => console.error('Error fetching doctors:', err)
     });
@@ -137,33 +136,59 @@ export class DoctorsService {
   }
 
   updateDoctor(id: string, updates: Partial<Doctor>) {
-    // Split updates: User (Name, Phone, Email) vs Status vs Profile (CMP - not updatable via Users API)
-    const userUpdates: any = { ...updates };
+    const currentDoctor = this.doctors().find(d => d.id === id);
+    if (!currentDoctor) {
+      return new Observable(obs => { obs.error('Doctor no encontrado'); obs.complete(); });
+    }
 
-    // Remove fields that cannot be updated via /iam/users
-    delete userUpdates.id;
-    delete userUpdates.userId;
-    delete userUpdates.cmp; // CMP is in Doctor Profile, not User
-    delete userUpdates.rating;
-    delete userUpdates.reviewsCount;
-    delete userUpdates.active; // Status is updated via separate endpoint
-    delete userUpdates.roles; // Roles are not updated here
-    delete userUpdates.doctorId; // DoctorID is not in User entity
+    const userUpdates: any = {};
+    let hasUserFieldUpdates = false;
 
-    // 1. Update User Basic Info — only if there are actual user fields to update.
-    // When only toggling active status, skip the PUT to avoid sending empty/invalid body.
-    const hasUserFieldUpdates = Object.keys(userUpdates).length > 0;
+    // Only update IAM user fields if they actually changed
+    if (updates.fullName && updates.fullName !== currentDoctor.fullName) { userUpdates.fullName = updates.fullName; hasUserFieldUpdates = true; }
+    if (updates.email && updates.email !== currentDoctor.email) { userUpdates.email = updates.email; hasUserFieldUpdates = true; }
+    if (updates.phone && updates.phone !== currentDoctor.phone) { userUpdates.phone = updates.phone; hasUserFieldUpdates = true; }
+    if (updates.photoUrl && updates.photoUrl !== currentDoctor.photoUrl && updates.photoUrl.startsWith('data:image')) {
+      userUpdates.photoUrl = updates.photoUrl;
+      hasUserFieldUpdates = true;
+    }
+
     let userUpdate$: Observable<any> = new Observable(obs => { obs.next(null); obs.complete(); });
 
     if (hasUserFieldUpdates) {
-      const currentDoctor = this.doctors().find(d => d.id === id);
-      if (currentDoctor) {
-        if (!userUpdates.fullName) userUpdates.fullName = currentDoctor.fullName;
-        if (!userUpdates.email) userUpdates.email = currentDoctor.email;
-        if (!userUpdates.phone) userUpdates.phone = currentDoctor.phone;
-        if (!userUpdates.roleIds) userUpdates.roleIds = currentDoctor.roleIds ?? [];
+      // If we are forced to send user updates due to a change, we must satisfy the backend's strict requirements
+      userUpdates.fullName = userUpdates.fullName || currentDoctor.fullName;
+      userUpdates.email = userUpdates.email || currentDoctor.email;
+      userUpdates.phone = userUpdates.phone || currentDoctor.phone;
+
+      // Extract roleIds from the roles object if present
+      let existingRoles: string[] = [];
+      if (currentDoctor.roles && Array.isArray(currentDoctor.roles)) {
+        existingRoles = currentDoctor.roles.map((r: any) => r.roleId || r.id);
+      } else if (currentDoctor.roleIds && Array.isArray(currentDoctor.roleIds)) {
+        existingRoles = currentDoctor.roleIds;
       }
-      userUpdate$ = this.http.put<any>(`${this.apiUrl}/${id}`, userUpdates);
+
+      if (existingRoles.length > 0) {
+        userUpdates.roleIds = existingRoles;
+      }
+
+      // If we couldn't find a role, we must fetch the DOCTOR role from the server before PUT
+      if (!userUpdates.roleIds || userUpdates.roleIds.length === 0) {
+        userUpdate$ = this.http.get<any[]>(this.rolesUrl).pipe(
+          switchMap(roles => {
+            const doctorRole = roles.find(r => r.roleKey?.toUpperCase() === 'DOCTOR' || r.name?.toUpperCase() === 'DOCTOR');
+            if (doctorRole) {
+              userUpdates.roleIds = [doctorRole.roleId || doctorRole.id];
+            } else {
+              userUpdates.roleIds = [""]; // Fallback, though it shouldn't happen
+            }
+            return this.http.put<any>(`${this.apiUrl}/${id}`, userUpdates);
+          })
+        );
+      } else {
+        userUpdate$ = this.http.put<any>(`${this.apiUrl}/${id}`, userUpdates);
+      }
     }
 
     // 2. Update Status if changed (IAM User)

@@ -4,11 +4,17 @@
         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <lucide-icon [img]="icons.Search" class="h-5 w-5 text-gray-400"></lucide-icon>
         </div>
-        <input type="text" [ngModel]="searchText()" (ngModelChange)="onSearchChange($event)"
-            [disabled]="disabled()"
+        <input type="text" [ngModel]="searchText()" (ngModelChange)="onSearchChange($event)" [disabled]="disabled()"
             (focus)="isOpen.set(true)"
-            class="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm border py-2 disabled:bg-gray-100 disabled:text-gray-500"
+            class="block w-full rounded-md border-gray-300 pl-10 pr-10 focus:border-primary focus:ring-primary sm:text-sm border py-2 disabled:bg-gray-100 disabled:text-gray-500"
             placeholder="Buscar especialidad...">
+
+        <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+            <button *ngIf="selectedSpecialtyId() && !disabled()" (click)="clearSelection($event)"
+                class="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                <lucide-icon [img]="icons.X" class="h-4 w-4 text-gray-400 hover:text-red-500"></lucide-icon>
+            </button>
+        </div>
     </div>
 
     <!-- Backdrop to close -->
@@ -18,9 +24,8 @@
     <div *ngIf="isOpen() && filteredOptions().length > 0"
         class="absolute z-40 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
         <ul tabindex="-1" role="listbox">
-            <li *ngFor="let specialty of filteredOptions()"
-                (click)="selectSpecialty(specialty)"
-                class="relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-primary text-gray-900 group">
+            <li *ngFor="let specialty of filteredOptions()" (click)="selectSpecialty(specialty)"
+                class="relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-gray-50 transition-colors text-gray-900 group">
                 <div class="flex items-center">
                     <span class="font-normal block truncate group-hover:font-semibold">
                         {{ specialty.name }}

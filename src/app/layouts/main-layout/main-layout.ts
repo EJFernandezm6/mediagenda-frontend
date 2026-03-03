@@ -1,11 +1,12 @@
 import { Component, inject, computed, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { LucideAngularModule, LucideIconData, LayoutDashboard, Calendar, Users, Stethoscope, Award, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight } from 'lucide-angular';
+import { LucideAngularModule, LucideIconData, LayoutDashboard, Calendar, Users, Stethoscope, MessageCircle, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight } from 'lucide-angular';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal';
 import { ErrorModalComponent } from '../../shared/components/error-modal/error-modal.component';
 import { AuthService } from '../../core/auth/auth.service';
 import { AppointmentsService } from '../../core/services/appointments';
+import { ConfigurationService } from '../../core/services/configuration';
 
 @Component({
   selector: 'app-main-layout',
@@ -20,7 +21,7 @@ export class MainLayoutComponent {
     Calendar,
     Users,
     Stethoscope,
-    Award,
+    MessageCircle,
     Clock,
     LogOut,
     Settings,
@@ -36,18 +37,20 @@ export class MainLayoutComponent {
 
   private authService = inject(AuthService);
   private appointmentsService = inject(AppointmentsService);
+  private configService = inject(ConfigurationService);
   private router = inject(Router);
 
   currentUser = this.authService.currentUser;
   pendingAppointments = this.appointmentsService.pendingAppointments;
   isNotificationsOpen = false;
+  clinicSettings = this.configService.settings;
 
   private readonly featureIconMap: Record<string, LucideIconData> = {
     dashboard: this.icons.LayoutDashboard,
     appointments: this.icons.Calendar,
     patients: this.icons.Users,
     specialists: this.icons.Stethoscope,
-    specialties: this.icons.Award,
+    specialties: this.icons.MessageCircle,
     assignments: this.icons.Users,
     shifts: this.icons.Clock,
     roles_permissions: this.icons.Shield,

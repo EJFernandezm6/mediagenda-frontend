@@ -4,8 +4,10 @@ import { environment } from '../../../environments/environment';
 
 export interface SystemSettings {
   clinicName: string;
+  clinicRuc: string;          // Added
   clinicAddress: string;
   clinicPhone: string;
+  clinicWhatsappPhone: string; // Added
   workingDays: number[];
   clinicOpenTime: string; // HH:mm
   clinicCloseTime: string; // HH:mm
@@ -29,8 +31,10 @@ export class ConfigurationService {
 
   settings = signal<SystemSettings>({
     clinicName: 'MediAgenda Clinic',
+    clinicRuc: '20123456789',
     clinicAddress: 'Av. Larco 123, Miraflores',
     clinicPhone: '(01) 555-1234',
+    clinicWhatsappPhone: '+51 987654321',
     workingDays: [1, 2, 3, 4, 5, 6], // Mon-Sat
     clinicOpenTime: '08:00',
     clinicCloseTime: '20:00',
