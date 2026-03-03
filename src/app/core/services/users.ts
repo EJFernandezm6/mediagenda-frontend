@@ -41,10 +41,10 @@ export class UsersService {
     private _currentRole = '';
 
     constructor() {
-        this.refreshUsers(0, 10, '');
+        this.refreshUsers(0, 5, '');
     }
 
-    refreshUsers(page: number = 0, size: number = 10, search: string = '', role?: string, active?: boolean) {
+    refreshUsers(page: number = 0, size: number = 5, search: string = '', role?: string, active?: boolean) {
         if (role !== undefined) {
             this._currentRole = role;
         }

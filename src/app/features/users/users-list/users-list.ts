@@ -166,12 +166,12 @@ export class UsersListComponent {
 
     saveUser() {
         if (this.isEditing && this.editingId) {
-            // Clean payload for update (email is not editable)
             const updatePayload = {
                 fullName: this.formData.fullName,
-                phone: this.formData.phone,
+                email: this.formData.email,
+                phone: this.formData.phone ?? '',
                 roleIds: this.formData.roleIds?.length ? this.formData.roleIds : undefined,
-                photoUrl: this.formData.photoUrl
+                photoUrl: this.formData.photoUrl ?? ''
             };
 
             console.log('🔄 Updating user:', this.editingId, 'with payload:', updatePayload);
@@ -218,28 +218,41 @@ export class UsersListComponent {
         }
     }
 
-    async toggleAdmin(user: AuthUser) {
-        const hasRole = this.hasRoleInUser(user, 'ADMIN');
-        const action = hasRole ? 'quitar' : 'asignar';
+    async grantAdmin(user: AuthUser) {
+        const hasAdmin = this.hasRoleInUser(user, 'ADMIN');
 
         const confirmed = await this.confirmService.confirm({
-            title: 'Cambiar Rol de Administrador',
-            message: `¿Estás seguro de ${action} el rol de Administrador para ${user.fullName}?`,
-            confirmText: 'Confirmar',
+            title: hasAdmin ? 'Quitar Administrador' : 'Asignar Administrador',
+            message: `¿Estás seguro de ${hasAdmin ? 'quitar' : 'asignar'} el rol de Administrador a ${user.fullName}?`,
+            confirmText: hasAdmin ? 'Quitar' : 'Asignar',
             cancelText: 'Cancelar'
         });
 
         if (!confirmed) return;
 
-        // Calculate new roles
-        let newRoles = [...user.roles];
-        if (hasRole) {
-            newRoles = newRoles.filter(r => r.toUpperCase() !== 'ADMIN');
-        } else {
-            newRoles.push('ADMIN');
+        const adminRole = this.availableRoles.find(r =>
+            String(r.roleKey ?? '').toUpperCase() === 'ADMIN'
+        );
+        if (!adminRole) {
+            alert('No se encontró el rol de Administrador en el sistema.');
+            return;
         }
 
-        this.updateUserRoles(user.id, newRoles);
+        const currentIds: string[] = user.roleIds ?? [];
+        const newRoleIds = hasAdmin
+            ? currentIds.filter(id => id !== adminRole.roleId)
+            : [...currentIds, adminRole.roleId];
+
+        this.usersService.updateUser(user.id, {
+            fullName: user.fullName,
+            email: user.email,
+            phone: user.phone ?? '',
+            roleIds: newRoleIds,
+            photoUrl: user.photoUrl ?? ''
+        }).subscribe({
+            next: () => this.usersService.refreshUsers(),
+            error: (err) => alert(err.error?.message ?? 'Error al actualizar el rol.')
+        });
     }
 
     async toggleActive(user: AuthUser) {
@@ -281,79 +294,39 @@ export class UsersListComponent {
     }
 
     async toggleSpecialist(user: AuthUser) {
-        const hasRole = this.hasRoleInUser(user, 'DOCTOR');
-        const action = hasRole ? 'quitar' : 'asignar';
+        const hasDoctor = this.hasRoleInUser(user, 'DOCTOR');
 
         const confirmed = await this.confirmService.confirm({
             title: 'Cambiar Rol de Especialista',
-            message: `¿Estás seguro de ${action} el rol de Especialista para ${user.fullName}?`,
+            message: `¿Estás seguro de ${hasDoctor ? 'quitar' : 'asignar'} el rol de Especialista a ${user.fullName}?`,
             confirmText: 'Confirmar',
             cancelText: 'Cancelar'
         });
 
         if (!confirmed) return;
 
-        // Calculate new roles
-        let newRoles = [...user.roles];
-        if (hasRole) {
-            newRoles = newRoles.filter(r => r.toUpperCase() !== 'DOCTOR');
-        } else {
-            newRoles.push('DOCTOR');
-        }
-
-        this.updateUserRoles(user.id, newRoles);
-    }
-
-    private updateUserRoles(userId: string, newRoles: string[]) {
-        const user = this.users().find(u => u.id === userId);
-        if (!user) {
-            console.error('User not found for role update');
+        const doctorRole = this.availableRoles.find(r =>
+            String(r.roleKey ?? '').toUpperCase() === 'DOCTOR'
+        );
+        if (!doctorRole) {
+            alert('No se encontró el rol de Especialista en el sistema.');
             return;
         }
 
-        // Determine new primary RoleId
-        // Logic: If ADMIN is in newRoles, use ADMIN roleId. 
-        // Else if DOCTOR, use DOCTOR roleId.
-        // Else use the first one found.
-        let targetRoleKey = 'PATIENT'; // Default?
-        if (newRoles.some(r => r.toUpperCase() === 'ADMIN')) {
-            targetRoleKey = 'ADMIN';
-        } else if (newRoles.some(r => r.toUpperCase() === 'DOCTOR')) {
-            targetRoleKey = 'DOCTOR';
-        } else if (newRoles.length > 0) {
-            targetRoleKey = newRoles[0].toUpperCase();
-        }
+        const currentIds: string[] = user.roleIds ?? [];
+        const newRoleIds = hasDoctor
+            ? currentIds.filter(id => id !== doctorRole.roleId)
+            : [...currentIds, doctorRole.roleId];
 
-        const roleObj = this.availableRoles.find(r => r.roleKey === targetRoleKey || r.name.toUpperCase() === targetRoleKey);
-        const newRoleId = roleObj ? roleObj.roleId : user.roleIds?.[0]; // Fallback to first existing roleId
-
-        const payload: UserRequest = {
+        this.usersService.updateUser(user.id, {
             fullName: user.fullName,
             email: user.email,
-            roles: newRoles,
-            roleIds: newRoleId ? [newRoleId] : [],
-            phone: user.phone,
-            photoUrl: user.photoUrl,
-            clinicId: user.clinicId,
-            cmp: user.cmp
-        };
-
-        // If roleId is missing, it might cause 400.
-        // Let's ensure roleId is not null/undefined if possible.
-        // It seems the backend uses roleId to validate the primary role.
-        if (!payload.roleIds?.length) {
-            console.warn('Warning: Could not determine valid roleIds for roles:', newRoles);
-        }
-
-        this.usersService.updateUser(userId, payload).subscribe({
-            next: () => {
-                this.usersService.refreshUsers();
-            },
-            error: (err) => {
-                console.error('Error updating roles:', err);
-                const msg = err.error?.message || 'Error al actualizar los roles.';
-                alert(msg);
-            }
+            phone: user.phone ?? '',
+            roleIds: newRoleIds,
+            photoUrl: user.photoUrl ?? ''
+        }).subscribe({
+            next: () => this.usersService.refreshUsers(),
+            error: (err) => alert(err.error?.message ?? 'Error al actualizar el rol.')
         });
     }
 
@@ -370,6 +343,13 @@ export class UsersListComponent {
 
     isRoleSelected(role: any): boolean {
         return this.formData.roleIds!.includes(role.roleId);
+    }
+
+    isAdminRoleLocked(role: any): boolean {
+        return this.isEditing
+            && this.editingId === this.currentUser()?.id
+            && String(role.roleKey ?? '').toUpperCase() === 'ADMIN'
+            && this.isRoleSelected(role);
     }
 
     isValid() {
