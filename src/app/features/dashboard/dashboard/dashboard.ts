@@ -1,108 +1,147 @@
-import { Component, inject, OnInit, computed, signal } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Users, CalendarCheck, FileX, DollarSign, Activity, TrendingUp, Clock, CreditCard } from 'lucide-angular';
+import { FormsModule } from '@angular/forms';
+import {
+  LucideAngularModule,
+  TrendingUp, Activity, CreditCard, Users,
+  CalendarCheck, Clock, DollarSign
+} from 'lucide-angular';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { DashboardAppService, DashboardChartsResponse, DashboardKpiResponse } from '../dashboard-app.service';
+import {
+  DashboardAppService, FrequentPatientItem, TopDoctorItem, EvolutionItem, Granularity
+} from '../dashboard-app.service';
 import { ConfigurationService } from '../../../core/services/configuration';
-
-
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, NgxChartsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NgxChartsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
 export class DashboardComponent implements OnInit {
-  private dashboardService = inject(DashboardAppService);
-  private configService = inject(ConfigurationService);
+  private svc = inject(DashboardAppService);
+  private configSvc = inject(ConfigurationService);
 
-  // Currency helper
-  currencySymbol = computed(() => {
-    return this.configService.settings().currency === 'USD' ? '$' : 'S/';
-  });
+  currencySymbol = computed(() => this.configSvc.settings().currency === 'USD' ? '$' : 'S/');
 
-  // Icons
-  readonly icons = { Users, CalendarCheck, FileX, DollarSign, Activity, TrendingUp, Clock, CreditCard };
+  readonly icons = { TrendingUp, Activity, CreditCard, Users, CalendarCheck, Clock, DollarSign };
 
-  // KPI Data
-  kpis = signal<any[]>([]);
+  // Date range filter
+  fromDate = this.defaultFrom();
+  toDate = this.today();
 
-  // Chart Data
-  patientsByStatus: any[] = [];
-  visitsBySpecialty: any[] = [];
-  genderDistribution: any[] = [];
-  ageDistribution: any[] = [];
-  paymentMethods: any[] = [];
-  peakDays: any[] = [];
-  peakHours: any[] = [];
-  revenueBySpecialty: any[] = [];
+  // Granularity toggles for evolution charts
+  patientGranularity: Granularity = 'MONTH';
+  appointmentGranularity: Granularity = 'MONTH';
 
-  topPatients: any[] = [];
-  topDoctors: any[] = [];
+  // Perfil Etario: puntos de corte editables (ej: "17,30,45,60")
+  cutoffsInput = '17,30,45,60';
 
-  // Chart Config
-  view: [number, number] = [500, 300];
-  gradient = false;
-  showLegend = true;
-  showLabels = true;
-  isDoughnut = true;
+  // Citas por Franja Horaria: ancho de cada franja en horas (1–12)
+  rangeWidthHours = 1;
 
-  colorScheme: any = {
-    domain: ['#10B981', '#F59E0B', '#3B82F6', '#6366F1', '#8B5CF6']
+  // Color palettes
+  readonly colorScheme: any = {
+    domain: ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6']
+  };
+  readonly statusColors: any = { domain: ['#10B981', '#F59E0B', '#EF4444', '#6366F1'] };
+  readonly genderColors: any = { domain: ['#6366F1', '#EC4899', '#10B981'] };
+
+  // Chart data (ngx-charts format: {name, value}[])
+  paymentStatusData = signal<any[]>([]);
+  specialtyDemandData = signal<any[]>([]);
+  genderData = signal<any[]>([]);
+  ageData = signal<any[]>([]);
+  busiestDaysData = signal<any[]>([]);
+  hourData = signal<any[]>([]);
+  paymentMethodsData = signal<any[]>([]);
+  revenueData = signal<any[]>([]);
+
+  // Line chart data: [{name, series: [{name, value}]}]
+  patientEvolutionData = signal<any[]>([]);
+  appointmentEvolutionData = signal<any[]>([]);
+
+  // Table data
+  frequentPatientsData = signal<FrequentPatientItem[]>([]);
+  topDoctorsData = signal<TopDoctorItem[]>([]);
+
+  ngOnInit() { this.loadAll(); }
+
+  private today(): string { return new Date().toISOString().split('T')[0]; }
+
+  private defaultFrom(): string {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 3);
+    return d.toISOString().split('T')[0];
+  }
+
+  // Muestra el valor numérico en los labels de gráficos circulares
+  readonly pieValueFormat = (data: any): string => {
+    const v = typeof data === 'object' && data !== null ? (data.value ?? data.name) : data;
+    return String(v);
   };
 
-  pieColorScheme: any = {
-    domain: ['#10B981', '#F59E0B', '#EF4444']
-  };
+  // Redondea al entero más cercano (para promedios con decimales)
+  readonly roundFormat = (value: number): string => String(Math.round(value));
 
-  ngOnInit() {
-    this.loadDashboardData();
+  private s(value: string | null | undefined, fallback = 'Sin especificar'): string {
+    return value ?? fallback;
   }
 
-  loadDashboardData() {
-    const today = new Date().toISOString().split('T')[0];
-
-    // 1. KPIs
-    this.dashboardService.getKpis(today).subscribe({
-      next: (data) => {
-        this.kpis.set([
-          { label: 'Citas de Hoy', value: data.appointmentsToday.value, subtext: data.appointmentsToday.subtext, icon: CalendarCheck, color: 'text-blue-500', bg: 'bg-blue-50' },
-          { label: 'Tasa Confirmación', value: data.confirmationRate.value, subtext: data.confirmationRate.subtext, icon: Activity, color: 'text-green-500', bg: 'bg-green-50' },
-          { label: 'Cancelaciones', value: data.cancellationRate.value, subtext: data.cancellationRate.subtext, icon: FileX, color: 'text-orange-500', bg: 'bg-orange-50' },
-          { label: 'Ingresos (Mes)', value: `${this.currencySymbol()} ${data.monthlyRevenue.value}`, subtext: data.monthlyRevenue.subtext, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' }
-        ]);
-        // Note: Ticket Average calculation removed or need to add effectively if wanted. 
-        // For now, sticking to 4 main KPIs returned by backend response structure.
-      },
-      error: (err) => console.error('Error fetching KPIs', err)
-    });
-
-    // 2. Charts
-    // Get current month range
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-
-    this.dashboardService.getCharts(startOfMonth, endOfMonth).subscribe({
-      next: (data) => {
-        this.patientsByStatus = data.patientsByStatus;
-        this.visitsBySpecialty = data.visitsBySpecialty;
-        this.genderDistribution = data.genderDistribution;
-        this.ageDistribution = data.ageDistribution;
-        this.paymentMethods = data.paymentMethods;
-        this.peakDays = data.peakDays;
-        this.peakHours = data.peakHours;
-        this.revenueBySpecialty = data.revenueBySpecialty;
-        this.topDoctors = data.topDoctors;
-        this.topPatients = data.topPatients;
-      },
-      error: (err) => console.error('Error fetching Charts', err)
-    });
+  private toLabelChart(items: { label: string; count: number }[]): any[] {
+    return items.map(i => ({ name: this.s(i.label), value: i.count }));
   }
 
-  onSelect(event: any) {
-    console.log(event);
+  private toLine(items: EvolutionItem[], label: string): any[] {
+    if (!items.length) return [];
+    return [{ name: label, series: items.map(i => ({ name: this.s(i.period), value: i.count })) }];
   }
+
+  loadAll() {
+    const f = this.fromDate, t = this.toDate;
+    this.svc.paymentStatus(f, t).subscribe(d => this.paymentStatusData.set(this.toLabelChart(d)));
+    this.svc.specialtyDemand(f, t).subscribe(d => this.specialtyDemandData.set(d.map(i => ({ name: this.s(i.specialtyName), value: i.count }))));
+    this.svc.patientsByGender(f, t).subscribe(d => this.genderData.set(this.toLabelChart(d)));
+    this.loadAgeChart();
+    this.svc.busiestDays(f, t).subscribe(d => this.busiestDaysData.set(this.toLabelChart(d)));
+    this.loadHourChart();
+    this.svc.paymentMethods(f, t).subscribe(d => this.paymentMethodsData.set(this.toLabelChart(d)));
+    this.svc.frequentPatients(f, t).subscribe(d => this.frequentPatientsData.set(d));
+    this.svc.revenueBySpecialty(f, t).subscribe(d => this.revenueData.set(d.map(i => ({ name: this.s(i.specialtyName), value: Number(i.revenue) }))));
+    this.svc.topDoctors(f, t).subscribe(d => this.topDoctorsData.set(d));
+    this.loadPatientEvolution();
+    this.loadAppointmentEvolution();
+  }
+
+  loadPatientEvolution() {
+    this.svc.patientEvolution(this.fromDate, this.toDate, this.patientGranularity)
+      .subscribe(d => this.patientEvolutionData.set(this.toLine(d, 'Pacientes')));
+  }
+
+  loadAppointmentEvolution() {
+    this.svc.appointmentEvolution(this.fromDate, this.toDate, this.appointmentGranularity)
+      .subscribe(d => this.appointmentEvolutionData.set(this.toLine(d, 'Citas')));
+  }
+
+  setPatientGranularity(g: Granularity) { this.patientGranularity = g; this.loadPatientEvolution(); }
+  setAppointmentGranularity(g: Granularity) { this.appointmentGranularity = g; this.loadAppointmentEvolution(); }
+
+  loadAgeChart() {
+    const cutoffs = this.cutoffsInput
+      .split(',')
+      .map(v => parseInt(v.trim(), 10))
+      .filter(n => !isNaN(n) && n >= 1 && n <= 149);
+    if (!cutoffs.length) return;
+    this.svc.patientsByAge(this.fromDate, this.toDate, cutoffs)
+      .subscribe(d => this.ageData.set(d.map(i => ({ name: this.s(i.ageRange), value: i.count }))));
+  }
+
+  loadHourChart() {
+    const rw = Math.min(12, Math.max(1, Math.floor(this.rangeWidthHours)));
+    this.svc.appointmentsByHour(this.fromDate, this.toDate, rw)
+      .subscribe(d => this.hourData.set(d.map(i => ({ name: this.s(i.hourRange), value: i.avgCount }))));
+  }
+
+  applyFilter() { this.loadAll(); }
 }
