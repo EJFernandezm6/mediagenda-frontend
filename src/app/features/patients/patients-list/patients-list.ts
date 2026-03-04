@@ -86,11 +86,7 @@ export class PatientsListComponent implements OnInit {
 
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    const cleanValue = input.value.replace(/[^a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ]/g, '');
-    if (input.value !== cleanValue) {
-      input.value = cleanValue;
-    }
-    this.searchTerm = cleanValue;
+    this.searchTerm = input.value;
     this.onSearchChange();
   }
 

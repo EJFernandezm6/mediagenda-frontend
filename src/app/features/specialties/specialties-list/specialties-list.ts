@@ -33,39 +33,39 @@ export class SpecialtiesListComponent implements OnInit {
   form = { name: '', description: '', active: true };
 
   get specialtiesList() {
-    return this.specialties();
+    const term = this.searchTerm.toLowerCase();
+    const filtered = this.service.specialties().filter(s =>
+      s.name.toLowerCase().includes(term) ||
+      (s.description && s.description.toLowerCase().includes(term))
+    );
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return filtered.slice(start, start + this.itemsPerPage);
   }
 
   ngOnInit() {
-    this.loadSpecialties();
+    // Service auto-fetches on init
   }
 
   get totalItems() {
-    return this.service.totalElements();
+    const term = this.searchTerm.toLowerCase();
+    return this.service.specialties().filter(s =>
+      s.name.toLowerCase().includes(term) ||
+      (s.description && s.description.toLowerCase().includes(term))
+    ).length;
   }
 
   onPageChange(page: number) {
     this.currentPage = page;
-    this.loadSpecialties();
   }
 
   onSearchChange() {
     this.currentPage = 1;
-    this.loadSpecialties();
   }
 
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    const cleanValue = input.value.replace(/[^a-zA-Z áéíóúÁÉÍÓÚñÑ]/g, '');
-    if (input.value !== cleanValue) {
-      input.value = cleanValue;
-    }
-    this.searchTerm = cleanValue;
+    this.searchTerm = input.value;
     this.onSearchChange();
-  }
-
-  private loadSpecialties() {
-    this.service.refreshSpecialties(this.currentPage - 1, this.itemsPerPage, this.searchTerm);
   }
 
   openModal(specialty?: Specialty) {

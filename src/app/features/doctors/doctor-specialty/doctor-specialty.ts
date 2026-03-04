@@ -108,11 +108,7 @@ export class DoctorSpecialtyComponent {
   // Input Validations
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    const cleanValue = input.value.replace(/[^a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ]/g, '');
-    if (input.value !== cleanValue) {
-      input.value = cleanValue;
-    }
-    this.searchTerm.set(cleanValue);
+    this.searchTerm.set(input.value);
   }
 
   onCostInput(event: Event) {

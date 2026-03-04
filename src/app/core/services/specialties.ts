@@ -18,47 +18,26 @@ export class SpecialtiesService {
   private apiUrl = `${environment.apiUrl}/catalog/specialties`;
 
 
-  specialties = signal<Specialty[]>([]);
-  totalElements = signal<number>(0);
+  specialties = signal<Specialty[]>([]); // To maintain backward compat for now, but will hold all specialties instead
 
   constructor() {
-    this.refreshSpecialties(0, 10, '');
+    this.refreshSpecialties();
   }
 
-  refreshSpecialties(page: number = 0, size: number = 10, search: string = '') {
-    let params = new HttpParams().set('page', '0').set('size', '1000'); // Request all to paginate on frontend
+  refreshSpecialties() {
+    let params = new HttpParams().set('page', '0').set('size', '1000'); // Fetch all
 
     this.http.get<any>(this.apiUrl, { params }).pipe(
       map((data: any) => {
         let items: any[] = data.content || (Array.isArray(data) ? data : []);
 
-        let mapped = items.map(s => ({
+        return items.map(s => ({
           ...s,
           active: s.isActive ?? s.active ?? false
         }) as Specialty);
-
-        // Apply frontend filtering
-        if (search) {
-          const term = search.toLowerCase();
-          mapped = mapped.filter(s =>
-            s.name.toLowerCase().includes(term) ||
-            (s.description && s.description.toLowerCase().includes(term))
-          );
-        }
-
-        // Apply frontend pagination
-        const total = mapped.length;
-        const start = page * size;
-        const paginated = mapped.slice(start, start + size);
-
-        return {
-          content: paginated,
-          totalElements: total
-        };
       })
-    ).subscribe((data: any) => {
-      this.specialties.set(data.content);
-      this.totalElements.set(data.totalElements);
+    ).subscribe((data: Specialty[]) => {
+      this.specialties.set(data);
     });
   }
 

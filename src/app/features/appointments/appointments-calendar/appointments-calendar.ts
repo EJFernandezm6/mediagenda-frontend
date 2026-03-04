@@ -61,7 +61,7 @@ export class AppointmentsCalendarComponent {
   viewMode = signal<'day' | 'week'>('week'); // Default to week per requirements? Or Day? User didn't specify default, but asked for "version semanal Y version diaria".
 
   // Data Sources
-  doctors = computed(() => this.doctorService.doctors().filter(d => d.active));
+  doctors = computed(() => this.doctorService.selectableDoctors().filter(d => d.active !== false));
   specialties = this.specialtyService.specialties;
   allPatients = signal<any[]>([]);
   appointments = this.appointmentsService.appointments;
@@ -92,6 +92,14 @@ export class AppointmentsCalendarComponent {
       }
 
       this.appointmentsService.refreshAppointmentsByRange(from, to);
+    });
+
+    effect(() => {
+      console.log('--- CALENDAR DEBUG ---');
+      console.log('Selectable Doctors:', this.doctors());
+      console.log('Schedules:', this.scheduleService.schedules());
+      console.log('Appointments:', this.appointments());
+      console.log('Time Slots:', this.timeSlots());
     });
 
     // Handle Deep Linking (Notifications)
@@ -437,22 +445,35 @@ export class AppointmentsCalendarComponent {
 
   isPastDate(dateStr: string): boolean {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const date = new Date(dateStr + 'T00:00:00');
-    return date < today;
+    // Get local date string YYYY-MM-DD
+    const todayStr = [
+      today.getFullYear(),
+      (today.getMonth() + 1).toString().padStart(2, '0'),
+      today.getDate().toString().padStart(2, '0')
+    ].join('-');
+    return dateStr < todayStr;
   }
 
   isPastTime(dateStr: string, timeStr: string): boolean {
     if (this.isPastDate(dateStr)) return true;
 
-    // If today, check time
-    const todayStr = new Date().toISOString().split('T')[0];
+    // If today, check time against local time
+    const today = new Date();
+    const todayStr = [
+      today.getFullYear(),
+      (today.getMonth() + 1).toString().padStart(2, '0'),
+      today.getDate().toString().padStart(2, '0')
+    ].join('-');
+
     if (dateStr === todayStr) {
       const now = new Date();
       const [h, m] = timeStr.split(':').map(Number);
-      const slotTime = new Date();
-      slotTime.setHours(h, m, 0, 0);
-      return slotTime < now;
+
+      const currentH = now.getHours();
+      const currentM = now.getMinutes();
+
+      if (h < currentH) return true;
+      if (h === currentH && m <= currentM) return true;
     }
 
     return false;
@@ -501,16 +522,14 @@ export class AppointmentsCalendarComponent {
             const endStr = this.normalizeTime(s.endTime);
             const startMins = this.getMinutes(startStr);
             const endMins = this.getMinutes(endStr);
+            const duration = this.getDuration(docId, s.specialtyId);
 
-            // Must be within range
+            // Time slots were generated using `startMins + N * duration`.
+            // Check if this time slot is within the schedule's active block.
             if (timeMins >= startMins && timeMins < endMins) {
-              // Must align with duration blocks
-              const duration = this.getDuration(docId, s.specialtyId);
-              if ((timeMins - startMins) % duration === 0) {
-                isWorking = true;
-                workingSpecialtyId = s.specialtyId;
-                return;
-              }
+              isWorking = true;
+              workingSpecialtyId = s.specialtyId;
+              return;
             }
           }
         }

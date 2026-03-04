@@ -44,7 +44,7 @@ export class SpecialtySelectorComponent {
     filteredOptions = computed(() => {
         const search = this.searchText().toLowerCase();
         return this.specialties().filter(s =>
-            s.name.toLowerCase().includes(search)
+            s.active !== false && s.name.toLowerCase().includes(search)
         );
     });
 
