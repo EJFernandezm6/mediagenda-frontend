@@ -36,20 +36,19 @@ export class ScheduleConfigComponent {
   // Flatten schedules effectively
   currentSchedules = computed(() => {
     const docId = this.selectedDoctorId();
-    if (!docId) return [];
-
     const all = this.scheduleService.schedules();
     const today = new Date().toISOString().split('T')[0];
 
-    return all
-      .filter(s => s.doctorId === docId)
-      // Filter out past dates
-      .filter(s => s.date >= today)
-      // Sort by Date then Time
-      .sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date);
-        return a.startTime.localeCompare(b.startTime);
-      });
+    let filtered = all.filter(s => s.date >= today); // always filter past dates
+
+    if (docId) {
+      filtered = filtered.filter(s => s.doctorId === docId);
+    }
+
+    return filtered.sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.startTime.localeCompare(b.startTime);
+    });
   });
 
   formatTimeDisplay(time: string): string {
@@ -101,6 +100,11 @@ export class ScheduleConfigComponent {
     const doc = this.doctorService.doctors().find(d => d.id === docId || d.doctorId === docId);
     return doc ? doc.fullName : 'Especialista';
   });
+
+  getDoctorName(docId: string): string {
+    const doc = this.doctorService.doctors().find(d => d.id === docId || d.doctorId === docId);
+    return doc ? doc.fullName : 'Desconocido';
+  }
 
   // Min Date for Date Picker
   minDate = new Date().toISOString().split('T')[0];

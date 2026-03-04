@@ -63,6 +63,13 @@ export class PatientsService {
     return this.patients();
   }
 
+  getAllPatientsForSelect() {
+    let params = new HttpParams().set('page', '0').set('size', '10000');
+    return this.http.get<PaginatedResponse<Patient>>(this.apiUrl, { params }).pipe(
+      tap(data => console.log('Loaded all patients for select:', data.content.length))
+    );
+  }
+
   getPatient(id: string) {
     return this.http.get<Patient>(`${this.apiUrl}/${id}`);
   }

@@ -554,9 +554,9 @@
                         <lucide-icon [img]="icons.User" class="w-6 h-6"></lucide-icon>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900 leading-tight">{{
+                        <h3 class="text-lg font-bold text-white leading-tight">{{
                             getPatientName(selectedAppointment.patientId) }}</h3>
-                        <p class="text-sm text-primary font-medium">Paciente</p>
+                        <p class="text-sm text-blue-100 font-medium">Paciente</p>
                     </div>
                 </div>
 
@@ -606,14 +606,16 @@
                 </div>
 
                 <!-- Payment Validation Action -->
-                <div *ngIf="selectedAppointment.paymentStatus !== 'PAID'" class="mb-6 animate-fade-in">
-                    <button (click)="validatePayment()"
-                        class="w-full py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 shadow-md transition-all flex items-center justify-center gap-2">
-                        <lucide-icon [img]="icons.CheckCircle" class="w-5 h-5"></lucide-icon>
-                        Confirmar Pago Realizado
-                    </button>
-                    <p class="text-xs text-gray-500 text-center mt-2">
-                        Esta acción marcará la cita como <strong>Pagada</strong> y <strong>Confirmada</strong>.
+                <!-- Payment Information Text (Replaced Button) -->
+                <div *ngIf="selectedAppointment.paymentStatus !== 'PAID'"
+                    class="mb-6 animate-fade-in bg-green-50 rounded-xl p-4 border border-green-100">
+                    <div class="flex items-center gap-2 mb-1">
+                        <lucide-icon [img]="icons.AlertCircle" class="w-5 h-5 text-green-600"></lucide-icon>
+                        <h4 class="text-sm font-bold text-green-900">Validación de Pago</h4>
+                    </div>
+                    <p class="text-xs text-green-700">
+                        Presiona el botón "Confirmar Pago" en la barra inferior para marcar esta cita como
+                        <strong>Pagada</strong> y <strong>Confirmada</strong>.
                     </p>
                 </div>
 
@@ -712,16 +714,24 @@
             <div class="flex flex-1 gap-2">
                 <button *ngIf="!isRescheduling && selectedAppointment?.status !== 'CANCELLED'"
                     (click)="showCancelConfirmation()"
-                    class="flex-1 py-3 bg-red-100 text-red-700 font-bold rounded-xl hover:bg-red-200">
+                    class="flex-1 py-3 bg-red-100 text-red-700 text-sm sm:text-base font-bold rounded-xl hover:bg-red-200">
                     Cancelar
                 </button>
                 <button *ngIf="!isRescheduling && selectedAppointment?.status !== 'CANCELLED'"
                     (click)="startRescheduling()"
-                    class="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary hover:bg-primary">
+                    class="flex-1 py-3 bg-primary text-white text-sm sm:text-base font-bold rounded-xl shadow-lg shadow-primary hover:bg-primary whitespace-nowrap">
                     Reprogramar
                 </button>
+                <!-- Moved Confirm Payment Button -->
+                <button
+                    *ngIf="!isRescheduling && selectedAppointment?.paymentStatus !== 'PAID' && selectedAppointment?.status !== 'CANCELLED'"
+                    (click)="validatePayment()"
+                    class="flex-[1.5] py-3 bg-green-600 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-green-700 shadow-md transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                    <lucide-icon [img]="icons.CheckCircle" class="w-4 h-4 sm:w-5 sm:h-5"></lucide-icon>
+                    Confirmar Pago
+                </button>
                 <button *ngIf="isRescheduling" (click)="saveRescheduledAppointment()" [disabled]="!modalTime()"
-                    class="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-200 hover:bg-green-700 disabled:opacity-50">
+                    class="flex-1 py-3 bg-green-600 text-white text-sm sm:text-base font-bold rounded-xl shadow-lg shadow-green-200 hover:bg-green-700 disabled:opacity-50">
                     Guardar
                 </button>
             </div>

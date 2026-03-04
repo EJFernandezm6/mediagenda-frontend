@@ -108,8 +108,8 @@
                     {{ selectedDoctorName() ? 'Horarios Registrados - ' + selectedDoctorName() : 'Horarios Registrados'
                     }}
                 </h3>
-                <span class="text-sm py-1 px-3 bg-primary text-primary rounded-full font-medium"
-                    *ngIf="selectedDoctorId() && currentSchedules().length > 0">
+                <span class="text-sm py-1 px-3 bg-primary text-white rounded-full font-medium"
+                    *ngIf="currentSchedules().length > 0">
                     {{ currentSchedules().length }} turnos asignados
                 </span>
             </div>
@@ -137,7 +137,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <!-- Empty States -->
-                        <tr *ngIf="!selectedDoctorId() || currentSchedules().length === 0">
+                        <tr *ngIf="currentSchedules().length === 0">
                             <td colspan="5" class="px-6 py-12 text-center">
                                 <div class="flex flex-col items-center justify-center">
                                     <div class="bg-gray-100 p-4 rounded-full mb-4">
@@ -145,8 +145,8 @@
                                     </div>
                                     <p class="text-gray-900 font-medium text-lg">No hay turnos programados para hoy</p>
                                     <p class="text-gray-500 text-sm mt-1 max-w-sm mx-auto">
-                                        {{ !selectedDoctorId() ? 'Selecciona un especialista en el formulario superior
-                                        para comenzar.' : 'Este especialista no tiene turnos asignados en las fechas
+                                        {{ !selectedDoctorId() ? 'No hay turnos registrados en el sistema para fechas
+                                        futuras.' : 'Este especialista no tiene turnos asignados en las fechas
                                         futuras.' }}
                                     </p>
                                 </div>
@@ -160,9 +160,9 @@
                                 <div class="flex flex-col">
                                     <span
                                         class="text-sm font-semibold text-gray-900 group-hover:text-primary transition-colors">{{
-                                        selectedDoctorName() }}</span>
+                                        getDoctorName(schedule.doctorId) }}</span>
                                     <span
-                                        class="inline-flex items-center mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary border border-primary text-primary w-fit">
+                                        class="inline-flex items-center mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary border border-primary text-white w-fit">
                                         {{ getSpecialtyName(schedule.specialtyId) }}
                                     </span>
                                 </div>

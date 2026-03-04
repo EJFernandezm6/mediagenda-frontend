@@ -63,7 +63,7 @@ export class AppointmentsCalendarComponent {
   // Data Sources
   doctors = computed(() => this.doctorService.doctors().filter(d => d.active));
   specialties = this.specialtyService.specialties;
-  patients = this.patientsService.patients;
+  allPatients = signal<any[]>([]);
   appointments = this.appointmentsService.appointments;
 
   // Filters
@@ -72,6 +72,9 @@ export class AppointmentsCalendarComponent {
 
   constructor() {
     this.scheduleService.refreshSchedules();
+    this.patientsService.getAllPatientsForSelect().subscribe(data => {
+      this.allPatients.set(data.content);
+    });
 
     effect(() => {
       const current = this.currentDate();
@@ -228,7 +231,7 @@ export class AppointmentsCalendarComponent {
   get modalPatientOptions(): SelectOption[] {
     return [
       { id: '', label: 'Seleccionar paciente' },
-      ...this.patients().map(p => ({
+      ...this.allPatients().map(p => ({
         id: p.patientId,
         label: p.dni ? `${p.dni} - ${p.fullName}` : p.fullName
       }))
@@ -652,7 +655,7 @@ export class AppointmentsCalendarComponent {
     const patientId = this.modalPatientId();
 
     if (doctorId && specialtyId && date && time && patientId) {
-      const patient = this.patients().find(p => p.patientId === patientId);
+      const patient = this.allPatients().find(p => p.patientId === patientId);
       const duration = this.getDuration(doctorId, specialtyId);
 
       this.saving.set(true);
@@ -695,7 +698,7 @@ export class AppointmentsCalendarComponent {
   }
 
   getPatientName(id: string) {
-    return this.patients().find(p => p.patientId === id)?.fullName || 'Paciente Desconocido';
+    return this.allPatients().find(p => p.patientId === id)?.fullName || 'Paciente Desconocido';
   }
 
   getAppointmentColorClass(app: Appointment): string {
@@ -837,7 +840,7 @@ export class AppointmentsCalendarComponent {
     if (this.selectedAppointment.paymentStatus === 'PAID') {
       return 'bg-green-600';
     }
-    // "Reservado" (Pending) -> Yellow
-    return 'bg-yellow-500';
+    // "Reservado" (Pending) -> Primary Theme Color for better contrast
+    return 'bg-primary';
   }
 }
