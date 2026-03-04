@@ -111,18 +111,6 @@
                     <td class="px-6 py-2 text-right">
                         <!-- Actions always visible (removed opacity-0 group-hover:opacity-100) -->
                         <div class="flex justify-end gap-2">
-                            <button (click)="grantAdmin(user)"
-                                [disabled]="user.id === currentUser()?.id"
-                                class="p-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                [ngClass]="hasRoleInUser(user, 'ADMIN') ? 'text-purple-600 bg-purple-50 hover:bg-purple-100' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'"
-                                [title]="user.id === currentUser()?.id ? 'No puedes modificar tu propio rol' : (hasRoleInUser(user, 'ADMIN') ? 'Quitar Administrador' : 'Asignar Administrador')">
-                                <lucide-icon [img]="Icons.Shield" class="w-4 h-4"></lucide-icon>
-                            </button>
-                            <button (click)="toggleSpecialist(user)" class="p-2 rounded-lg transition-all"
-                                [ngClass]="hasRoleInUser(user, 'DOCTOR') ? 'text-white bg-primary hover:bg-primary/90' : 'text-gray-400 hover:text-primary hover:bg-primary/10'"
-                                title="Alternar Especialista">
-                                <lucide-icon [img]="Icons.Stethoscope" class="w-4 h-4"></lucide-icon>
-                            </button>
                             <button (click)="toggleActive(user)" class="p-2 rounded-lg transition-all"
                                 [disabled]="user.id === currentUser()?.id"
                                 [ngClass]="user.active ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed' : 'text-red-500 bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed'"
@@ -166,19 +154,22 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Roles *</label>
                 <div class="grid grid-cols-2 gap-2">
                     <label *ngFor="let role of availableRoles"
-                        class="flex items-center gap-2 p-2 border rounded-lg"
+                        class="flex items-center gap-2 p-2 border rounded-lg transition-all"
                         [class.cursor-pointer]="!isAdminRoleLocked(role)"
                         [class.cursor-not-allowed]="isAdminRoleLocked(role)"
-                        [class.hover:bg-gray-50]="!isAdminRoleLocked(role)"
-                        [class.opacity-60]="isAdminRoleLocked(role)"
-                        [class.border-primary]="isRoleSelected(role)"
-                        [class.bg-primary]="isRoleSelected(role)"
+                        [class.hover:bg-gray-50]="!isAdminRoleLocked(role)" [class.opacity-70]="isAdminRoleLocked(role)"
+                        [class.bg-gray-100]="isAdminRoleLocked(role)" [class.border-gray-300]="isAdminRoleLocked(role)"
+                        [class.border-primary]="isRoleSelected(role) && !isAdminRoleLocked(role)"
+                        [class.bg-primary]="isRoleSelected(role) && !isAdminRoleLocked(role)"
                         [title]="isAdminRoleLocked(role) ? 'No puedes quitarte el rol de Administrador' : ''">
                         <input type="checkbox" [checked]="isRoleSelected(role)"
-                            (change)="!isAdminRoleLocked(role) && toggleRole(role)"
-                            [disabled]="isAdminRoleLocked(role)"
-                            class="rounded" />
-                        <span class="text-sm font-medium">{{ role.name }}</span>
+                            (change)="!isAdminRoleLocked(role) && toggleRole(role)" [disabled]="isAdminRoleLocked(role)"
+                            class="rounded text-primary focus:ring-primary h-4 w-4"
+                            [class.text-gray-400]="isAdminRoleLocked(role)" />
+                        <span class="text-sm font-medium"
+                            [ngClass]="(isRoleSelected(role) && !isAdminRoleLocked(role)) ? 'text-white' : (isAdminRoleLocked(role) ? 'text-gray-500' : 'text-gray-700')">
+                            {{ role.name }}
+                        </span>
                     </label>
                 </div>
                 <p *ngIf="formData.roles.length === 0" class="text-xs text-red-500 mt-1">

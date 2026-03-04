@@ -342,7 +342,7 @@ export class UsersListComponent {
     }
 
     isRoleSelected(role: any): boolean {
-        return this.formData.roleIds!.includes(role.roleId);
+        return this.formData.roleIds ? this.formData.roleIds.includes(role.roleId) : false;
     }
 
     isAdminRoleLocked(role: any): boolean {

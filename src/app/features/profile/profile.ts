@@ -72,7 +72,7 @@ export class ProfileComponent {
             photoUrl: this.profileForm.value.photoUrl
         };
 
-        this.usersService.updateUser(user.id, updates).subscribe({
+        this.usersService.updateProfile(updates).subscribe({
             next: () => {
                 // Update local auth state manually to reflect changes immediately
                 // Alternatively calling authService.reloadUser() if implemented

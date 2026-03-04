@@ -29,29 +29,7 @@ export class ConfigurationComponent {
   // Subscription Plans
 
 
-  // Helper for UI
-  availableDays = [
-    { id: 1, name: 'Lunes' },
-    { id: 2, name: 'Martes' },
-    { id: 3, name: 'Miércoles' },
-    { id: 4, name: 'Jueves' },
-    { id: 5, name: 'Viernes' },
-    { id: 6, name: 'Sábado' },
-    { id: 0, name: 'Domingo' }
-  ];
 
-  toggleDay(dayId: number) {
-    const currentDays = this.settings.workingDays || [];
-    if (currentDays.includes(dayId)) {
-      this.settings.workingDays = currentDays.filter(d => d !== dayId);
-    } else {
-      this.settings.workingDays = [...currentDays, dayId].sort((a, b) => {
-        // Handle Sunday (0) being at the end for sorting if needed, but 0-6 sort is fine
-        // If we want Mon(1)..Sun(0), we can just sort numerically for now.
-        return a - b;
-      });
-    }
-  }
 
   save() {
     this.configService.updateSettings(this.settings);

@@ -75,7 +75,7 @@
                         {{ currentUser()?.fullName || 'Usuario' }}
                     </p>
                     <p class="text-xs text-gray-400 truncate">
-                        {{ currentUser()?.roles?.[0] || 'Invitado' }}
+                        {{ userRolesDisplay() }}
                     </p>
                 </div>
             </div>

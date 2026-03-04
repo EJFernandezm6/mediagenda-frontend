@@ -26,16 +26,12 @@
                     <input [(ngModel)]="settings.clinicName" type="text" disabled
                         class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-500 shadow-sm border px-3 py-2 cursor-not-allowed">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">RUC</label>
-                    <input [(ngModel)]="settings.clinicRuc" type="text" disabled
-                        class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-500 shadow-sm border px-3 py-2 cursor-not-allowed">
-                </div>
                 <div class="lg:col-span-3">
                     <label class="block text-sm font-medium text-gray-700">Dirección</label>
                     <input [(ngModel)]="settings.clinicAddress" type="text" disabled
                         class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-500 shadow-sm border px-3 py-2 cursor-not-allowed">
                 </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Teléfono general</label>
                     <input [(ngModel)]="settings.clinicPhone" type="text"
@@ -59,6 +55,10 @@
 
 
 
+
+
+
+
         <!-- Clinic Schedule Settings -->
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
@@ -66,19 +66,6 @@
                 <h3 class="text-lg font-medium text-gray-900">Horarios generales de atención</h3>
             </div>
             <div class="p-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <div class="col-span-1 sm:col-span-2 lg:col-span-3">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Días laborables</label>
-                    <div class="flex flex-wrap gap-2">
-                        <button *ngFor="let day of availableDays" (click)="toggleDay(day.id)"
-                            [class]="settings.workingDays.includes(day.id) ? 'bg-primary text-primary border-primary' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'"
-                            class="px-3 py-1.5 rounded-lg border text-sm font-medium transition-all">
-                            {{ day.name }}
-                        </button>
-                    </div>
-                    <p class="mt-1 text-xs text-gray-500">Los días no seleccionados aparecerán deshabilitados (color
-                        plomo) en el
-                        calendario.</p>
-                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Hora apertura</label>
                     <input [(ngModel)]="settings.clinicOpenTime" type="time"
@@ -89,50 +76,40 @@
                     <input [(ngModel)]="settings.clinicCloseTime" type="time"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary border px-3 py-2">
                 </div>
-
             </div>
         </div>
-
-
 
         <!-- Integrations Section -->
         <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                <lucide-icon [img]="icons.CreditCard" class="w-5 h-5 text-gray-500"></lucide-icon>
-                <h3 class="text-lg font-medium text-gray-900">Pagos e integraciones</h3>
+                <lucide-icon [img]="icons.Bell" class="w-5 h-5 text-gray-500"></lucide-icon>
+                <h3 class="text-lg font-medium text-gray-900">Notificaciones</h3>
             </div>
             <div class="p-6 space-y-6">
                 <!-- Stripe Key removed as requested -->
 
-                <div class="pt-2">
-                    <h4 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <lucide-icon [img]="icons.Bell" class="w-4 h-4 text-gray-500"></lucide-icon>
-                        Notificaciones
-                    </h4>
-                    <div class="space-y-4">
-                        <div class="flex items-start">
-                            <div class="flex h-5 items-center">
-                                <input [(ngModel)]="settings.emailNotifications" type="checkbox"
-                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
-                            </div>
-                            <div class="ml-3 text-sm">
-                                <label class="font-medium text-gray-700">Email</label>
-                                <p class="text-gray-500">Enviar recordatorios por correo a pacientes y
-                                    especialistas.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="flex items-start">
-                            <div class="flex h-5 items-center">
-                                <input [(ngModel)]="settings.whatsappNotifications" type="checkbox" disabled
-                                    class="h-4 w-4 rounded border-gray-300 text-primary bg-gray-100 cursor-not-allowed">
-                            </div>
-                            <div class="ml-3 text-sm">
-                                <label class="font-medium text-gray-700">WhatsApp</label>
-                                <p class="text-gray-500">Integración con API de WhatsApp Business (Requiere
-                                    configuración externa).</p>
-                            </div>
-                        </div>
+
+                <div class="flex items-start">
+                    <div class="flex h-5 items-center">
+                        <input [(ngModel)]="settings.emailNotifications" type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label class="font-medium text-gray-700">Email</label>
+                        <p class="text-gray-500">Enviar recordatorios por correo a pacientes y
+                            especialistas.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <div class="flex h-5 items-center">
+                        <input [(ngModel)]="settings.whatsappNotifications" type="checkbox" disabled
+                            class="h-4 w-4 rounded border-gray-300 text-primary bg-gray-100 cursor-not-allowed">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label class="font-medium text-gray-700">WhatsApp</label>
+                        <p class="text-gray-500">Integración con API de WhatsApp Business (Requiere
+                            configuración externa).</p>
                     </div>
                 </div>
             </div>

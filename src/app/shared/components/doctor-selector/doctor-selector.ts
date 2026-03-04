@@ -48,17 +48,9 @@ export class DoctorSelectorComponent {
 
     // Computed
     formattedDoctors = computed(() => {
-        const activeAssociations = this.doctorSpecialtyService.associations();
-        // Extract unique doctor IDs that have at least one specialty mapped to them
-        const doctorIdsWithSpecialties = new Set(activeAssociations.map((a: DoctorSpecialty) => a.doctorId));
-
         const uniqueDoctorsMap = new Map();
 
         this.doctors()
-            .filter(doctor => {
-                const docId = doctor.doctorId || doctor.id;
-                return doctorIdsWithSpecialties.has(docId);
-            })
             .forEach(doctor => {
                 const docId = doctor.doctorId || doctor.id;
                 if (!uniqueDoctorsMap.has(docId)) {

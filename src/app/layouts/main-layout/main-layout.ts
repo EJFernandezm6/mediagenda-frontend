@@ -72,6 +72,18 @@ export class MainLayoutComponent {
     this.appointmentsService.fetchPendingAppointments();
   }
 
+  userRolesDisplay = computed(() => {
+    const roles = this.currentUser()?.roles;
+    if (!roles || roles.length === 0) return 'Invitado';
+
+    return roles.map(r => {
+      const upper = r.toUpperCase();
+      if (upper === 'ADMIN') return 'Administrador';
+      if (upper === 'DOCTOR') return 'Especialista';
+      return r;
+    }).join(', ');
+  });
+
   isMobileMenuOpen = false;
   isSidebarCollapsed = false;
 
