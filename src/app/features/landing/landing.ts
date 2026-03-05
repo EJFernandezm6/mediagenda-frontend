@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Calendar, Users, ShieldCheck, ArrowRight, CheckCircle2, Menu, X } from 'lucide-angular';
+import { LucideAngularModule, Calendar, Users, ShieldCheck, ArrowRight, CheckCircle2, Menu, X, MessageCircle, CreditCard, CalendarCheck, Shield, Search, Briefcase, Sliders } from 'lucide-angular';
 
 @Component({
   selector: 'app-landing',
@@ -19,6 +19,13 @@ export class LandingComponent {
   readonly CheckCircle2 = CheckCircle2;
   readonly Menu = Menu;
   readonly X = X;
+  readonly MessageCircle = MessageCircle;
+  readonly CreditCard = CreditCard;
+  readonly CalendarCheck = CalendarCheck;
+  readonly Shield = Shield;
+  readonly Search = Search;
+  readonly Briefcase = Briefcase;
+  readonly Sliders = Sliders;
 
   isMenuOpen = false;
 

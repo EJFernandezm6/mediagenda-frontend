@@ -1,307 +1,304 @@
-<div class="min-h-screen bg-white font-sans text-[#1d1d1f] antialiased">
+<div class="min-h-screen bg-app font-sans text-main antialiased">
   <!-- Navigation -->
-  <nav class="glass-nav fixed top-0 left-0 right-0 z-50 h-[44px] flex items-center">
-    <div
-      class="max-w-[1000px] mx-auto w-full px-4 flex justify-between items-center text-[12px] font-normal tracking-tight">
-      <div class="flex items-center space-x-8">
-        <a href="#" class="opacity-80 hover:opacity-100 transition-opacity">
-          <lucide-icon [name]="Calendar" class="w-4 h-4"></lucide-icon>
-        </a>
-        <div class="hidden md:flex space-x-6">
-          <a (click)="scrollToSection('features')"
-            class="cursor-pointer opacity-80 hover:opacity-100 transition-opacity">Características</a>
-          <a (click)="scrollToSection('contact')"
-            class="cursor-pointer opacity-80 hover:opacity-100 transition-opacity">Contacto</a>
-        </div>
+  <nav class="fixed top-0 left-0 right-0 z-50 h-[72px] flex items-center bg-app shadow-sm border-b border-gray-100">
+    <div class="max-w-[1200px] mx-auto w-full px-6 flex justify-between items-center">
+      <!-- Logo -->
+      <div class="flex items-center gap-2">
+        <lucide-icon [name]="Calendar" class="w-6 h-6 text-primary"></lucide-icon>
+        <span class="text-xl font-bold text-primary tracking-tight">MediAgenda</span>
       </div>
+
+      <!-- Links & CTA -->
       <div class="flex items-center space-x-6">
-        <a routerLink="/auth/login" class="opacity-80 hover:opacity-100 transition-opacity">Iniciar Sesión</a>
+        <a routerLink="/auth/login" class="text-muted font-medium hover:text-primary transition-colors">Iniciar
+          Sesión</a>
         <button (click)="scrollToSection('contact')"
-          class="bg-[#0071e3] text-white px-3 py-1 rounded-full text-[11px] font-medium apple-button">Agendar
-          Cita</button>
+          class="bg-success text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-600 transition-colors shadow-sm">
+          Prueba Gratis
+        </button>
       </div>
     </div>
   </nav>
 
   <!-- Hero Section -->
-  <section
-    class="relative overflow-hidden min-h-screen flex flex-col items-center justify-center text-center px-4 pt-32 pb-20">
-    <!-- Background Gradient/Image -->
-    <div class="absolute inset-0 z-0">
-      <div class="absolute inset-0 bg-gradient-to-b from-primary/50 via-white to-white"></div>
-    </div>
+  <section class="relative overflow-hidden min-h-screen flex flex-col items-center justify-center pt-28 pb-20 bg-app">
+    <div class="max-w-[1200px] mx-auto px-6 w-full flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
 
-    <div class="relative z-10 max-w-5xl mx-auto">
-      <div class="mb-6 inline-flex items-center bg-gray-100 rounded-full px-4 py-1.5 animate-fade-in">
-        <span class="text-[#1d1d1f] text-xs font-medium tracking-wide">Nuevo: Gestión avanzada para clínicas</span>
-      </div>
-      <h1 class="text-5xl md:text-7xl font-semibold tracking-tight hero-text animate-fade-in mb-6">
-        La plataforma definitiva para<br>
-        profesionales de la salud.
-      </h1>
-      <p
-        class="mt-4 text-xl md:text-2xl font-normal text-[#86868b] max-w-3xl mx-auto animate-fade-in animate-delay-1 leading-relaxed">
-        Médicos, Psicólogos, Nutricionistas y Enfermeras. <br>
-        Simplifica tu práctica, digitaliza tus pacientes y recupera tu tiempo.
-      </p>
-      <div class="mt-10 flex flex-col md:flex-row gap-4 justify-center animate-fade-in animate-delay-2">
-        <button (click)="scrollToSection('contact')"
-          class="bg-[#0071e3] text-white px-8 py-4 rounded-full text-lg font-medium apple-button shadow-lg shadow-primary/30">
-          Empezar prueba gratis
-        </button>
-        <button (click)="scrollToSection('showcase')"
-          class="text-[#0066cc] hover:underline px-8 py-4 text-lg font-normal flex items-center justify-center bg-white/50 backdrop-blur rounded-full border border-gray-200 apple-button">
-          Ver cómo funciona <lucide-icon [name]="ArrowRight" class="w-4 h-4 ml-1"></lucide-icon>
-        </button>
-      </div>
+      <!-- Text Content -->
+      <div class="w-full lg:w-1/2 flex flex-col justify-center text-center lg:text-left z-10 animate-fade-in">
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-primary leading-tight mb-6 tracking-tight">
+          Automatiza las citas de tu consultorio directamente desde WhatsApp
+        </h1>
+        <p class="text-lg sm:text-xl text-muted leading-relaxed mb-10 max-w-2xl mx-auto lg:mx-0">
+          La agenda inteligente para especialistas de la salud. Tus pacientes reservan y pagan al instante con Yape,
+          Plin o tarjeta. Cero enredos, 100% control de tus horarios.
+        </p>
 
-      <!-- Hero Image/Dashboard Preview -->
-      <div class="mt-16 relative z-10 animate-fade-in animate-delay-2">
-        <div class="rounded-t-[30px] overflow-hidden mx-4 md:mx-0 shadow-lg">
-          <img src="assets/images/dashboard_screen.png" alt="Mediagenda Dashboard"
-            class="w-full h-auto object-cover transform hover:scale-[1.01] transition-transform duration-700">
+        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+          <button (click)="scrollToSection('contact')"
+            class="w-full sm:w-auto bg-success text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-success/30 transform hover:-translate-y-1">
+            Empieza tus 30 días gratis
+          </button>
+          <button (click)="scrollToSection('showcase')"
+            class="w-full sm:w-auto bg-transparent border-2 border-primary text-primary px-8 py-3.5 rounded-xl text-lg font-bold hover:bg-primary/5 transition-all">
+            Ver Demo
+          </button>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Commercial Features Showcase -->
-  <section id="showcase" class="bg-white py-24">
-    <div class="max-w-[1200px] mx-auto px-6 space-y-32">
-
-      <!-- Feature 1: Calendar -->
-      <div class="flex flex-col md:flex-row items-center gap-16">
-        <div class="w-full md:w-1/2 space-y-6">
-          <div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-[#0071e3] mb-4">
-            <lucide-icon [name]="Calendar" class="w-6 h-6"></lucide-icon>
-          </div>
-          <h2 class="text-4xl md:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
-            Tu tiempo, <span class="text-[#86868b]">bajo control absoluto.</span>
-          </h2>
-          <p class="text-xl text-[#424245] leading-relaxed">
-            Nuestra agenda inteligente está diseñada para el flujo real de una consulta. Evita citas duplicadas,
-            automatiza recordatorios y visualiza tu día con claridad cristalina. Adaptable a consultas de 15 minutos o
-            sesiones de terapia de una hora.
-          </p>
-          <ul class="space-y-3 mt-4">
-            <li class="flex items-center text-[#424245] text-lg">
-              <lucide-icon [name]="CheckCircle2" class="w-5 h-5 text-green-500 mr-3"></lucide-icon> Recordatorios
-              automáticos por WhatsApp
-            </li>
-            <li class="flex items-center text-[#424245] text-lg">
-              <lucide-icon [name]="CheckCircle2" class="w-5 h-5 text-green-500 mr-3"></lucide-icon> Sincronización en
-              tiempo real
-            </li>
-          </ul>
-        </div>
-        <div class="w-full md:w-1/2">
-          <div class="rounded-[30px] overflow-hidden shadow-lg mx-auto">
-            <img src="assets/images/calendar_screen.png" alt="Agenda Calendario" class="w-full h-auto">
-          </div>
+        <div class="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-gray-500 font-medium">
+          <span class="flex items-center"><lucide-icon [name]="CheckCircle2"
+              class="w-4 h-4 text-success mr-1.5"></lucide-icon> Cancela cuando quieras</span>
+          <span class="flex items-center"><lucide-icon [name]="CheckCircle2"
+              class="w-4 h-4 text-success mr-1.5"></lucide-icon> Sin tarjeta de crédito</span>
         </div>
       </div>
 
-      <!-- Feature 2: Patient Tracking (Reversed) -->
-      <div class="flex flex-col md:flex-row-reverse items-center gap-16">
-        <div class="w-full md:w-1/2 space-y-6">
-          <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 mb-4">
-            <lucide-icon [name]="Users" class="w-6 h-6"></lucide-icon>
-          </div>
-          <h2 class="text-4xl md:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
-            Seguimiento detallado <span class="text-[#86868b]">de cada paciente.</span>
-          </h2>
-          <p class="text-xl text-[#424245] leading-relaxed">
-            Mantén un registro claro de todas las atenciones. Visualiza el historial de citas, estados (confirmadas,
-            canceladas) y pagos en una línea de tiempo intuitiva. Sin complicaciones clínicas, solo la gestión
-            administrativa que necesitas.
-          </p>
-          <div class="flex gap-4 mt-6">
-            <div class="bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-600">Historial de Citas</div>
-            <div class="bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-600">Pagos</div>
-            <div class="bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-600">Estados</div>
-          </div>
-        </div>
-        <div class="w-full md:w-1/2">
-          <div class="rounded-[30px] overflow-hidden shadow-lg mx-auto">
-            <img src="assets/images/patient_tracking.png" alt="Seguimiento de Pacientes"
-              class="w-full h-auto object-contain">
-          </div>
-        </div>
-      </div>
+      <!-- Mockup Image Space -->
+      <div class="w-full lg:w-1/2 relative z-10 animate-fade-in animate-delay-1 flex justify-center lg:justify-end">
+        <div
+          class="relative w-full max-w-lg aspect-square lg:aspect-auto lg:h-[600px] flex items-center justify-center">
+          <!-- Decorative Background Blob -->
+          <div class="absolute inset-0 bg-success/10 rounded-full blur-3xl filter opacity-70 animate-pulse"></div>
 
-      <!-- Feature 3: Medical Team (Regular) -->
-      <div class="flex flex-col md:flex-row items-center gap-16">
-        <div class="w-full md:w-1/2 space-y-6">
-          <div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-[#0071e3] mb-4">
-            <lucide-icon [name]="Users" class="w-6 h-6"></lucide-icon>
-          </div>
-          <h2 class="text-4xl md:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
-            Tu equipo médico, <span class="text-[#86868b]">en perfecta sincronía.</span>
-          </h2>
-          <p class="text-xl text-[#424245] leading-relaxed">
-            Centraliza la información de todos tus especialistas (CMP, RNE, Datos de contacto). Asigna colores
-            distintivos para una identificación rápida en el calendario y gestiona sus perfiles con facilidad.
-          </p>
-          <ul class="space-y-3 mt-4">
-            <li class="flex items-center text-[#424245] text-lg">
-              <lucide-icon [name]="CheckCircle2" class="w-5 h-5 text-green-500 mr-3"></lucide-icon> Directorio completo
-              de especialistas
-            </li>
-            <li class="flex items-center text-[#424245] text-lg">
-              <lucide-icon [name]="CheckCircle2" class="w-5 h-5 text-green-500 mr-3"></lucide-icon> Personalización de
-              perfiles
-            </li>
-          </ul>
-        </div>
-        <div class="w-full md:w-1/2">
-          <div class="rounded-[30px] overflow-hidden shadow-lg mx-auto">
-            <img src="assets/images/doctors_real.png" alt="Gestión de Doctores" class="w-full h-auto">
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature 4: Clinic Configuration (Reversed) -->
-      <div class="flex flex-col md:flex-row-reverse items-center gap-16">
-        <div class="w-full md:w-1/2 space-y-6">
-          <div class="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-600 mb-4">
-            <lucide-icon [name]="Menu" class="w-6 h-6"></lucide-icon>
-          </div>
-          <h2 class="text-4xl md:text-5xl font-semibold tracking-tight text-[#1d1d1f]">
-            Control total <span class="text-[#86868b]">de tu clínica.</span>
-          </h2>
-          <p class="text-xl text-[#424245] leading-relaxed">
-            Configura cada aspecto de tu operación: desde el nombre y logo de tu clínica hasta la moneda y los horarios
-            globales de atención. Una plataforma que se adapta a tu marca, no al revés.
-          </p>
-        </div>
-        <div class="w-full md:w-1/2">
-          <div class="rounded-[30px] overflow-hidden shadow-lg mx-auto">
-            <img src="assets/images/configuration_real.png" alt="Configuración General" class="w-full h-auto">
-          </div>
-        </div>
-      </div>
-
-      <!-- Detailed Feature Grid -->
-      <div class="mt-24">
-        <h3 class="text-3xl md:text-4xl font-semibold text-center mb-16 text-[#1d1d1f]">Todo lo que necesitas para
-          crecer</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Roles -->
+          <!-- Provisional Mockup Placeholder -->
           <div
-            class="bg-[#f5f5f7] rounded-[30px] p-6 hover:scale-[1.02] transition-transform duration-300 overflow-hidden flex flex-col">
-            <div class="mb-4">
-              <h4 class="text-xl font-semibold mb-2">Roles y Permisos</h4>
-              <p class="text-gray-600 text-sm">Define quién accede a qué. Control granular para administradores y
-                médicos.</p>
+            class="relative w-full h-full bg-white rounded-3xl shadow-float border border-gray-100 flex flex-col items-center justify-center p-8 text-center z-10 transform rotate-1 hover:rotate-0 transition-transform duration-500 overflow-hidden">
+            <div
+              class="absolute top-0 left-0 right-0 h-6 bg-gray-50 border-b border-gray-100 flex items-center px-4 gap-1.5">
+              <div class="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-green-400"></div>
             </div>
-            <div class="rounded-xl overflow-hidden shadow-sm border border-gray-200 mt-auto">
-              <img src="assets/images/roles_real.png" class="w-full h-48 object-cover object-top" alt="Roles">
+            <!-- Celular Mockup Flotante -->
+            <div
+              class="absolute -right-8 bottom-8 w-32 h-64 bg-gray-900 rounded-3xl border-4 border-gray-800 shadow-2xl z-20 flex flex-col overflow-hidden">
+              <div class="flex-1 bg-white p-2">
+                <div class="w-full h-8 bg-green-50 rounded-lg mb-2"></div>
+                <div class="w-3/4 h-8 bg-gray-100 rounded-lg ml-auto mb-2"></div>
+                <div class="w-full h-8 bg-green-50 rounded-lg mb-2"></div>
+              </div>
             </div>
-          </div>
-
-          <!-- Schedule Config -->
-          <div
-            class="bg-[#f5f5f7] rounded-[30px] p-6 hover:scale-[1.02] transition-transform duration-300 overflow-hidden flex flex-col">
-            <div class="mb-4">
-              <h4 class="text-xl font-semibold mb-2">Horarios Flexibles</h4>
-              <p class="text-gray-600 text-sm">Configura turnos rotativos, descansos y horarios específicos por médico.
-              </p>
-            </div>
-            <div class="rounded-xl overflow-hidden shadow-sm border border-gray-200 mt-auto">
-              <img src="assets/images/schedule_config_real.png" class="w-full h-48 object-cover object-top"
-                alt="Configuración de Horarios">
-            </div>
-          </div>
-
-          <!-- Specialties -->
-          <div
-            class="bg-[#f5f5f7] rounded-[30px] p-6 hover:scale-[1.02] transition-transform duration-300 overflow-hidden flex flex-col">
-            <div class="mb-4">
-              <h4 class="text-xl font-semibold mb-2">Multi-Especialidad</h4>
-              <p class="text-gray-600 text-sm">Gestiona múltiples disciplinas en un solo lugar. Cardiología, Pediatría,
-                Nutrición y más.</p>
-            </div>
-            <div class="rounded-xl overflow-hidden shadow-sm border border-gray-200 mt-auto">
-              <img src="assets/images/specialties_real.png" class="w-full h-48 object-cover object-top"
-                alt="Especialidades">
-            </div>
+            <lucide-icon [name]="Calendar" class="w-20 h-20 text-primary opacity-20 mb-4 mt-8"></lucide-icon>
+            <h3 class="text-2xl font-bold text-primary mb-2">Mi Agenda Dashboard</h3>
+            <p class="text-muted text-sm">Próximamente: Mockup Oficial (Laptop + Celular)</p>
           </div>
         </div>
       </div>
 
     </div>
   </section>
+
+  <!-- Beneficios -->
+  <section id="features" class="bg-app py-24 relative z-20">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Tarjeta 1 -->
+        <div
+          class="bg-white rounded-2xl shadow-md p-8 flex flex-col items-start hover:-translate-y-1 transition-transform duration-300">
+          <div class="w-14 h-14 bg-success/10 rounded-xl flex items-center justify-center text-success mb-6">
+            <lucide-icon [name]="MessageCircle" class="w-7 h-7"></lucide-icon>
+          </div>
+          <h3 class="text-xl font-bold text-primary mb-3">100% WhatsApp</h3>
+          <p class="text-muted leading-relaxed">Tus pacientes no necesitan descargar nada. Agendan en segundos.</p>
+        </div>
+
+        <!-- Tarjeta 2 -->
+        <div
+          class="bg-white rounded-2xl shadow-md p-8 flex flex-col items-start hover:-translate-y-1 transition-transform duration-300">
+          <div class="w-14 h-14 bg-success/10 rounded-xl flex items-center justify-center text-success mb-6">
+            <lucide-icon [name]="CreditCard" class="w-7 h-7"></lucide-icon>
+          </div>
+          <h3 class="text-xl font-bold text-primary mb-3">Pagos sin fricción</h3>
+          <p class="text-muted leading-relaxed">Asegura la asistencia cobrando por adelantado con Yape, Plin o pasarela
+            de pagos integrada.</p>
+        </div>
+
+        <!-- Tarjeta 3 -->
+        <div
+          class="bg-white rounded-2xl shadow-md p-8 flex flex-col items-start hover:-translate-y-1 transition-transform duration-300">
+          <div class="w-14 h-14 bg-success/10 rounded-xl flex items-center justify-center text-success mb-6">
+            <lucide-icon [name]="CalendarCheck" class="w-7 h-7"></lucide-icon>
+          </div>
+          <h3 class="text-xl font-bold text-primary mb-3">Agenda laboral clara</h3>
+          <p class="text-muted leading-relaxed">Optimizamos tus turnos de trabajo. Pura gestión de agendas para que
+            nunca se cruce una cita.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Features / Tech Match -->
+  <section id="core-features" class="bg-white py-24 relative z-10 border-t border-gray-100">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4 tracking-tight">El Motor Detrás de tu
+          Policlínico</h2>
+        <p class="text-lg text-muted max-w-2xl mx-auto font-medium">Software robusto diseñado para escalar tu operación
+          médica sin errores.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+
+        <!-- Feature 1: Anti-collision -->
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center text-primary shrink-0 mt-1">
+            <lucide-icon [name]="Shield" class="w-6 h-6"></lucide-icon>
+          </div>
+          <div>
+            <h4 class="text-lg font-bold text-primary mb-2">Anti-Colisión de Horarios</h4>
+            <p class="text-muted leading-relaxed text-sm font-medium">Nuestra lógica avanzada impide que dos pacientes
+              reserven la misma hora con el mismo especialista. Ni un solo cruce, garantizado.</p>
+          </div>
+        </div>
+
+        <!-- Feature 2: Roles -->
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center text-primary shrink-0 mt-1">
+            <lucide-icon [name]="Users" class="w-6 h-6"></lucide-icon>
+          </div>
+          <div>
+            <h4 class="text-lg font-bold text-primary mb-2">Roles y Permisos Claros</h4>
+            <p class="text-muted leading-relaxed text-sm font-medium">El Administrador ve toda la clínica y las
+              finanzas; el Terapeuta/Médico solo ve sus propios turnos. Cero fugas de información.</p>
+          </div>
+        </div>
+
+        <!-- Feature 3: Advanced Search -->
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center text-primary shrink-0 mt-1">
+            <lucide-icon [name]="Search" class="w-6 h-6"></lucide-icon>
+          </div>
+          <div>
+            <h4 class="text-lg font-bold text-primary mb-2">Asignaciones a la Velocidad de la Luz</h4>
+            <p class="text-muted leading-relaxed text-sm font-medium">Encuentra doctores, turnos libres y especialidades
+              al instante con filtros de búsqueda predictiva. Especial para alta rotación.</p>
+          </div>
+        </div>
+
+        <!-- Feature 4: Multi-Specialty -->
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center text-primary shrink-0 mt-1">
+            <lucide-icon [name]="Briefcase" class="w-6 h-6"></lucide-icon>
+          </div>
+          <div>
+            <h4 class="text-lg font-bold text-primary mb-2">Perfiles Multi-Especialidad</h4>
+            <p class="text-muted leading-relaxed text-sm font-medium">¿Tu especialista atiende Medicina General y
+              Pediatría? La plataforma permite visualizar ambas agendas simultáneamente de forma ordenada.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Precios -->
+  <section id="pricing" class="bg-app py-24 border-t border-gray-100">
+    <div class="max-w-[1200px] mx-auto px-6 flex flex-col items-center">
+      <!-- Tarjeta de Precio Único -->
+      <div
+        class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden relative mb-12 transform hover:scale-105 transition-transform duration-300 border border-gray-100">
+        <!-- Borde superior verde grueso -->
+        <div class="h-4 w-full bg-success"></div>
+
+        <div class="p-10 text-center">
+          <h3 class="text-2xl font-black text-primary mb-2 uppercase tracking-wide">Plan Único Profesional</h3>
+          <p class="text-muted mb-6 font-medium">Todo incluido, cero complicaciones.</p>
+
+          <div class="flex items-center justify-center mb-8">
+            <span class="bg-success/10 text-success text-sm font-bold px-4 py-2 rounded-full uppercase tracking-wider">
+              Primeros 30 días totalmente GRATIS
+            </span>
+          </div>
+
+          <button (click)="scrollToSection('contact')"
+            class="w-full bg-success text-white py-4 rounded-xl text-lg font-bold hover:bg-emerald-600 transition-all shadow-md shadow-success/20">
+            Crear mi cuenta gratis
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- Lead Capture Section -->
-  <section id="contact" class="bg-[#f5f5f7] py-24">
-    <div class="max-w-4xl mx-auto px-4 text-center">
-      <h2 class="text-4xl md:text-5xl font-semibold tracking-tight mb-6">Empieza a transformar tu consulta hoy.</h2>
-      <p class="text-[#86868b] text-xl mb-12 max-w-2xl mx-auto">
-        Únete a cientos de profesionales de la salud que ya usan Mediagenda. Déjanos tus datos para una demo
-        personalizada.
+  <section id="contact" class="bg-primary py-24">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 text-white">¿Manejas un policlínico o tienes
+        dudas?</h2>
+      <p class="text-blue-100 text-lg md:text-xl mb-12 max-w-2xl mx-auto font-medium">
+        Déjanos tus datos y un asesor te contactará.
       </p>
 
       <div *ngIf="!submitted"
-        class="bg-white rounded-[30px] p-8 md:p-12 text-left shadow-lg animate-fade-in max-w-2xl mx-auto">
+        class="bg-white rounded-3xl p-8 md:p-10 text-left shadow-2xl animate-fade-in max-w-2xl mx-auto transform hover:scale-[1.01] transition-transform duration-300">
         <form (ngSubmit)="onSubmit()" #leadForm="ngForm" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-[#1d1d1f] mb-2">Nombre Completo</label>
-              <input type="text" name="name" [(ngModel)]="contactForm.name" required placeholder="Dr. Juan Pérez"
-                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none transition-all">
+              <label class="block text-sm font-bold text-primary mb-2">Nombres y Apellidos</label>
+              <input type="text" name="name" [(ngModel)]="contactForm.name" required placeholder="Ej. Juan Pérez"
+                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-success focus:border-transparent outline-none transition-all text-main placeholder-muted">
             </div>
             <div>
-              <label class="block text-sm font-medium text-[#1d1d1f] mb-2">Especialidad</label>
-              <input type="text" name="role" [(ngModel)]="contactForm.role" placeholder="Ej. Cardiólogo"
-                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none transition-all">
+              <label class="block text-sm font-bold text-primary mb-2">Especialidad</label>
+              <input type="text" name="role" [(ngModel)]="contactForm.role" placeholder="Ej. Odontólogo"
+                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-success focus:border-transparent outline-none transition-all text-main placeholder-muted">
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-[#1d1d1f] mb-2">Correo Electrónico</label>
-            <input type="email" name="email" [(ngModel)]="contactForm.email" required email
-              placeholder="hola@tucorreo.com"
-              class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none transition-all">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#1d1d1f] mb-2">Mensaje (Opcional)</label>
-            <textarea name="message" [(ngModel)]="contactForm.message" rows="3"
-              placeholder="¿Tienes alguna duda específica?"
-              class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none transition-all"></textarea>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-bold text-primary mb-2">Celular / WhatsApp</label>
+              <input type="tel" name="message" [(ngModel)]="contactForm.message" required placeholder="Ej. 999 888 777"
+                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-success focus:border-transparent outline-none transition-all text-main placeholder-muted">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-primary mb-2">Correo Electrónico</label>
+              <input type="email" name="email" [(ngModel)]="contactForm.email" required placeholder="hola@tucorreo.com"
+                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-success focus:border-transparent outline-none transition-all text-main placeholder-muted">
+            </div>
           </div>
           <button type="submit" [disabled]="!leadForm.form.valid"
-            class="w-full bg-[#0071e3] text-white py-4 rounded-xl font-semibold hover:bg-[#0077ED] transition-colors disabled:opacity-50 shadow-md">
-            Solicitar Demo Gratuita
+            class="w-full bg-success text-white py-4 rounded-xl text-lg font-bold hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-md shadow-success/20">
+            Solicitar Asesoría
           </button>
         </form>
       </div>
 
-      <div *ngIf="submitted"
-        class="bg-white rounded-[30px] p-16 text-center shadow-lg animate-fade-in max-w-2xl mx-auto">
-        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <lucide-icon [name]="CheckCircle2" class="w-10 h-10 text-green-600"></lucide-icon>
+      <div *ngIf="submitted" class="bg-white rounded-3xl p-16 text-center shadow-2xl animate-fade-in max-w-2xl mx-auto">
+        <div class="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <lucide-icon [name]="CheckCircle2" class="w-10 h-10 text-success"></lucide-icon>
         </div>
-        <h3 class="text-3xl font-semibold mb-4 text-[#1d1d1f]">¡Todo listo!</h3>
-        <p class="text-[#86868b] text-lg">Hemos recibido tu solicitud. Uno de nuestros especialistas te contactará en
-          breve.</p>
-        <button (click)="submitted = false" class="mt-8 text-[#0071e3] font-medium hover:underline">Volver al
-          inicio</button>
+        <h3 class="text-3xl font-bold mb-4 text-primary">¡Todo listo!</h3>
+        <p class="text-muted text-lg font-medium">Hemos recibido tus datos. Un asesor se comunicará contigo por WhatsApp
+          brevemente.</p>
+        <button (click)="submitted = false" class="mt-8 text-success font-bold hover:underline">Volver a
+          intentar</button>
       </div>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="bg-white border-t border-gray-200 py-12 text-[#86868b] text-xs">
-    <div class="max-w-[1000px] mx-auto px-4">
-      <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-        <div class="text-center md:text-left">
-          <p class="font-semibold text-[#1d1d1f] mb-1">Mediagenda</p>
-          <p>&copy; 2026 Mediagenda Inc. Todos los derechos reservados.</p>
+  <footer class="bg-app pt-16 pb-8 border-t border-gray-100">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0 text-sm">
+
+        <div class="text-center md:text-left flex flex-col items-center md:items-start gap-2">
+          <div class="flex items-center gap-2">
+            <lucide-icon [name]="Calendar" class="w-5 h-5 text-primary"></lucide-icon>
+            <span class="text-lg font-black text-primary tracking-tight">MediAgenda</span>
+          </div>
+          <p class="text-muted font-medium">&copy; 2026 MediAgenda. Todos los derechos reservados.</p>
         </div>
-        <div class="flex space-x-6">
-          <a href="#" class="hover:text-[#1d1d1f] transition-colors">Privacidad</a>
-          <a href="#" class="hover:text-[#1d1d1f] transition-colors">Términos</a>
-          <a href="#" class="hover:text-[#1d1d1f] transition-colors">Soporte</a>
+
+        <div class="flex flex-wrap justify-center md:justify-end gap-6 font-medium">
+          <a href="#" class="text-muted hover:text-primary transition-colors">Términos Legales</a>
+          <a href="mailto:soporte@mediagenda.pe" class="text-muted hover:text-primary transition-colors">Correo de
+            Contacto</a>
+          <a href="https://wa.me/51999888777" target="_blank"
+            class="text-success hover:text-emerald-600 transition-colors font-bold flex items-center gap-1">
+            <lucide-icon [name]="MessageCircle" class="w-4 h-4"></lucide-icon> WhatsApp Soporte
+          </a>
         </div>
+
       </div>
     </div>
   </footer>

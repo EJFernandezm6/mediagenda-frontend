@@ -111,7 +111,7 @@ export class ScheduleConfigComponent {
 
   // Auto-Update Day of Week from Date
   onDateChange(date: string) {
-    // No specific logic needed for now, handled by ngModel
+    this.updateValidEndTimes();
   }
 
   getScheduleDisplay(schedule: Schedule) {
@@ -156,18 +156,46 @@ export class ScheduleConfigComponent {
     const assoc = this.associationService.associations().find(a => a.doctorId === docId && a.specialtyId === specId);
     const duration = assoc?.durationMinutes || 30;
 
+    // Obtener turnos del médico para la fecha seleccionada
+    const targetDate = this.formData.date;
+    const existingSchedules = this.scheduleService.schedules()
+      .filter(s => s.doctorId === docId && s.date === targetDate)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    // Si el startTime seleccionado cae DENTRO de un bloque existente,
+    // no hay horas de fin válidas (el inicio ya es inválido).
+    // Nota: Si empieza EXACTAMENTE cuando termina otro bloque, sí es válido.
+    const isInsideExistingBlock = existingSchedules.some(s => {
+      return startTime >= s.startTime && startTime < s.endTime;
+    });
+
+    if (isInsideExistingBlock) {
+      this.validEndTimes.set([]);
+      this.formData.endTime = '';
+      return;
+    }
+
+    // Encontrar el próximo bloque ocupado DESPUÉS del startTime elegido
+    const nextSchedule = existingSchedules.find(s => s.startTime >= startTime);
+
     const times: string[] = [];
     let current = this.dateFromTime(startTime);
 
-    // Use configured close time as limit
+    // Límite final general (cierre de clínica)
     const closeTimeStr = this.configService.settings().clinicCloseTime || '20:00';
-    const closeDate = this.dateFromTime(closeTimeStr);
+    let endLimit = this.dateFromTime(closeTimeStr);
 
-    const endLimit = closeDate;
+    // Límite dinámico basado en el próximo turno del médico (si existe y entra antes del cierre)
+    if (nextSchedule) {
+      const nextScheduleDate = this.dateFromTime(nextSchedule.startTime);
+      if (nextScheduleDate < endLimit) {
+        endLimit = nextScheduleDate;
+      }
+    }
 
     current.setMinutes(current.getMinutes() + duration);
 
-    // Generate times until closing time
+    // Generar opciones de fin hasta chocar con el límite
     while (current <= endLimit) {
       times.push(this.timeFromDate(current));
       current.setMinutes(current.getMinutes() + duration);
@@ -176,7 +204,7 @@ export class ScheduleConfigComponent {
     this.validEndTimes.set(times);
 
     if (!times.includes(this.formData.endTime)) {
-      this.formData.endTime = times[0];
+      this.formData.endTime = times[0] || '';
     }
   }
 

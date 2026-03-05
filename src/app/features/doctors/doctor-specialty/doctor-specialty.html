@@ -15,16 +15,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="mt-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div class="relative rounded-md shadow-sm">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <lucide-icon [img]="icons.Search" class="h-5 w-5 text-gray-400"></lucide-icon>
-            </div>
-            <input type="text" [ngModel]="searchTerm()" (input)="onSearchInput($event)"
-                class="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm border py-2"
-                placeholder="Buscar especialista o especialidad...">
-        </div>
-
+    <div class="mt-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
             <app-searchable-select [options]="doctorFilterOptions" [value]="filterDoctorId()"
                 (valueChange)="filterDoctorId.set($event.toString())" placeholder="Todos los especialistas"
