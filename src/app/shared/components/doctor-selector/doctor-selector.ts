@@ -1,4 +1,4 @@
-import { Component, computed, signal, inject, output, Input } from '@angular/core';
+import { Component, computed, signal, inject, output, Input, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Search, X } from 'lucide-angular';
@@ -22,10 +22,12 @@ import { DoctorSpecialtyService, DoctorSpecialty } from '../../../features/docto
 export class DoctorSelectorComponent {
     private doctorService = inject(DoctorsService);
     private doctorSpecialtyService = inject(DoctorSpecialtyService);
+    private elementRef = inject(ElementRef);
 
-    // Inputs/Models
     selectedDoctorId = signal('');
     disabled = signal(false); // Add disabled input
+    requireSpecialties = signal(false);
+    requireActive = signal(false);
     selectionChanged = output<string>();
 
     // Use input() API if available in future, for now standard properties or signals with @Input is safer for older angular versions but since we are on 20...
@@ -37,9 +39,26 @@ export class DoctorSelectorComponent {
         this.disabled.set(v);
     }
 
+    @Input('requireSpecialties')
+    set setRequireSpecialties(v: boolean) {
+        this.requireSpecialties.set(v);
+    }
+
+    @Input('requireActive')
+    set setRequireActive(v: boolean) {
+        this.requireActive.set(v);
+    }
+
     // State
     isOpen = signal(false);
     searchText = signal('');
+
+    @HostListener('document:click', ['$event'])
+    onClickOutside(event: Event) {
+        if (!this.elementRef.nativeElement.contains(event.target)) {
+            this.isOpen.set(false);
+        }
+    }
 
     // Data
     doctors = this.doctorService.selectableDoctors;
@@ -49,10 +68,24 @@ export class DoctorSelectorComponent {
     // Computed
     formattedDoctors = computed(() => {
         const uniqueDoctorsMap = new Map();
+        const reqSpec = this.requireSpecialties();
+        const reqActive = this.requireActive();
 
         this.doctors()
             .forEach(doctor => {
                 const docId = doctor.doctorId || doctor.id;
+
+                if (reqActive && !doctor.active) {
+                    return; // Skip inactive doctors
+                }
+
+                if (reqSpec) {
+                    const assocs = this.doctorSpecialtyService.getSpecialtiesForDoctor(docId);
+                    if (!assocs || assocs.length === 0) {
+                        return; // Skip doctor if no specialties
+                    }
+                }
+
                 if (!uniqueDoctorsMap.has(docId)) {
                     uniqueDoctorsMap.set(docId, {
                         ...doctor,

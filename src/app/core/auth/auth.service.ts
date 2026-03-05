@@ -54,7 +54,7 @@ export class AuthService {
                     id: response.userId,
                     fullName: response.fullName || '',
                     email: response.email,
-                    roles: [],
+                    roles: response.roles ?? [],
                     photoUrl: `https://ui-avatars.com/api/?name=${response.email}&background=0D8ABC&color=fff`,
                     subscriptionStatus: 'ACTIVE',
                     clinicId: response.clinicId,

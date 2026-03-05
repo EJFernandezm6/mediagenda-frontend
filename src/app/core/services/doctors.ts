@@ -1,7 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { User } from '../auth/auth.service';
+import { AuthService, User } from '../auth/auth.service';
 import { tap, switchMap, map } from 'rxjs/operators';
 import { Observable, forkJoin } from 'rxjs';
 
@@ -27,6 +27,7 @@ export interface Doctor extends User {
 })
 export class DoctorsService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private apiUrl = `${environment.apiUrl}/iam/users`; // Uses Users API (Doctors are Users with role)
   private rolesUrl = `${environment.apiUrl}/iam/roles`;
   private doctorsUrl = `${environment.apiUrl}/catalog/doctors`;
@@ -113,7 +114,8 @@ export class DoctorsService {
           dni: doctor.dni,
           password: doctor.password || '12345678', // Default password
           roleIds: [roleId],
-          photoUrl: doctor.photoUrl
+          photoUrl: doctor.photoUrl,
+          clinicId: this.authService.currentUser()?.clinicId
         };
         return this.http.post<any>(this.apiUrl, newUser);
       }),
@@ -148,6 +150,7 @@ export class DoctorsService {
     if (updates.fullName && updates.fullName !== currentDoctor.fullName) { userUpdates.fullName = updates.fullName; hasUserFieldUpdates = true; }
     if (updates.email && updates.email !== currentDoctor.email) { userUpdates.email = updates.email; hasUserFieldUpdates = true; }
     if (updates.phone && updates.phone !== currentDoctor.phone) { userUpdates.phone = updates.phone; hasUserFieldUpdates = true; }
+    if (updates.dni && updates.dni !== currentDoctor.dni) { userUpdates.dni = updates.dni; hasUserFieldUpdates = true; }
     if (updates.photoUrl && updates.photoUrl !== currentDoctor.photoUrl && updates.photoUrl.startsWith('data:image')) {
       userUpdates.photoUrl = updates.photoUrl;
       hasUserFieldUpdates = true;
@@ -156,10 +159,10 @@ export class DoctorsService {
     let userUpdate$: Observable<any> = new Observable(obs => { obs.next(null); obs.complete(); });
 
     if (hasUserFieldUpdates) {
-      // If we are forced to send user updates due to a change, we must satisfy the backend's strict requirements
       userUpdates.fullName = userUpdates.fullName || currentDoctor.fullName;
       userUpdates.email = userUpdates.email || currentDoctor.email;
       userUpdates.phone = userUpdates.phone || currentDoctor.phone;
+      userUpdates.dni = userUpdates.dni || currentDoctor.dni;
 
       // Extract roleIds from the roles object if present
       let existingRoles: string[] = [];

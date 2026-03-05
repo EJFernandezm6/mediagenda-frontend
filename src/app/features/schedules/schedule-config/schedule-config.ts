@@ -97,12 +97,12 @@ export class ScheduleConfigComponent {
   selectedDoctorName = computed(() => {
     const docId = this.selectedDoctorId();
     if (!docId) return '';
-    const doc = this.doctorService.doctors().find(d => d.id === docId || d.doctorId === docId);
+    const doc = this.doctorService.selectableDoctors().find(d => d.id === docId || d.doctorId === docId);
     return doc ? doc.fullName : 'Especialista';
   });
 
   getDoctorName(docId: string): string {
-    const doc = this.doctorService.doctors().find(d => d.id === docId || d.doctorId === docId);
+    const doc = this.doctorService.selectableDoctors().find(d => d.id === docId || d.doctorId === docId);
     return doc ? doc.fullName : 'Desconocido';
   }
 

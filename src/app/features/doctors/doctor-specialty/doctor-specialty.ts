@@ -45,6 +45,12 @@ export class DoctorSpecialtyComponent {
   cost: number = 0;
   duration: number = 30;
 
+  get isDuplicateAssignment(): boolean {
+    if (this.isEditMode()) return false;
+    if (!this.selectedDoctorId || !this.selectedSpecialtyId) return false;
+    return this.associations().some(a => a.doctorId === this.selectedDoctorId && a.specialtyId === this.selectedSpecialtyId);
+  }
+
   // Track original for editing
   private originalAssociation: DoctorSpecialty | null = null;
 
@@ -100,6 +106,25 @@ export class DoctorSpecialtyComponent {
       const docB = this.getDoctorName(b.doctorId).toLowerCase();
       return docA.localeCompare(docB);
     });
+  });
+
+  groupedAssociations = computed(() => {
+    const list = this.filteredAssociations();
+    const groups = new Map<string, { specialtyId: string, specialtyName: string, items: DoctorSpecialty[] }>();
+
+    for (const item of list) {
+      if (!groups.has(item.specialtyId)) {
+        groups.set(item.specialtyId, {
+          specialtyId: item.specialtyId,
+          specialtyName: this.getSpecialtyName(item.specialtyId),
+          items: []
+        });
+      }
+      groups.get(item.specialtyId)!.items.push(item);
+    }
+
+    // Convert to array and already sorted by specialty name because filteredAssociations is sorted
+    return Array.from(groups.values());
   });
 
   @ViewChild(DoctorSelectorComponent) doctorSelector!: DoctorSelectorComponent;
@@ -214,9 +239,8 @@ export class DoctorSpecialtyComponent {
         error: (err) => alert('Error al actualizar: ' + (err.error?.message || err.message))
       });
     } else {
-      // Check if association already exists (using Doctor Profile ID)
-      const exists = this.associations().some(a => a.doctorId === association.doctorId && a.specialtyId === association.specialtyId);
-      if (exists) {
+      // Check if association already exists
+      if (this.isDuplicateAssignment) {
         alert('Esta asignación ya existe.');
         return;
       }

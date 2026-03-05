@@ -63,34 +63,47 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr *ngFor="let item of filteredAssociations()">
-                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                    {{ getSpecialtyName(item.specialtyId) }}
-                                </td>
-                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                    {{ getDoctorName(item.doctorId) }}
-                                </td>
-                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                    S/ {{ item.cost }}
-                                </td>
-                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                    {{ item.durationMinutes }} min
-                                </td>
-                                <td
-                                    class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                    <button (click)="openEditModal(item)"
-                                        class="text-primary hover:text-blue-900 mr-2 p-2 rounded-full hover:bg-primary transition-all"
-                                        title="Editar">
-                                        <lucide-icon [img]="icons.Edit" class="w-5 h-5"></lucide-icon>
-                                    </button>
-                                    <button (click)="delete(item)"
-                                        class="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-50 transition-all"
-                                        title="Desactivar">
-                                        <lucide-icon [img]="icons.Trash2" class="w-5 h-5"></lucide-icon>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr *ngIf="filteredAssociations().length === 0">
+                            <!-- Use ng-container to loop through grouped associations -->
+                            <ng-container *ngFor="let group of groupedAssociations()">
+                                <ng-container *ngFor="let item of group.items; let i = index">
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <!-- Only render the Specialty cell for the first item in the group -->
+                                        <td *ngIf="i === 0" [attr.rowspan]="group.items.length"
+                                            class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-6 align-top border-r border-gray-100 bg-white">
+                                            {{ group.specialtyName }}
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                            {{ getDoctorName(item.doctorId) }}
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                            S/ {{ item.cost }}
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                            {{ item.durationMinutes }} min
+                                        </td>
+                                        <td
+                                            class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                            <button (click)="openEditModal(item)"
+                                                class="text-gray-400 hover:text-gray-800 mr-2 p-2 rounded-full hover:bg-gray-100 transition-all"
+                                                title="Editar">
+                                                <lucide-icon [img]="icons.Edit" class="w-4 h-4"></lucide-icon>
+                                            </button>
+                                            <button (click)="delete(item)"
+                                                class="text-red-400 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-all"
+                                                title="Eliminar">
+                                                <lucide-icon [img]="icons.Trash2" class="w-4 h-4"></lucide-icon>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                                <!-- Optional: A subtle divider between groups if needed -->
+                                <tr *ngIf="group !== groupedAssociations()[groupedAssociations().length - 1]"
+                                    class="h-0 p-0 m-0">
+                                    <!-- this span relies on the parent's divide-y to add border -->
+                                </tr>
+                            </ng-container>
+
+                            <tr *ngIf="groupedAssociations().length === 0">
                                 <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                                     <div class="flex flex-col items-center justify-center">
                                         <lucide-icon [img]="icons.Search"
@@ -140,7 +153,7 @@
                     <div class="mt-4 space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 text-left mb-1">Especialista</label>
-                            <app-doctor-selector [disabled]="isEditMode()"
+                            <app-doctor-selector [disabled]="isEditMode()" [requireActive]="true"
                                 (selectionChanged)="selectedDoctorId = $event"></app-doctor-selector>
                         </div>
 
@@ -167,8 +180,17 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Validation Messages -->
+            <div *ngIf="isDuplicateAssignment"
+                class="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded-md flex items-center gap-2">
+                <lucide-icon [img]="icons.X" class="w-4 h-4 flex-shrink-0"></lucide-icon>
+                <span>Este especialista ya tiene asignada esta especialidad.</span>
+            </div>
+
             <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                <button type="button" (click)="save()" [disabled]="!selectedDoctorId || !selectedSpecialtyId"
+                <button type="button" (click)="save()"
+                    [disabled]="!selectedDoctorId || !selectedSpecialtyId || isDuplicateAssignment"
                     class="inline-flex w-full justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                     Guardar
                 </button>

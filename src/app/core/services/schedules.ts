@@ -32,7 +32,9 @@ export class SchedulesService {
       url = `${this.apiUrl}/doctors/${filters.doctorId}/schedules`;
     }
 
-    this.http.get<Schedule[]>(url).subscribe(data => {
+    this.http.get<Schedule[]>(url).pipe(
+      tap(data => console.log('RAW SCHEDULES PAYLOAD FROM BACKEND:', data))
+    ).subscribe(data => {
       if (filters?.doctorId) {
         // We only fetched for one doctor. Don't overwrite everyone else. 
         // Remove old schedules for this doctor, and append the new ones.

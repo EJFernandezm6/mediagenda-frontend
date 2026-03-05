@@ -1,6 +1,4 @@
 <div class="relative w-full">
-    <!-- Overlay to close dropdown when clicking outside -->
-    <div *ngIf="isOpen()" (click)="isOpen.set(false)" class="fixed inset-0 z-30 cursor-default bg-transparent"></div>
 
     <div class="relative z-40">
         <input type="text" [ngModel]="searchText()" (ngModelChange)="onSearchChange($event)" (focus)="isOpen.set(true)"

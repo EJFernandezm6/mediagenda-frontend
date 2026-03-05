@@ -1,4 +1,4 @@
-import { Component, computed, signal, inject, output, Input } from '@angular/core';
+import { Component, computed, signal, inject, output, Input, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Search, X } from 'lucide-angular';
@@ -20,6 +20,7 @@ import { SpecialtiesService } from '../../../core/services/specialties';
 })
 export class SpecialtySelectorComponent {
     private specialtyService = inject(SpecialtiesService);
+    private elementRef = inject(ElementRef);
 
     // Inputs/Models
     selectedSpecialtyId = signal('');
@@ -34,6 +35,13 @@ export class SpecialtySelectorComponent {
     // State
     isOpen = signal(false);
     searchText = signal('');
+
+    @HostListener('document:click', ['$event'])
+    onClickOutside(event: Event) {
+        if (!this.elementRef.nativeElement.contains(event.target)) {
+            this.isOpen.set(false);
+        }
+    }
 
     // Data
     specialties = this.specialtyService.specialties;

@@ -18,7 +18,7 @@
                     <!-- Doctor Selection -->
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Especialista</label>
-                        <app-doctor-selector class="block w-full"
+                        <app-doctor-selector class="block w-full" [requireSpecialties]="true"
                             (selectionChanged)="onDoctorSelectionChange($event)"></app-doctor-selector>
                     </div>
 
