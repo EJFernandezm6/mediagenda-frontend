@@ -6,8 +6,11 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                primary: 'var(--primary-color)',
-                success: 'var(--success-color)',
+                primary: 'var(--primary-color)',   /* Slate 950 — estructural */
+                accent: 'var(--accent-color)',    /* Indigo 600 — CTAs admin */
+                success: 'var(--success-color)',   /* Emerald 500 */
+                danger: 'var(--danger-color)',    /* Red 500 */
+                warning: 'var(--warning-color)',   /* Amber 500 */
                 app: 'var(--bg-app)',
                 sidebar: 'var(--sidebar-bg)',
                 'text-main': 'var(--text-main)',
@@ -15,6 +18,7 @@ module.exports = {
             },
             boxShadow: {
                 float: 'var(--shadow-float)',
+                accent: 'var(--shadow-accent)',
             }
         },
     },

@@ -92,7 +92,7 @@
                     <div class="lg:col-span-3">
                         <button (click)="saveSchedule()"
                             [disabled]="!selectedDoctorId() || !formData.specialtyId || !formData.endTime"
-                            class="w-full h-[42px] inline-flex items-center justify-center px-4 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                            class="w-full h-[42px] inline-flex items-center justify-center px-4 border border-transparent text-sm font-semibold rounded-lg shadow-accent shadow-md text-white bg-accent hover:bg-indigo-700 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
                             <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
                             Asignar Turno
                         </button>

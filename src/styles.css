@@ -3,23 +3,36 @@
 @tailwind utilities;
 
 :root {
-  /* Paleta Principal */
-  --primary-color: #1E293B;
-  --success-color: #10B981;
-  --bg-app: #F8FAFC;
+  /* ──────────────────────────────────────────
+   * Brand & Structure
+   * ────────────────────────────────────────── */
+  --primary-color: #0F172A;      /* Slate 950  — títulos, texto fuerte */
+  --accent-color:  #4F46E5;      /* Indigo 600 — botones de acción admin */
+  --success-color: #10B981;      /* Emerald 500 — confirmación, pagos OK */
+  --danger-color:  #EF4444;      /* Red 500    — eliminar, cancelar      */
+  --warning-color: #F59E0B;      /* Amber 500  — pendiente, atención     */
 
-  /* Textos y Sidebar */
-  --sidebar-bg: #1E293B;
-  --text-main: #1E293B;
+  /* ──────────────────────────────────────────
+   * Layout & Backgrounds
+   * ────────────────────────────────────────── */
+  --bg-app:    #F8FAFC;
+  --card-bg:   #FFFFFF;
+  --sidebar-bg: #020617;          /* Slate 950 — sidebar premium */
+
+  /* ──────────────────────────────────────────
+   * Typography
+   * ────────────────────────────────────────── */
+  --text-main:  #1E293B;
   --text-muted: #64748B;
 
-  /* Efecto Antigravity */
-  --shadow-float: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --card-bg: #FFFFFF;
+  /* ──────────────────────────────────────────
+   * Shadows
+   * ────────────────────────────────────────── */
+  --shadow-float:  0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --shadow-accent: 0 4px 14px 0 rgb(79 70 229 / 0.35);
 }
 
-html,
-body {
+html, body {
   height: 100%;
 }
 
@@ -27,4 +40,27 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-app);
   color: var(--text-main);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Scrollbar Premium */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fadeInUp 0.25s ease-out forwards; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }

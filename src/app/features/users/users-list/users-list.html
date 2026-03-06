@@ -6,7 +6,7 @@
             <p class="text-gray-500">Administra el acceso y roles del sistema</p>
         </div>
         <button (click)="openModal()"
-            class="block rounded-md bg-primary px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary flex items-center gap-2">
+            class="block rounded-lg bg-accent px-4 py-2 text-center text-sm font-semibold text-white shadow-accent shadow-md hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2">
             <lucide-icon [img]="Icons.Plus" class="w-4 h-4"></lucide-icon>
             Nuevo Usuario
         </button>
@@ -19,12 +19,12 @@
                 class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></lucide-icon>
             <input type="text" [value]="searchTerm()" (input)="onSearch($event)"
                 placeholder="Buscar por nombre o email..."
-                class="w-full pl-12 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                class="w-full pl-12 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
         </div>
 
         <!-- Status Filter -->
         <select [ngModel]="selectedStatus()" (ngModelChange)="filterByStatus($event)"
-            class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white min-w-[150px]">
+            class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none bg-white min-w-[150px]">
             <option value="">Todos los estados</option>
             <option value="ACTIVE">Activos</option>
             <option value="INACTIVE">Inactivos</option>
