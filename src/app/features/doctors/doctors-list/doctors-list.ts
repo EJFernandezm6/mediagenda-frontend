@@ -1,10 +1,12 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
@@ -14,32 +16,50 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   templateUrl: './doctors-list.html',
   styleUrl: './doctors-list.css'
 })
-export class DoctorsListComponent {
+export class DoctorsListComponent implements OnInit {
   private service = inject(DoctorsService);
   private confirmService = inject(ConfirmModalService);
 
-  constructor() {
-    this.loadDoctors();
-  }
+  doctors = this.service.doctors;
 
   // Icons
   readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power };
 
-  doctors = this.service.doctors;
-  searchTerm = '';
+  // Pagination & Search (Proxy to Service)
+  searchTerm = this.service.searchTerm;
+  showInactive = this.service.showInactive;
+  currentPage = this.service.currentPage;
 
-  // Pagination
-  currentPage = 1;
-  itemsPerPage = 9;
+  get itemsPerPage() { return this.service.itemsPerPage; }
+
+  private searchSubject = new Subject<string>();
+  private searchSubscription!: Subscription;
+
+  constructor() {
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.searchTerm.set(term);
+      this.currentPage.set(1);
+    });
+  }
+
+  ngOnInit() {
+    // Relying on service entirely for first load via effect
+  }
+
+  ngOnDestroy() {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+  }
 
   // Modal State
   isModalOpen = false;
   isSaving = false;
   editingId: string | null = null;
   form: any = { fullName: '', documentType: 'DNI', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: '' };
-
-  // Filter State
-  showInactive = false;
 
   // Validation
   emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -53,19 +73,16 @@ export class DoctorsListComponent {
   }
 
   onPageChange(page: number) {
-    this.currentPage = page;
-    this.loadDoctors();
+    this.currentPage.set(page);
   }
 
   onSearchChange() {
-    this.currentPage = 1;
-    this.loadDoctors();
+    this.currentPage.set(1);
   }
 
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
-    this.onSearchChange();
+    this.searchSubject.next(input.value);
   }
 
   onDocumentTypeChange() {
@@ -105,13 +122,12 @@ export class DoctorsListComponent {
   }
 
   toggleInactiveFilter() {
-    this.showInactive = !this.showInactive;
-    this.currentPage = 1;
-    this.loadDoctors();
+    this.showInactive.set(!this.showInactive());
+    this.currentPage.set(1);
   }
 
   private loadDoctors() {
-    this.service.refreshDoctors(this.currentPage - 1, this.itemsPerPage, this.searchTerm, this.showInactive);
+    this.service.refreshDoctors(this.currentPage() - 1, this.itemsPerPage, this.searchTerm(), this.showInactive());
   }
 
   get isFormValid() {

@@ -1,7 +1,8 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, effect } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap, map } from 'rxjs/operators';
+import { AuthService } from '../auth/auth.service';
 
 export interface Specialty {
   specialtyId: string;
@@ -15,13 +16,20 @@ export interface Specialty {
 })
 export class SpecialtiesService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private apiUrl = `${environment.apiUrl}/catalog/specialties`;
 
 
   specialties = signal<Specialty[]>([]); // To maintain backward compat for now, but will hold all specialties instead
 
   constructor() {
-    this.refreshSpecialties();
+    effect(() => {
+      if (this.authService.currentUser()) {
+        this.refreshSpecialties();
+      } else {
+        this.specialties.set([]);
+      }
+    });
   }
 
   refreshSpecialties() {

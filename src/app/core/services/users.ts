@@ -1,7 +1,7 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, effect } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { User } from '../auth/auth.service';
+import { User, AuthService } from '../auth/auth.service';
 import { tap, map, switchMap } from 'rxjs/operators';
 
 // Interface for creating/updating users (matches Backend UserRequest)
@@ -33,6 +33,7 @@ export interface ChangePasswordRequest {
 })
 export class UsersService {
     private http = inject(HttpClient);
+    private authService = inject(AuthService);
     private apiUrl = `${environment.apiUrl}/iam/users`;
 
 
@@ -40,13 +41,40 @@ export class UsersService {
     totalElements = signal<number>(0);
     private _currentRole = '';
 
+    // Pagination & Filter State (Mapped as Signals for UI binding)
+    searchTerm = signal('');
+    selectedRole = signal('');
+    selectedStatus = signal('');
+    currentPage = signal(1);
+    itemsPerPage = 5;
+
     constructor() {
-        this.refreshUsers(0, 5, '');
+        effect(() => {
+            if (this.authService.currentUser()) {
+                this.refreshUsers();
+            } else {
+                this.users.set([]);
+                this.totalElements.set(0);
+            }
+        });
     }
 
-    refreshUsers(page: number = 0, size: number = 5, search: string = '', role?: string, active?: boolean) {
-        if (role !== undefined) {
+    refreshUsers(
+        page: number = this.currentPage() - 1,
+        size: number = this.itemsPerPage,
+        search: string = this.searchTerm(),
+        role: string = this.selectedRole(),
+        active?: boolean
+    ) {
+        if (active === undefined) {
+            if (this.selectedStatus() === 'ACTIVE') active = true;
+            else if (this.selectedStatus() === 'INACTIVE') active = false;
+        }
+
+        if (role !== undefined && role !== 'ALL') {
             this._currentRole = role;
+        } else {
+            this._currentRole = '';
         }
 
         let params = new HttpParams().set('page', page.toString()).set('size', size.toString());

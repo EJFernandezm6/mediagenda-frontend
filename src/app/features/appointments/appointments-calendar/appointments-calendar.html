@@ -263,9 +263,11 @@
 
                                         <!-- Available (Programado) -->
                                         <button *ngIf="item.type === 'available'"
-                                            (click)="openBookingModal(currentDate().toISOString().split('T')[0], time, item.doctorId, item.specialtyId)"
-                                            [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center' : 'flex-1 p-2 justify-between min-w-[140px]'"
-                                            class="rounded-lg bg-blue-50 border border-blue-300 border-dashed hover:bg-blue-100 hover:border-solid hover:shadow-md transition-all flex items-center gap-2 group/card cursor-pointer relative">
+                                            (click)="!item.isPast && openBookingModal(currentDate().toISOString().split('T')[0], time, item.doctorId, item.specialtyId)"
+                                            [disabled]="item.isPast"
+                                            [ngClass]="(items.length >= 3 ? 'w-8 h-8 p-0 justify-center ' : 'flex-1 p-2 justify-between min-w-[140px] ') + 
+                                                       (item.isPast ? 'opacity-100 cursor-not-allowed bg-gray-200 border-gray-300 border-dashed text-gray-500' : 'cursor-pointer hover:bg-blue-100 hover:border-solid hover:shadow-md bg-blue-50 border-blue-300 border-dashed')"
+                                            class="rounded-lg border transition-all flex items-center gap-2 group/card relative">
 
                                             <!-- Normal View Content -->
                                             <div *ngIf="items.length < 3" class="text-left overflow-hidden">

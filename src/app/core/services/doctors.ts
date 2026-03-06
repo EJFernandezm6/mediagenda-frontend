@@ -1,4 +1,4 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, effect } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AuthService, User } from '../auth/auth.service';
@@ -39,12 +39,27 @@ export class DoctorsService {
 
   selectableDoctors = signal<Doctor[]>([]);
 
+  // Pagination & Filter State
+  currentPage = signal(1);
+  itemsPerPage = 9;
+  searchTerm = signal('');
+  showInactive = signal(false);
+
   constructor() {
-    this.refreshDoctors(0, 10, '');
-    this.refreshSelectableDoctors();
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user) {
+        this.refreshDoctors();
+        this.refreshSelectableDoctors();
+      } else {
+        this.doctors.set([]);
+        this.selectableDoctors.set([]);
+        this.totalElements.set(0);
+      }
+    });
   }
 
-  refreshDoctors(page: number = 0, size: number = 9, search: string = '', showInactive: boolean = false) {
+  refreshDoctors(page: number = this.currentPage() - 1, size: number = this.itemsPerPage, search: string = this.searchTerm(), showInactive: boolean = this.showInactive()) {
     let params = new HttpParams().set('page', '0').set('size', '1000');
     if (search) params = params.set('search', search);
 

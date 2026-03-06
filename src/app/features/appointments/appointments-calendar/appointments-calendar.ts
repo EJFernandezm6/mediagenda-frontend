@@ -71,7 +71,6 @@ export class AppointmentsCalendarComponent {
   selectedSpecialtyId = signal<string>('');
 
   constructor() {
-    this.scheduleService.refreshSchedules();
     this.patientsService.getAllPatientsForSelect().subscribe(data => {
       this.allPatients.set(data.content);
     });
@@ -507,8 +506,8 @@ export class AppointmentsCalendarComponent {
         continue;
       }
 
-      // If it's a past time/date, do NOT show available slots
-      if (isPast) continue;
+      // If it's a date before today, hide availability slots
+      if (this.isPastDate(dateIso)) continue;
 
       // Check Schedule availability
       let isWorking = false;

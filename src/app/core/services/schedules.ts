@@ -1,7 +1,8 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, effect } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 
 export interface Schedule {
   id?: string;
@@ -17,13 +18,20 @@ export interface Schedule {
 })
 export class SchedulesService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private apiUrl = `${environment.apiUrl}/scheduling`;
 
 
   schedules = signal<Schedule[]>([]);
 
   constructor() {
-    this.refreshSchedules();
+    effect(() => {
+      if (this.authService.currentUser()) {
+        this.refreshSchedules();
+      } else {
+        this.schedules.set([]);
+      }
+    });
   }
 
   refreshSchedules(filters?: { doctorId?: string, specialtyId?: string }) {

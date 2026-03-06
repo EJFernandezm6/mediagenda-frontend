@@ -1,7 +1,8 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, effect } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs/operators';
+import { AuthService } from '../auth/auth.service';
 
 export interface Patient {
   patientId: string; // Updated to match Backend Entity @Id
@@ -40,16 +41,29 @@ export interface PaginatedResponse<T> {
 })
 export class PatientsService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private apiUrl = `${environment.apiUrl}/patients`;
 
   patients = signal<Patient[]>([]);
   totalElements = signal<number>(0);
 
+  // Pagination & Filter State
+  currentPage = signal(1);
+  itemsPerPage = 8;
+  searchTerm = signal('');
+
   constructor() {
-    this.refreshPatients(0, 10, '');
+    effect(() => {
+      if (this.authService.currentUser()) {
+        this.refreshPatients();
+      } else {
+        this.patients.set([]);
+        this.totalElements.set(0);
+      }
+    });
   }
 
-  refreshPatients(page: number = 0, size: number = 10, search: string = '') {
+  refreshPatients(page: number = this.currentPage() - 1, size: number = this.itemsPerPage, search: string = this.searchTerm()) {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     if (search) params = params.set('search', search);
 

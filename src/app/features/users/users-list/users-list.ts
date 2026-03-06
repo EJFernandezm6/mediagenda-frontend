@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power, Stethoscope } from 'lucide-angular';
@@ -6,6 +6,8 @@ import { UsersService, UserRequest } from '../../../core/services/users';
 import { AuthService, User as AuthUser } from '../../../core/auth/auth.service';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { DoctorsService } from '../../../core/services/doctors';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
@@ -15,7 +17,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
     templateUrl: './users-list.html',
     styleUrl: './users-list.css'
 })
-export class UsersListComponent {
+export class UsersListComponent implements OnInit, OnDestroy {
     private usersService = inject(UsersService);
     private authService = inject(AuthService);
     private confirmService = inject(ConfirmModalService);
@@ -26,13 +28,13 @@ export class UsersListComponent {
     users = this.usersService.users;
 
     // Filter Config
-    searchTerm = signal('');
-    selectedRole = signal(''); // Filter by a single role from dropdown
-    selectedStatus = signal(''); // Filter by active status
+    searchTerm = this.usersService.searchTerm;
+    selectedRole = this.usersService.selectedRole;
+    selectedStatus = this.usersService.selectedStatus;
 
     // Pagination
-    currentPage = signal(1);
-    itemsPerPage = 5;
+    currentPage = this.usersService.currentPage;
+    itemsPerPage = this.usersService.itemsPerPage;
 
     // Modal Config
     isModalOpen = false;
@@ -64,9 +66,30 @@ export class UsersListComponent {
 
     availableRoles: any[] = [];
 
+    private searchSubject = new Subject<string>();
+    private searchSubscription!: Subscription;
+
+    ngOnInit() {
+        // Handled by service
+    }
+
+    ngOnDestroy() {
+        if (this.searchSubscription) {
+            this.searchSubscription.unsubscribe();
+        }
+    }
+
     // Reset page when filters change
     constructor() {
-        this.loadUsers();
+        this.searchSubscription = this.searchSubject.pipe(
+            debounceTime(300),
+            distinctUntilChanged()
+        ).subscribe(term => {
+            this.searchTerm.set(term);
+            this.currentPage.set(1);
+            this.loadUsers();
+        });
+
         this.usersService.getRoles().subscribe({
             next: (roles) => {
                 this.availableRoles = roles;
@@ -78,7 +101,6 @@ export class UsersListComponent {
 
     onPageChange(page: number) {
         this.currentPage.set(page);
-        this.loadUsers();
     }
 
     // ... existing helpers ...
@@ -86,19 +108,16 @@ export class UsersListComponent {
     filterByRole(role: string) {
         this.selectedRole.set(role);
         this.currentPage.set(1);
-        this.loadUsers();
     }
 
     filterByStatus(status: string) {
         this.selectedStatus.set(status);
         this.currentPage.set(1);
-        this.loadUsers();
     }
 
-    onSearch(term: string) {
-        this.searchTerm.set(term);
-        this.currentPage.set(1);
-        this.loadUsers();
+    onSearch(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.searchSubject.next(input.value);
     }
 
     private loadUsers() {

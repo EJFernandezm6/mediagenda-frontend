@@ -1,7 +1,9 @@
-import { Component, inject, computed, signal, OnInit } from '@angular/core';
+import { Component, inject, computed, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PatientsService, Patient, Consultation } from '../../../core/services/patients';
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
@@ -15,7 +17,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   templateUrl: './patients-list.html',
   styleUrl: './patients-list.css'
 })
-export class PatientsListComponent implements OnInit {
+export class PatientsListComponent implements OnInit, OnDestroy {
   private service = inject(PatientsService);
   private router = inject(Router);
   private doctorService = inject(DoctorsService);
@@ -26,14 +28,34 @@ export class PatientsListComponent implements OnInit {
 
 
   patients = this.service.patients;
-  searchTerm = '';
 
-  // Pagination
-  currentPage = 1;
-  itemsPerPage = 8; // Increased to 8 to fill the compressed table nicely
+  // Pagination & Search (Proxy to Service)
+  searchTerm = this.service.searchTerm;
+  currentPage = this.service.currentPage;
+
+  get itemsPerPage() { return this.service.itemsPerPage; }
+
+  private searchSubject = new Subject<string>();
+  private searchSubscription!: Subscription;
+
+  constructor() {
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.searchTerm.set(term);
+      this.currentPage.set(1);
+    });
+  }
 
   ngOnInit() {
-    this.loadPatients();
+    // Relying on service entirely for first load via effect
+  }
+
+  ngOnDestroy() {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
   }
 
   // Column Visibility State
@@ -75,19 +97,16 @@ export class PatientsListComponent implements OnInit {
   }
 
   onPageChange(page: number) {
-    this.currentPage = page;
-    this.loadPatients();
+    this.currentPage.set(page);
   }
 
   onSearchChange() {
-    this.currentPage = 1;
-    this.loadPatients();
+    this.currentPage.set(1);
   }
 
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
-    this.onSearchChange();
+    this.searchSubject.next(input.value);
   }
 
   onDniInput(event: Event) {
@@ -116,7 +135,7 @@ export class PatientsListComponent implements OnInit {
   }
 
   private loadPatients() {
-    this.service.refreshPatients(this.currentPage - 1, this.itemsPerPage, this.searchTerm);
+    this.service.refreshPatients(this.currentPage() - 1, this.itemsPerPage, this.searchTerm());
   }
 
   openHistoryModal(patient: Patient) {
@@ -179,7 +198,6 @@ export class PatientsListComponent implements OnInit {
       next: () => {
         this.isSaving = false;
         this.closeModal();
-        this.loadPatients(); // Re-sync pagination after save
       },
       error: (err) => {
         this.isSaving = false;
