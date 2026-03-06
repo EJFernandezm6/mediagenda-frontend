@@ -17,7 +17,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   templateUrl: './patients-list.html',
   styleUrl: './patients-list.css'
 })
-export class PatientsListComponent implements OnInit, OnDestroy {
+export class PatientsListComponent implements OnInit {
   private service = inject(PatientsService);
   private router = inject(Router);
   private doctorService = inject(DoctorsService);
@@ -29,33 +29,13 @@ export class PatientsListComponent implements OnInit, OnDestroy {
 
   patients = this.service.patients;
 
-  // Pagination & Search (Proxy to Service)
-  searchTerm = this.service.searchTerm;
-  currentPage = this.service.currentPage;
-
-  get itemsPerPage() { return this.service.itemsPerPage; }
-
-  private searchSubject = new Subject<string>();
-  private searchSubscription!: Subscription;
-
-  constructor() {
-    this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(term => {
-      this.searchTerm.set(term);
-      this.currentPage.set(1);
-    });
-  }
+  // Local Pagination & Search State
+  searchTerm = signal('');
+  currentPage = signal(1);
+  itemsPerPage = 8;
 
   ngOnInit() {
     // Relying on service entirely for first load via effect
-  }
-
-  ngOnDestroy() {
-    if (this.searchSubscription) {
-      this.searchSubscription.unsubscribe();
-    }
   }
 
   // Column Visibility State
@@ -88,12 +68,24 @@ export class PatientsListComponent implements OnInit, OnDestroy {
 
   emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+  // Computed state for local filtering and pagination
+  filteredPatients = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    if (!term) return this.patients();
+    return this.patients().filter(p =>
+      p.fullName?.toLowerCase().includes(term) ||
+      p.email?.toLowerCase().includes(term) ||
+      p.dni?.toLowerCase().includes(term)
+    );
+  });
+
   get patientsList() {
-    return this.patients();
+    const start = (this.currentPage() - 1) * this.itemsPerPage;
+    return this.filteredPatients().slice(start, start + this.itemsPerPage);
   }
 
   get totalItems() {
-    return this.service.totalElements();
+    return this.filteredPatients().length;
   }
 
   onPageChange(page: number) {
@@ -106,7 +98,8 @@ export class PatientsListComponent implements OnInit, OnDestroy {
 
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.searchSubject.next(input.value);
+    this.searchTerm.set(input.value);
+    this.onSearchChange();
   }
 
   onDniInput(event: Event) {
@@ -135,7 +128,7 @@ export class PatientsListComponent implements OnInit, OnDestroy {
   }
 
   private loadPatients() {
-    this.service.refreshPatients(this.currentPage() - 1, this.itemsPerPage, this.searchTerm());
+    this.service.refreshPatients();
   }
 
   openHistoryModal(patient: Patient) {

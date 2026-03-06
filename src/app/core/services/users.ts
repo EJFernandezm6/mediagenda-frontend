@@ -1,4 +1,4 @@
-import { Injectable, signal, inject, effect } from '@angular/core';
+import { Injectable, signal, inject, effect, untracked } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { User, AuthService } from '../auth/auth.service';
@@ -38,53 +38,24 @@ export class UsersService {
 
 
     users = signal<User[]>([]);
-    totalElements = signal<number>(0);
-    private _currentRole = '';
-
-    // Pagination & Filter State (Mapped as Signals for UI binding)
-    searchTerm = signal('');
-    selectedRole = signal('');
-    selectedStatus = signal('');
-    currentPage = signal(1);
-    itemsPerPage = 5;
 
     constructor() {
         effect(() => {
-            if (this.authService.currentUser()) {
-                this.refreshUsers();
-            } else {
-                this.users.set([]);
-                this.totalElements.set(0);
-            }
+            const user = this.authService.currentUser();
+            untracked(() => {
+                if (user) {
+                    this.refreshUsers();
+                } else {
+                    this.users.set([]);
+                }
+            });
         });
     }
 
-    refreshUsers(
-        page: number = this.currentPage() - 1,
-        size: number = this.itemsPerPage,
-        search: string = this.searchTerm(),
-        role: string = this.selectedRole(),
-        active?: boolean
-    ) {
-        if (active === undefined) {
-            if (this.selectedStatus() === 'ACTIVE') active = true;
-            else if (this.selectedStatus() === 'INACTIVE') active = false;
-        }
-
-        if (role !== undefined && role !== 'ALL') {
-            this._currentRole = role;
-        } else {
-            this._currentRole = '';
-        }
-
-        let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
-        if (this._currentRole) params = params.set('role', this._currentRole);
-        if (search) params = params.set('search', search);
-        if (active !== undefined) params = params.set('active', String(active));
+    refreshUsers() {
+        let params = new HttpParams().set('page', '0').set('size', '1000');
 
         this.http.get<any>(this.apiUrl, { params }).pipe(
-            // Map backend response to ensure ID consistency
-            tap(data => console.log('Raw users data:', data)), // Debug log
             map(data => {
                 return {
                     ...data,
@@ -92,15 +63,12 @@ export class UsersService {
                         ...u,
                         id: u.userId || u.id, // Backend sends 'userId'
                         fullName: u.fullName || u.name, // Handle potential name field
-                        // Ensure other fields sort of match or at least don't break
                     } as User))
                 };
             })
-
         ).subscribe({
             next: (data) => {
                 this.users.set(data.content);
-                this.totalElements.set(data.totalElements);
             },
             error: (err) => console.error('Error fetching users:', err)
         });

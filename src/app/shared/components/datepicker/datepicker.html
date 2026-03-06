@@ -1,0 +1,62 @@
+<div class="relative w-full" [class.z-50]="isOpen()">
+    <!-- Clickable Input Fake -->
+    <div (click)="openDropdown()"
+        class="flex items-center justify-between w-full px-4 py-3 border-2 rounded-xl transition-all cursor-pointer bg-white"
+        [ngClass]="disabledState() ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
+
+        <span [ngClass]="currentValue() ? 'text-gray-900 font-medium text-sm' : 'text-gray-400 text-sm'">
+            {{ currentValue() || placeholder }}
+        </span>
+
+        <lucide-icon [img]="icons.Calendar" class="w-5 h-5 text-gray-400"></lucide-icon>
+    </div>
+
+    <!-- Dropdown Backdrop (Invisible overlay to detect clicks outside) -->
+    <div *ngIf="isOpen()" class="dropdown-backdrop" (click)="closeDropdown($event)"></div>
+
+    <!-- Dropdown Panel -->
+    <div *ngIf="isOpen()"
+        class="absolute z-40 mt-2 bg-white border border-gray-100 rounded-xl shadow-float overflow-hidden w-72 origin-top animate-dropdown"
+        style="animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+
+        <!-- Header Controls -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+            <button (click)="prevMonth($event)" class="p-1 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                <lucide-icon [img]="icons.ChevronLeft" class="w-5 h-5"></lucide-icon>
+            </button>
+            <div class="font-bold text-gray-800 text-sm">
+                {{ currentMonthName }} {{ currentYear }}
+            </div>
+            <button (click)="nextMonth($event)" class="p-1 rounded hover:bg-gray-200 text-gray-600 transition-colors">
+                <lucide-icon [img]="icons.ChevronRight" class="w-5 h-5"></lucide-icon>
+            </button>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="p-4">
+            <!-- Week Days Header -->
+            <div class="grid grid-cols-7 mb-2">
+                <div *ngFor="let d of weekDays" class="text-center text-xs font-bold text-gray-400">
+                    {{d}}
+                </div>
+            </div>
+
+            <!-- Days Matrix -->
+            <div class="space-y-1">
+                <div class="grid grid-cols-7 gap-1" *ngFor="let week of calendarGrid()">
+                    <button *ngFor="let day of week" (click)="selectDate(day)" [disabled]="!day.isEnabled" [ngClass]="{
+                            'bg-accent text-white shadow-md shadow-accent/40 font-bold': day.isSelected && day.isCurrentMonth,
+                            'hover:bg-primary/10 hover:text-primary': day.isEnabled && !day.isSelected && day.isCurrentMonth,
+                            'text-gray-800': day.isEnabled && !day.isSelected && day.isCurrentMonth && !day.isToday,
+                            'text-accent font-bold bg-accent/5': day.isEnabled && !day.isSelected && day.isCurrentMonth && day.isToday,
+                            'text-gray-300 cursor-not-allowed': !day.isEnabled && day.isCurrentMonth,
+                            'opacity-0 cursor-default': !day.isCurrentMonth
+                        }"
+                        class="h-8 w-8 rounded-full flex items-center justify-center text-sm transition-all focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-1">
+                        {{ day.isCurrentMonth ? day.dayOfMonth : '' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

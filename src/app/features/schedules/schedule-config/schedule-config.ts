@@ -11,11 +11,12 @@ import { LucideAngularModule, Clock, Plus, Trash2 } from 'lucide-angular';
 
 import { DoctorSelectorComponent } from '../../../shared/components/doctor-selector/doctor-selector';
 import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
+import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
 
 @Component({
   selector: 'app-schedule-config',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent, SearchableSelectComponent, DatePickerComponent],
   templateUrl: './schedule-config.html',
   styleUrl: './schedule-config.css'
 })

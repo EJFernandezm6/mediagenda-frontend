@@ -11,11 +11,12 @@ import { ConfigurationService } from '../../../core/services/configuration';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
 import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle } from 'lucide-angular';
 import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
+import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
 
 @Component({
   selector: 'app-appointments-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent, DatePickerComponent],
   templateUrl: './appointments-calendar.html',
   styleUrl: './appointments-calendar.css'
 })
@@ -187,17 +188,18 @@ export class AppointmentsCalendarComponent {
   });
 
   filteredDoctorsForModal = computed(() => {
-    // This logic is now redundant if we use filteredDoctors, but let's keep it specific for modal
-    // if modal has its own specialty selection which might differ from view
     const specialtyId = this.modalSpecialtyId();
-    if (!specialtyId) return [];
+    let docs = this.doctors();
 
-    const associations = this.doctorSpecialtyService.associations();
-    const doctorIds = associations
-      .filter(a => a.specialtyId === specialtyId)
-      .map(a => a.doctorId);
+    if (specialtyId) {
+      const associations = this.doctorSpecialtyService.associations();
+      const doctorIds = associations
+        .filter(a => a.specialtyId === specialtyId)
+        .map(a => a.doctorId);
+      docs = docs.filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
+    }
 
-    return this.doctors().filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
+    return docs;
   });
 
   // Searchable Select Mappings
@@ -218,14 +220,23 @@ export class AppointmentsCalendarComponent {
     ];
   }
 
-  get modalSpecialtyOptions(): SelectOption[] {
+  modalSpecialtyOptions = computed<SelectOption[]>(() => {
+    let specialtiesToOffer = this.specialties();
+    const doctorId = this.modalDoctorId();
+
+    if (doctorId) {
+      const associations = this.doctorSpecialtyService.associations();
+      const specIds = associations.filter(a => a.doctorId === doctorId).map(a => a.specialtyId);
+      specialtiesToOffer = specialtiesToOffer.filter(s => specIds.includes(s.specialtyId));
+    }
+
     return [
       { id: '', label: 'Seleccionar especialidad' },
-      ...this.specialties().map(s => ({ id: s.specialtyId, label: s.name }))
+      ...specialtiesToOffer.map(s => ({ id: s.specialtyId, label: s.name }))
     ];
-  }
+  });
 
-  get modalDoctorOptions(): SelectOption[] {
+  modalDoctorOptions = computed<SelectOption[]>(() => {
     return [
       { id: '', label: 'Seleccionar especialista' },
       ...this.filteredDoctorsForModal().map(d => ({
@@ -233,7 +244,7 @@ export class AppointmentsCalendarComponent {
         label: d.dni ? `${d.dni} - ${d.fullName}` : d.fullName
       }))
     ];
-  }
+  });
 
   get modalPatientOptions(): SelectOption[] {
     return [
@@ -244,6 +255,23 @@ export class AppointmentsCalendarComponent {
       }))
     ];
   }
+
+  validDatesForModal = computed(() => {
+    const doctorId = this.modalDoctorId();
+    const specialtyId = this.modalSpecialtyId();
+
+    if (!doctorId || !specialtyId) return []; // Empty array means disabled when enforced
+
+    const schedules = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId);
+
+    // Extract unique dates from schedules
+    const dates = new Set<string>();
+    schedules.forEach(s => {
+      if (s.date) dates.add(s.date);
+    });
+
+    return Array.from(dates).sort();
+  });
 
   availableSlotsForModal = computed(() => {
     const doctorId = this.modalDoctorId();

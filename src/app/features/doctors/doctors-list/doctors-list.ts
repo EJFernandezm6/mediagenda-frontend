@@ -25,34 +25,14 @@ export class DoctorsListComponent implements OnInit {
   // Icons
   readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power };
 
-  // Pagination & Search (Proxy to Service)
-  searchTerm = this.service.searchTerm;
-  showInactive = this.service.showInactive;
-  currentPage = this.service.currentPage;
-
-  get itemsPerPage() { return this.service.itemsPerPage; }
-
-  private searchSubject = new Subject<string>();
-  private searchSubscription!: Subscription;
-
-  constructor() {
-    this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(term => {
-      this.searchTerm.set(term);
-      this.currentPage.set(1);
-    });
-  }
+  // Local Pagination & Search State
+  searchTerm = signal('');
+  showInactive = signal(false);
+  currentPage = signal(1);
+  itemsPerPage = 9;
 
   ngOnInit() {
     // Relying on service entirely for first load via effect
-  }
-
-  ngOnDestroy() {
-    if (this.searchSubscription) {
-      this.searchSubscription.unsubscribe();
-    }
   }
 
   // Modal State
@@ -64,12 +44,33 @@ export class DoctorsListComponent implements OnInit {
   // Validation
   emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+  // Computed state for local filtering and pagination
+  filteredDoctors = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    const showAll = this.showInactive();
+    let docs = this.doctors();
+
+    if (!showAll) {
+      docs = docs.filter(d => d.active !== false); // Default active unless explicitly false
+    }
+
+    if (!term) return docs;
+
+    return docs.filter(d =>
+      d.fullName?.toLowerCase().includes(term) ||
+      d.email?.toLowerCase().includes(term) ||
+      d.dni?.toLowerCase().includes(term) ||
+      d.cmp?.toLowerCase().includes(term)
+    );
+  });
+
   get doctorsList() {
-    return this.doctors();
+    const start = (this.currentPage() - 1) * this.itemsPerPage;
+    return this.filteredDoctors().slice(start, start + this.itemsPerPage);
   }
 
   get totalItems() {
-    return this.service.totalElements();
+    return this.filteredDoctors().length;
   }
 
   onPageChange(page: number) {
@@ -82,7 +83,8 @@ export class DoctorsListComponent implements OnInit {
 
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.searchSubject.next(input.value);
+    this.searchTerm.set(input.value);
+    this.onSearchChange();
   }
 
   onDocumentTypeChange() {
@@ -127,7 +129,7 @@ export class DoctorsListComponent implements OnInit {
   }
 
   private loadDoctors() {
-    this.service.refreshDoctors(this.currentPage() - 1, this.itemsPerPage, this.searchTerm(), this.showInactive());
+    this.service.refreshDoctors();
   }
 
   get isFormValid() {

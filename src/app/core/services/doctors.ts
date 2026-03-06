@@ -1,4 +1,4 @@
-import { Injectable, signal, inject, effect } from '@angular/core';
+import { Injectable, signal, inject, effect, untracked } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AuthService, User } from '../auth/auth.service';
@@ -35,50 +35,39 @@ export class DoctorsService {
 
 
   doctors = signal<Doctor[]>([]);
-  totalElements = signal<number>(0);
-
   selectableDoctors = signal<Doctor[]>([]);
-
-  // Pagination & Filter State
-  currentPage = signal(1);
-  itemsPerPage = 9;
-  searchTerm = signal('');
-  showInactive = signal(false);
 
   constructor() {
     effect(() => {
       const user = this.authService.currentUser();
-      if (user) {
-        this.refreshDoctors();
-        this.refreshSelectableDoctors();
-      } else {
-        this.doctors.set([]);
-        this.selectableDoctors.set([]);
-        this.totalElements.set(0);
-      }
+      untracked(() => {
+        if (user) {
+          this.refreshDoctors();
+          this.refreshSelectableDoctors();
+        } else {
+          this.doctors.set([]);
+          this.selectableDoctors.set([]);
+        }
+      });
     });
   }
 
-  refreshDoctors(page: number = this.currentPage() - 1, size: number = this.itemsPerPage, search: string = this.searchTerm(), showInactive: boolean = this.showInactive()) {
+  refreshDoctors() {
     let params = new HttpParams().set('page', '0').set('size', '1000');
-    if (search) params = params.set('search', search);
 
     this.http.get<any>(`${this.doctorsUrl}/with-users`, { params }).subscribe({
       next: (data) => {
         let docs = data.content.map((d: any) => ({
           ...d,
           id: d.userId,
-          active: d.isActive
-        } as Doctor));
+          doctorId: d.id, // Set the specific doctor ID explicitly for profile logic
+          specialties: d.specialties || [],
+          active: d.isActive ?? d.active !== false // Ensure active status is explicitly mapped
+        }));
 
-        if (!showInactive) {
-          docs = docs.filter((d: Doctor) => d.active);
-        }
-
-        this.totalElements.set(docs.length);
-        this.doctors.set(docs.slice(page * size, (page + 1) * size));
+        this.doctors.set(docs);
       },
-      error: (err) => console.error('Error fetching doctors:', err)
+      error: (e) => console.error(e)
     });
   }
 

@@ -33,10 +33,12 @@
 
                     <!-- Date Selection -->
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de atención</label>
-                        <input [(ngModel)]="formData.date" (ngModelChange)="onDateChange($event)" [min]="minDate"
-                            type="date" [disabled]="!selectedDoctorId()"
-                            class="block w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm disabled:bg-gray-100 disabled:text-gray-400">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de atención <span
+                                class="text-red-500">*</span></label>
+                        <app-datepicker [value]="formData.date"
+                            (valueChange)="formData.date = $event; onDateChange($event)"
+                            [disabled]="!selectedDoctorId()">
+                        </app-datepicker>
                     </div>
                 </div>
 

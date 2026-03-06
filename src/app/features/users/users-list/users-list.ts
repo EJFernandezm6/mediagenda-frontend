@@ -27,14 +27,14 @@ export class UsersListComponent implements OnInit, OnDestroy {
 
     users = this.usersService.users;
 
-    // Filter Config
-    searchTerm = this.usersService.searchTerm;
-    selectedRole = this.usersService.selectedRole;
-    selectedStatus = this.usersService.selectedStatus;
+    // Local Filter Config
+    searchTerm = signal('');
+    selectedRole = signal('');
+    selectedStatus = signal('');
 
     // Pagination
-    currentPage = this.usersService.currentPage;
-    itemsPerPage = this.usersService.itemsPerPage;
+    currentPage = signal(1);
+    itemsPerPage = 5;
 
     // Modal Config
     isModalOpen = false;
@@ -56,12 +56,46 @@ export class UsersListComponent implements OnInit, OnDestroy {
 
     currentUser = this.authService.currentUser;
 
+    // Computed state for local filtering and pagination
+    filteredUsers = computed(() => {
+        const term = this.searchTerm().toLowerCase();
+        const role = this.selectedRole();
+        const status = this.selectedStatus();
+        let list = this.users() || [];
+
+        // 1. Filter by Status
+        if (status === 'ACTIVE') list = list.filter(u => u && u.active !== false);
+        else if (status === 'INACTIVE') list = list.filter(u => u && u.active === false);
+
+        // 2. Filter by Role
+        if (role && role !== 'ALL') {
+            list = list.filter(u => {
+                if (!u) return false;
+                const rolesStr = JSON.stringify(u.roles || []).toUpperCase();
+                return rolesStr.includes(role.toUpperCase());
+            });
+        }
+
+        // 3. Filter by Search Term
+        if (term) {
+            list = list.filter(u => {
+                if (!u) return false;
+                return (u.fullName || '').toLowerCase().includes(term) ||
+                    (u.email || '').toLowerCase().includes(term) ||
+                    (u.cmp || '').toLowerCase().includes(term);
+            });
+        }
+
+        return list;
+    });
+
     get usersList() {
-        return this.users();
+        const start = (this.currentPage() - 1) * this.itemsPerPage;
+        return this.filteredUsers().slice(start, start + this.itemsPerPage);
     }
 
     get totalItems() {
-        return this.usersService.totalElements();
+        return this.filteredUsers().length;
     }
 
     availableRoles: any[] = [];
@@ -74,22 +108,11 @@ export class UsersListComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        if (this.searchSubscription) {
-            this.searchSubscription.unsubscribe();
-        }
+        // Obsolete but keeping empty signature if needed
     }
 
     // Reset page when filters change
     constructor() {
-        this.searchSubscription = this.searchSubject.pipe(
-            debounceTime(300),
-            distinctUntilChanged()
-        ).subscribe(term => {
-            this.searchTerm.set(term);
-            this.currentPage.set(1);
-            this.loadUsers();
-        });
-
         this.usersService.getRoles().subscribe({
             next: (roles) => {
                 this.availableRoles = roles;
@@ -117,22 +140,12 @@ export class UsersListComponent implements OnInit, OnDestroy {
 
     onSearch(event: Event) {
         const input = event.target as HTMLInputElement;
-        this.searchSubject.next(input.value);
+        this.searchTerm.set(input.value);
+        this.currentPage.set(1);
     }
 
     private loadUsers() {
-        // Map string status to boolean or undefined
-        let activeFilter: boolean | undefined = undefined;
-        if (this.selectedStatus() === 'ACTIVE') activeFilter = true;
-        else if (this.selectedStatus() === 'INACTIVE') activeFilter = false;
-
-        this.usersService.refreshUsers(
-            this.currentPage() - 1,
-            this.itemsPerPage,
-            this.searchTerm(),
-            this.selectedRole(),
-            activeFilter
-        );
+        this.usersService.refreshUsers();
     }
 
     // Role Management in Form (Restricted to just viewing or single hidden role for now)

@@ -11,11 +11,12 @@ import {
   DashboardAppService, FrequentPatientItem, TopDoctorItem, EvolutionItem, Granularity
 } from '../dashboard-app.service';
 import { ConfigurationService } from '../../../core/services/configuration';
+import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NgxChartsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NgxChartsModule, DatePickerComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })

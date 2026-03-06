@@ -1,4 +1,4 @@
-<div class="relative w-full">
+<div class="relative w-full" [class.z-50]="isOpen()">
     <!-- Overlay to close dropdown when clicking outside -->
     <div *ngIf="isOpen()" (click)="isOpen.set(false)" class="fixed inset-0 z-30 cursor-default bg-transparent"></div>
 

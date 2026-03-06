@@ -1,4 +1,4 @@
-import { Injectable, signal, inject, effect } from '@angular/core';
+import { Injectable, signal, inject, effect, untracked } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs/operators';
@@ -45,31 +45,28 @@ export class PatientsService {
   private apiUrl = `${environment.apiUrl}/patients`;
 
   patients = signal<Patient[]>([]);
-  totalElements = signal<number>(0);
-
-  // Pagination & Filter State
-  currentPage = signal(1);
-  itemsPerPage = 8;
-  searchTerm = signal('');
 
   constructor() {
     effect(() => {
-      if (this.authService.currentUser()) {
-        this.refreshPatients();
-      } else {
-        this.patients.set([]);
-        this.totalElements.set(0);
-      }
+      const user = this.authService.currentUser();
+      untracked(() => {
+        if (user) {
+          this.refreshPatients();
+        } else {
+          this.patients.set([]);
+        }
+      });
     });
   }
 
-  refreshPatients(page: number = this.currentPage() - 1, size: number = this.itemsPerPage, search: string = this.searchTerm()) {
-    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
-    if (search) params = params.set('search', search);
+  refreshPatients() {
+    let params = new HttpParams().set('page', '0').set('size', '10000');
 
-    this.http.get<PaginatedResponse<Patient>>(this.apiUrl, { params }).subscribe(data => {
-      this.patients.set(data.content);
-      this.totalElements.set(data.totalElements);
+    this.http.get<PaginatedResponse<Patient>>(this.apiUrl, { params }).subscribe({
+      next: (data) => {
+        this.patients.set(data.content);
+      },
+      error: (err) => console.error('Error fetching patients', err)
     });
   }
 

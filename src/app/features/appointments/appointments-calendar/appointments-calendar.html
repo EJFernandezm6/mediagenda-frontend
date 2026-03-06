@@ -390,8 +390,8 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                             Especialidad <span class="text-red-500">*</span>
                         </label>
-                        <app-searchable-select [options]="modalSpecialtyOptions" [value]="modalSpecialtyId()"
-                            (valueChange)="modalSpecialtyId.set($event.toString()); modalDoctorId.set('')"
+                        <app-searchable-select [options]="modalSpecialtyOptions()" [value]="modalSpecialtyId()"
+                            (valueChange)="modalSpecialtyId.set($event.toString()); modalDoctorId.set(''); modalDate.set('')"
                             placeholder="Seleccionar especialidad" displayMode="default">
                         </app-searchable-select>
                     </div>
@@ -401,19 +401,26 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                             Médico <span class="text-red-500">*</span>
                         </label>
-                        <app-searchable-select [options]="modalDoctorOptions" [value]="modalDoctorId()"
-                            (valueChange)="modalDoctorId.set($event.toString())" [disabled]="!modalSpecialtyId()"
+                        <app-searchable-select [options]="modalDoctorOptions()" [value]="modalDoctorId()"
+                            (valueChange)="modalDoctorId.set($event.toString()); modalDate.set('')"
                             placeholder="Seleccionar médico" displayMode="default">
                         </app-searchable-select>
                     </div>
 
                     <!-- Date -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
-                            Fecha <span class="text-red-500">*</span>
-                        </label>
-                        <input type="date" [ngModel]="modalDate()" (ngModelChange)="modalDate.set($event)"
-                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm font-medium focus:border-primary focus:ring-2 focus:ring-primary transition-all outline-none">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide">
+                                Fecha <span class="text-red-500">*</span>
+                            </label>
+                            <span *ngIf="!modalDoctorId() || !modalSpecialtyId()"
+                                class="text-[10px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded">
+                                Selecciona especialidad y médico primero
+                            </span>
+                        </div>
+                        <app-datepicker [value]="modalDate()" (valueChange)="modalDate.set($event)"
+                            [enabledDates]="validDatesForModal()" [disabled]="!modalDoctorId() || !modalSpecialtyId()">
+                        </app-datepicker>
                     </div>
 
                     <!-- Patient -->
@@ -650,9 +657,16 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Fecha</label>
-                        <input type="date" [ngModel]="modalDate()" (ngModelChange)="modalDate.set($event)"
-                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-xs font-bold text-gray-600 uppercase">Fecha</label>
+                            <span *ngIf="!modalDoctorId()"
+                                class="text-[10px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded">
+                                Selecciona un médico primero
+                            </span>
+                        </div>
+                        <app-datepicker [value]="modalDate()" (valueChange)="modalDate.set($event)"
+                            [enabledDates]="validDatesForModal()" [disabled]="!modalDoctorId()">
+                        </app-datepicker>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -663,7 +677,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Médico</label>
-                            <app-searchable-select [options]="modalDoctorOptions" [value]="modalDoctorId()"
+                            <app-searchable-select [options]="modalDoctorOptions()" [value]="modalDoctorId()"
                                 (valueChange)="modalDoctorId.set($event.toString())" placeholder="Seleccionar médico"
                                 displayMode="default">
                             </app-searchable-select>

@@ -9,14 +9,18 @@
     <div class="flex flex-wrap items-center gap-3 bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm">
       <div class="flex items-center gap-2">
         <span class="text-xs font-medium text-gray-500">Desde</span>
-        <input type="date" [(ngModel)]="fromDate"
-          class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30" />
+        <div class="w-36">
+          <app-datepicker [value]="fromDate" (valueChange)="fromDate = $event" placeholder="Fecha inicial">
+          </app-datepicker>
+        </div>
       </div>
       <span class="text-gray-300">—</span>
       <div class="flex items-center gap-2">
         <span class="text-xs font-medium text-gray-500">Hasta</span>
-        <input type="date" [(ngModel)]="toDate"
-          class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30" />
+        <div class="w-36">
+          <app-datepicker [value]="toDate" (valueChange)="toDate = $event" placeholder="Fecha final">
+          </app-datepicker>
+        </div>
       </div>
       <button (click)="applyFilter()"
         class="bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
@@ -45,18 +49,9 @@
         </div>
       </div>
       <div *ngIf="patientEvolutionData().length > 0; else emptyPatientEvol" style="height: 280px">
-        <ngx-charts-line-chart
-          [scheme]="colorScheme"
-          [results]="patientEvolutionData()"
-          [xAxis]="true"
-          [yAxis]="true"
-          [legend]="false"
-          [showGridLines]="true"
-          [showXAxisLabel]="false"
-          [showYAxisLabel]="true"
-          [yAxisLabel]="'Pacientes'"
-          [autoScale]="true"
-          [timeline]="false">
+        <ngx-charts-line-chart [scheme]="colorScheme" [results]="patientEvolutionData()" [xAxis]="true" [yAxis]="true"
+          [legend]="false" [showGridLines]="true" [showXAxisLabel]="false" [showYAxisLabel]="true"
+          [yAxisLabel]="'Pacientes'" [autoScale]="true" [timeline]="false">
         </ngx-charts-line-chart>
       </div>
       <ng-template #emptyPatientEvol>
@@ -83,18 +78,9 @@
         </div>
       </div>
       <div *ngIf="appointmentEvolutionData().length > 0; else emptyApptEvol" style="height: 280px">
-        <ngx-charts-line-chart
-          [scheme]="colorScheme"
-          [results]="appointmentEvolutionData()"
-          [xAxis]="true"
-          [yAxis]="true"
-          [legend]="false"
-          [showGridLines]="true"
-          [showXAxisLabel]="false"
-          [showYAxisLabel]="true"
-          [yAxisLabel]="'Citas'"
-          [autoScale]="true"
-          [timeline]="false">
+        <ngx-charts-line-chart [scheme]="colorScheme" [results]="appointmentEvolutionData()" [xAxis]="true"
+          [yAxis]="true" [legend]="false" [showGridLines]="true" [showXAxisLabel]="false" [showYAxisLabel]="true"
+          [yAxisLabel]="'Citas'" [autoScale]="true" [timeline]="false">
         </ngx-charts-line-chart>
       </div>
       <ng-template #emptyApptEvol>
@@ -116,14 +102,9 @@
         Estado de Pagos de Citas
       </h3>
       <div class="flex items-center justify-center" style="height: 280px">
-        <ngx-charts-pie-chart *ngIf="paymentStatusData().length > 0; else emptyPayStatus"
-          [scheme]="statusColors"
-          [results]="paymentStatusData()"
-          [legend]="true"
-          [legendTitle]="''"
-          [labels]="true"
-          [labelFormatting]="pieValueFormat"
-          [doughnut]="true">
+        <ngx-charts-pie-chart *ngIf="paymentStatusData().length > 0; else emptyPayStatus" [scheme]="statusColors"
+          [results]="paymentStatusData()" [legend]="true" [legendTitle]="''" [labels]="true"
+          [labelFormatting]="pieValueFormat" [doughnut]="true">
         </ngx-charts-pie-chart>
         <ng-template #emptyPayStatus>
           <p class="text-gray-400 text-sm">Sin datos para el período</p>
@@ -138,15 +119,9 @@
         Demanda por Especialidad
       </h3>
       <div style="height: 280px">
-        <ngx-charts-bar-horizontal *ngIf="specialtyDemandData().length > 0; else emptySpecialty"
-          [scheme]="colorScheme"
-          [results]="specialtyDemandData()"
-          [xAxis]="true"
-          [yAxis]="true"
-          [legend]="false"
-          [showXAxisLabel]="true"
-          [xAxisLabel]="'Citas'"
-          [showDataLabel]="true">
+        <ngx-charts-bar-horizontal *ngIf="specialtyDemandData().length > 0; else emptySpecialty" [scheme]="colorScheme"
+          [results]="specialtyDemandData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="true"
+          [xAxisLabel]="'Citas'" [showDataLabel]="true">
         </ngx-charts-bar-horizontal>
         <ng-template #emptySpecialty>
           <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
@@ -166,13 +141,8 @@
         Pacientes por Género
       </h3>
       <div class="flex items-center justify-center" style="height: 240px">
-        <ngx-charts-pie-chart *ngIf="genderData().length > 0; else emptyGender"
-          [scheme]="genderColors"
-          [results]="genderData()"
-          [legend]="true"
-          [legendTitle]="''"
-          [labels]="true"
-          [labelFormatting]="pieValueFormat"
+        <ngx-charts-pie-chart *ngIf="genderData().length > 0; else emptyGender" [scheme]="genderColors"
+          [results]="genderData()" [legend]="true" [legendTitle]="''" [labels]="true" [labelFormatting]="pieValueFormat"
           [doughnut]="false">
         </ngx-charts-pie-chart>
         <ng-template #emptyGender>
@@ -190,8 +160,7 @@
         </h3>
         <div class="flex items-center gap-2">
           <label class="text-xs text-gray-500 font-medium whitespace-nowrap">Puntos de corte (años)</label>
-          <input type="text" [(ngModel)]="cutoffsInput"
-            placeholder="17,30,45,60"
+          <input type="text" [(ngModel)]="cutoffsInput" placeholder="17,30,45,60"
             class="border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-700 w-36 focus:outline-none focus:ring-2 focus:ring-primary/30" />
           <button (click)="loadAgeChart()"
             class="bg-primary text-white px-3 py-1 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity">
@@ -200,17 +169,9 @@
         </div>
       </div>
       <div style="height: 240px">
-        <ngx-charts-bar-vertical *ngIf="ageData().length > 0; else emptyAge"
-          [scheme]="colorScheme"
-          [results]="ageData()"
-          [xAxis]="true"
-          [yAxis]="true"
-          [legend]="false"
-          [showXAxisLabel]="true"
-          [xAxisLabel]="'Rango de Edad'"
-          [showYAxisLabel]="true"
-          [yAxisLabel]="'Pacientes'"
-          [showDataLabel]="true">
+        <ngx-charts-bar-vertical *ngIf="ageData().length > 0; else emptyAge" [scheme]="colorScheme"
+          [results]="ageData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="true"
+          [xAxisLabel]="'Rango de Edad'" [showYAxisLabel]="true" [yAxisLabel]="'Pacientes'" [showDataLabel]="true">
         </ngx-charts-bar-vertical>
         <ng-template #emptyAge>
           <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
@@ -230,16 +191,9 @@
         Afluencia por Día de la Semana
       </h3>
       <div style="height: 240px">
-        <ngx-charts-bar-vertical *ngIf="busiestDaysData().length > 0; else emptyDays"
-          [scheme]="colorScheme"
-          [results]="busiestDaysData()"
-          [xAxis]="true"
-          [yAxis]="true"
-          [legend]="false"
-          [showXAxisLabel]="false"
-          [showYAxisLabel]="true"
-          [yAxisLabel]="'Citas'"
-          [showDataLabel]="true">
+        <ngx-charts-bar-vertical *ngIf="busiestDaysData().length > 0; else emptyDays" [scheme]="colorScheme"
+          [results]="busiestDaysData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="false"
+          [showYAxisLabel]="true" [yAxisLabel]="'Citas'" [showDataLabel]="true">
         </ngx-charts-bar-vertical>
         <ng-template #emptyDays>
           <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
@@ -256,8 +210,7 @@
         </h3>
         <div class="flex items-center gap-2">
           <label class="text-xs text-gray-500 font-medium whitespace-nowrap">Ancho de franja (h)</label>
-          <input type="number" [(ngModel)]="rangeWidthHours"
-            min="1" max="12" step="1"
+          <input type="number" [(ngModel)]="rangeWidthHours" min="1" max="12" step="1"
             class="border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-700 w-16 text-center focus:outline-none focus:ring-2 focus:ring-primary/30" />
           <button (click)="loadHourChart()"
             class="bg-primary text-white px-3 py-1 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity">
@@ -266,17 +219,9 @@
         </div>
       </div>
       <div style="height: 240px">
-        <ngx-charts-bar-vertical *ngIf="hourData().length > 0; else emptyHour"
-          [scheme]="colorScheme"
-          [results]="hourData()"
-          [xAxis]="true"
-          [yAxis]="true"
-          [legend]="false"
-          [showXAxisLabel]="true"
-          [xAxisLabel]="'Hora'"
-          [showYAxisLabel]="true"
-          [yAxisLabel]="'Prom. Citas'"
-          [showDataLabel]="true"
+        <ngx-charts-bar-vertical *ngIf="hourData().length > 0; else emptyHour" [scheme]="colorScheme"
+          [results]="hourData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="true"
+          [xAxisLabel]="'Hora'" [showYAxisLabel]="true" [yAxisLabel]="'Prom. Citas'" [showDataLabel]="true"
           [dataLabelFormatting]="roundFormat">
         </ngx-charts-bar-vertical>
         <ng-template #emptyHour>
@@ -297,15 +242,9 @@
         Ingresos por Especialidad
       </h3>
       <div style="height: 280px">
-        <ngx-charts-bar-horizontal *ngIf="revenueData().length > 0; else emptyRevenue"
-          [scheme]="colorScheme"
-          [results]="revenueData()"
-          [xAxis]="true"
-          [yAxis]="true"
-          [legend]="false"
-          [showXAxisLabel]="true"
-          [xAxisLabel]="currencySymbol()"
-          [showDataLabel]="true">
+        <ngx-charts-bar-horizontal *ngIf="revenueData().length > 0; else emptyRevenue" [scheme]="colorScheme"
+          [results]="revenueData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="true"
+          [xAxisLabel]="currencySymbol()" [showDataLabel]="true">
         </ngx-charts-bar-horizontal>
         <ng-template #emptyRevenue>
           <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
@@ -320,14 +259,9 @@
         Medios de Pago Preferidos
       </h3>
       <div class="flex items-center justify-center" style="height: 280px">
-        <ngx-charts-pie-chart *ngIf="paymentMethodsData().length > 0; else emptyMethods"
-          [scheme]="colorScheme"
-          [results]="paymentMethodsData()"
-          [legend]="true"
-          [legendTitle]="''"
-          [labels]="true"
-          [labelFormatting]="pieValueFormat"
-          [doughnut]="true">
+        <ngx-charts-pie-chart *ngIf="paymentMethodsData().length > 0; else emptyMethods" [scheme]="colorScheme"
+          [results]="paymentMethodsData()" [legend]="true" [legendTitle]="''" [labels]="true"
+          [labelFormatting]="pieValueFormat" [doughnut]="true">
         </ngx-charts-pie-chart>
         <ng-template #emptyMethods>
           <p class="text-gray-400 text-sm">Sin datos para el período</p>

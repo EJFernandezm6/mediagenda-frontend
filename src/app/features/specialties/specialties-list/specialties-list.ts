@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpecialtiesService, Specialty } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
@@ -21,10 +21,10 @@ export class SpecialtiesListComponent implements OnInit {
   readonly icons = { Plus, Pencil, Trash2, Search, Power, Activity };
 
   specialties = this.service.specialties;
-  searchTerm = '';
 
-  // Pagination
-  currentPage = 1;
+  // Local Pagination & Search State
+  searchTerm = signal('');
+  currentPage = signal(1);
   itemsPerPage = 6;
 
   // Simple Modal State
@@ -32,14 +32,20 @@ export class SpecialtiesListComponent implements OnInit {
   editingId: string | null = null;
   form = { name: '', description: '', active: true };
 
-  get specialtiesList() {
-    const term = this.searchTerm.toLowerCase();
-    const filtered = this.service.specialties().filter(s =>
+  // Computed state for local filtering and pagination
+  filteredSpecialties = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    if (!term) return this.specialties();
+
+    return this.specialties().filter(s =>
       s.name.toLowerCase().includes(term) ||
       (s.description && s.description.toLowerCase().includes(term))
     );
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    return filtered.slice(start, start + this.itemsPerPage);
+  });
+
+  get specialtiesList() {
+    const start = (this.currentPage() - 1) * this.itemsPerPage;
+    return this.filteredSpecialties().slice(start, start + this.itemsPerPage);
   }
 
   ngOnInit() {
@@ -47,24 +53,20 @@ export class SpecialtiesListComponent implements OnInit {
   }
 
   get totalItems() {
-    const term = this.searchTerm.toLowerCase();
-    return this.service.specialties().filter(s =>
-      s.name.toLowerCase().includes(term) ||
-      (s.description && s.description.toLowerCase().includes(term))
-    ).length;
+    return this.filteredSpecialties().length;
   }
 
   onPageChange(page: number) {
-    this.currentPage = page;
+    this.currentPage.set(page);
   }
 
   onSearchChange() {
-    this.currentPage = 1;
+    this.currentPage.set(1);
   }
 
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
+    this.searchTerm.set(input.value);
     this.onSearchChange();
   }
 
@@ -84,7 +86,7 @@ export class SpecialtiesListComponent implements OnInit {
   }
 
   save() {
-    const isDuplicate = this.specialtiesList.some(s =>
+    const isDuplicate = this.specialtiesList.some((s: Specialty) =>
       s.name.toLowerCase().trim() === this.form.name.toLowerCase().trim() &&
       s.specialtyId !== this.editingId
     );
