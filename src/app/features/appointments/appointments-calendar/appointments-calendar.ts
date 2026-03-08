@@ -788,7 +788,12 @@ export class AppointmentsCalendarComponent {
   }
 
   getDoctorName(id: string) {
-    return this.doctors().find(d => d.id === id || d.doctorId === id || (d as any).userId === id)?.fullName || 'Desconocido';
+    const doctor = this.doctors().find(d =>
+      (d as any).id === id ||
+      (d as any).doctorId === id ||
+      (d as any).userId === id
+    );
+    return doctor?.fullName || 'Desconocido';
   }
 
   getSpecialtyName(id: string) {
@@ -948,7 +953,8 @@ export class AppointmentsCalendarComponent {
 
     switch (this.selectedAppointment.status) {
       case 'DISPONIBLE': return 'bg-gray-500';
-      case 'EN PROCESO DE RESERVA': return 'bg-yellow-500';
+      case 'EN PROCESO DE RESERVA':
+      case 'EN_PROCESO_RESERVA': return 'bg-yellow-500';
       case 'PROGRAMADA': return 'bg-blue-500';
       case 'CONFIRMADA': return 'bg-green-600';
       case 'EN ATENCION': return 'bg-purple-600';

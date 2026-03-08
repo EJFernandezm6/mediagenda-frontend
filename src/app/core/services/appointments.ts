@@ -14,7 +14,7 @@ export interface Appointment {
   appointmentDate: string; // ISO "2025-10-15"
   startTime: string; // "09:00"
   endTime: string; // "09:30"
-  status: 'DISPONIBLE' | 'EN PROCESO DE RESERVA' | 'PROGRAMADA' | 'CONFIRMADA' | 'EN ATENCION' | 'EN ESPERA' | 'ATENDIDA' | 'PERDIDA' | 'CANCELADA';
+  status: 'DISPONIBLE' | 'EN PROCESO DE RESERVA' | 'EN_PROCESO_RESERVA' | 'PROGRAMADA' | 'CONFIRMADA' | 'EN ATENCION' | 'EN ESPERA' | 'ATENDIDA' | 'PERDIDA' | 'CANCELADA';
   notes?: string;
   paymentMethod?: 'YAPE' | 'PLIN' | 'CARD' | 'CASH';
   paymentStatus?: 'PENDING' | 'PAID';
