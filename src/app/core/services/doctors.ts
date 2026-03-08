@@ -59,10 +59,10 @@ export class DoctorsService {
       next: (data) => {
         let docs = data.content.map((d: any) => ({
           ...d,
-          id: d.userId,
-          doctorId: d.id, // Set the specific doctor ID explicitly for profile logic
+          id: d.userId, // Map userId to id for general profile logic
+          doctorId: d.doctorId, // Correctly map Doctor Profile ID from doctorId field
           specialties: d.specialties || [],
-          active: d.isActive ?? d.active !== false // Ensure active status is explicitly mapped
+          active: d.isActive ?? d.active !== false
         }));
 
         this.doctors.set(docs);
@@ -78,6 +78,7 @@ export class DoctorsService {
       map(data => data.content.map((d: any) => ({
         ...d,
         id: d.userId,
+        doctorId: d.doctorId,
         active: d.isActive
       } as Doctor)))
     );

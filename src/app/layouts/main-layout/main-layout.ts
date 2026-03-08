@@ -1,7 +1,7 @@
 import { Component, inject, computed, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { LucideAngularModule, LucideIconData, LayoutDashboard, Calendar, Users, Stethoscope, MessageCircle, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight } from 'lucide-angular';
+import { LucideAngularModule, LucideIconData, LayoutDashboard, Calendar, Users, Stethoscope, MessageCircle, Clock, LogOut, Settings, Shield, Menu, X, UserCircle, Zap, Bell, CheckCircle, ChevronRight, ClipboardList } from 'lucide-angular';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal';
 import { ErrorModalComponent } from '../../shared/components/error-modal/error-modal.component';
 import { AuthService } from '../../core/auth/auth.service';
@@ -32,7 +32,8 @@ export class MainLayoutComponent {
     Zap,
     Bell,
     CheckCircle,
-    ChevronRight
+    ChevronRight,
+    ClipboardList
   };
 
   private authService = inject(AuthService);
@@ -58,15 +59,33 @@ export class MainLayoutComponent {
     settings: this.icons.Settings
   };
 
-  navItems = computed(() =>
-    [...(this.currentUser()?.features ?? [])]
+  navItems = computed(() => {
+    const items = [...(this.currentUser()?.features ?? [])]
       .sort((a, b) => a.order - b.order)
       .map(f => ({
         label: f.name,
         icon: this.featureIconMap[f.featureKey] ?? this.icons.LayoutDashboard,
         route: f.path
-      }))
-  );
+      }));
+
+    // Inject Reporte de Citas right after schedule/appointments
+    const appointmentsIndex = items.findIndex(i => i.route === '/app/appointments');
+    if (appointmentsIndex !== -1) {
+      items.splice(appointmentsIndex + 1, 0, {
+        label: 'Lista de Citas',
+        icon: this.icons.ClipboardList,
+        route: '/app/appointments-list'
+      });
+    } else {
+      items.push({
+        label: 'Lista de Citas',
+        icon: this.icons.ClipboardList,
+        route: '/app/appointments-list'
+      });
+    }
+
+    return items;
+  });
 
   constructor() {
     this.appointmentsService.fetchPendingAppointments();

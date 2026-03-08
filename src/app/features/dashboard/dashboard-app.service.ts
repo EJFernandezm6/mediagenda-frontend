@@ -78,4 +78,8 @@ export class DashboardAppService {
             params: this.range(from, to).set('granularity', granularity)
         });
     }
+
+    appointmentStatuses(from: string, to: string): Observable<LabelCountItem[]> {
+        return this.http.get<LabelCountItem[]>(`${this.base}/appointment-statuses`, { params: this.range(from, to) });
+    }
 }

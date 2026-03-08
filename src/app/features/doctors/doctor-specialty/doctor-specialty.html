@@ -64,7 +64,7 @@
                                             {{ group.specialtyName }}
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {{ getDoctorName(item.doctorId) }}
+                                            {{ doctorNamesMap().get(item.doctorId) || 'Desconocido' }}
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                             S/ {{ item.cost }}

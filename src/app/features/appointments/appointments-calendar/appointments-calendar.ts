@@ -170,7 +170,7 @@ export class AppointmentsCalendarComponent {
   // Appointments for All Doctors (Today) - Used for Daily View logic mostly
   globalAppointments = computed(() => {
     const today = this.currentDate().toISOString().split('T')[0];
-    return this.appointments().filter(a => a.appointmentDate === today && a.status !== 'CANCELLED');
+    return this.appointments().filter(a => a.appointmentDate === today && a.status !== 'CANCELADA');
   });
 
   // Dynamic values for Modal & View
@@ -307,7 +307,7 @@ export class AppointmentsCalendarComponent {
         a.doctorId === doctorId &&
         a.appointmentDate === date &&
         this.normalizeTime(a.startTime) === time &&
-        a.status !== 'CANCELLED'
+        a.status !== 'CANCELADA'
       );
       return !isBooked;
     });
@@ -405,7 +405,7 @@ export class AppointmentsCalendarComponent {
     for (const a of appointments) {
       if (docId && a.doctorId !== docId) continue;
       if (specId && a.specialtyId !== specId) continue;
-      if (a.status === 'CANCELLED') continue;
+      if (a.status === 'CANCELADA') continue;
 
       // In day view, date must match
       if (mode === 'day' && a.appointmentDate !== currentDate.toISOString().split('T')[0]) continue;
@@ -526,7 +526,7 @@ export class AppointmentsCalendarComponent {
         a.doctorId === docId &&
         a.appointmentDate === dateIso &&
         this.normalizeTime(a.startTime) === time &&
-        a.status !== 'CANCELLED'
+        a.status !== 'CANCELADA'
       );
 
       if (matchingApp) {
@@ -800,8 +800,7 @@ export class AppointmentsCalendarComponent {
 
   confirmCancel() {
     if (this.selectedAppointment) {
-      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, 'CANCELLED');
-      this.closeDetailsModal();
+      this.changeAppointmentStatus('CANCELADA');
       this.isConfirmingCancel = false;
     }
   }
@@ -837,17 +836,30 @@ export class AppointmentsCalendarComponent {
     }
   }
 
-  cancelAppointment() {
-    if (this.selectedAppointment) {
-      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, 'CANCELLED');
-      this.closeDetailsModal();
+  changeAppointmentStatus(newStatus: Appointment['status']) {
+    if (this.selectedAppointment && this.selectedAppointment.appointmentId) {
+      // Optimistic update
+      const updated = { ...this.selectedAppointment, status: newStatus };
+
+      this.appointments.update(list =>
+        list.map(a => a.appointmentId === updated.appointmentId ? updated : a)
+      );
+      this.selectedAppointment = updated;
+
+      // Backend update
+      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, newStatus);
+
+      // Close modal on final state
+      if (newStatus === 'ATENDIDA' || newStatus === 'PERDIDA' || newStatus === 'CANCELADA') {
+        this.closeDetailsModal();
+      }
     }
   }
 
   validatePayment() {
     if (this.selectedAppointment) {
       // Optimistic update
-      const updated = { ...this.selectedAppointment, paymentStatus: 'PAID' as const, status: 'CONFIRMED' as const };
+      const updated = { ...this.selectedAppointment, paymentStatus: 'PAID' as const, status: 'CONFIRMADA' as const };
 
       // Update in list
       this.appointments.update(list =>
@@ -863,30 +875,36 @@ export class AppointmentsCalendarComponent {
         this.selectedAppointment.paymentMethod || 'CASH',
         'PAID'
       );
-      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, 'CONFIRMED');
+      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, 'CONFIRMADA');
       // ideally we should also update paymentStatus if backend supports it separately, but for now this is the best we can do with current service.
     }
   }
 
+  canValidatePayment(app: Appointment | null): boolean {
+    if (!app) return false;
+    return app.paymentStatus === 'PENDING';
+  }
+
   getAppointmentStatusLabel(app: Appointment): string {
-    if (app.paymentStatus === 'PAID') {
-      return 'Pagada';
-    }
-    if (app.status === 'CONFIRMED' && app.paymentStatus === 'PENDING') {
-      return 'Reservada'; // Yellow
-    }
-    // Fallback logic
-    return 'Reservada';
+    if (!app.status) return 'Desconocido';
+    const s = app.status;
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
   }
 
   getDetailsHeaderClass(): string {
-    if (!this.selectedAppointment) return 'bg-blue-600';
+    if (!this.selectedAppointment) return 'bg-primary';
 
-    // "Confirmado" (Paid) -> Green
-    if (this.selectedAppointment.paymentStatus === 'PAID') {
-      return 'bg-green-600';
+    switch (this.selectedAppointment.status) {
+      case 'DISPONIBLE': return 'bg-gray-500';
+      case 'EN PROCESO DE RESERVA': return 'bg-yellow-500';
+      case 'PROGRAMADA': return 'bg-blue-500';
+      case 'CONFIRMADA': return 'bg-green-600';
+      case 'EN ATENCION': return 'bg-purple-600';
+      case 'EN ESPERA': return 'bg-orange-500';
+      case 'ATENDIDA': return 'bg-emerald-700';
+      case 'PERDIDA': return 'bg-red-800';
+      case 'CANCELADA': return 'bg-red-600';
+      default: return 'bg-primary';
     }
-    // "Reservado" (Pending) -> Primary Theme Color for better contrast
-    return 'bg-primary';
   }
 }

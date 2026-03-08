@@ -215,12 +215,12 @@
 
                                                 <!-- Pending -> Help (Yellow) -->
                                                 <lucide-icon
-                                                    *ngIf="item.appointment.status === 'CONFIRMED' && item.appointment.paymentStatus === 'PENDING'"
+                                                    *ngIf="item.appointment.status === 'CONFIRMADA' && item.appointment.paymentStatus === 'PENDING'"
                                                     [img]="icons.HelpCircle"
                                                     class="w-4 h-4 text-yellow-600"></lucide-icon>
 
                                                 <!-- Default -> Initials -->
-                                                <div *ngIf="!(item.appointment.paymentStatus === 'PAID') && !(item.appointment.status === 'CONFIRMED' && item.appointment.paymentStatus === 'PENDING')"
+                                                <div *ngIf="!(item.appointment.paymentStatus === 'PAID') && !(item.appointment.status === 'CONFIRMADA' && item.appointment.paymentStatus === 'PENDING')"
                                                     class="text-[9px] font-bold">
                                                     {{ getPatientName(item.appointment.patientId).charAt(0) }}
                                                 </div>
@@ -320,12 +320,12 @@
 
                                                 <!-- Pending -> Help (Yellow) -->
                                                 <lucide-icon
-                                                    *ngIf="item.appointment.status === 'CONFIRMED' && item.appointment.paymentStatus === 'PENDING'"
+                                                    *ngIf="item.appointment.status === 'CONFIRMADA' && item.appointment.paymentStatus === 'PENDING'"
                                                     [img]="icons.HelpCircle"
                                                     class="w-4 h-4 text-yellow-600"></lucide-icon>
 
                                                 <!-- Default -> Initials -->
-                                                <div *ngIf="!(item.appointment.paymentStatus === 'PAID') && !(item.appointment.status === 'CONFIRMED' && item.appointment.paymentStatus === 'PENDING')"
+                                                <div *ngIf="!(item.appointment.paymentStatus === 'PAID') && !(item.appointment.status === 'CONFIRMADA' && item.appointment.paymentStatus === 'PENDING')"
                                                     class="text-[10px] font-bold text-center">
                                                     {{ getPatientName(item.appointment.patientId).charAt(0) }}
                                                 </div>
@@ -723,27 +723,55 @@
                 Cerrar
             </button>
 
-            <div class="flex flex-1 gap-2">
-                <button *ngIf="!isRescheduling && selectedAppointment?.status !== 'CANCELLED'"
-                    (click)="showCancelConfirmation()"
-                    class="flex-1 py-3 bg-red-100 text-red-700 text-sm sm:text-base font-bold rounded-xl hover:bg-red-200">
-                    Cancelar
-                </button>
-                <button *ngIf="!isRescheduling && selectedAppointment?.status !== 'CANCELLED'"
-                    (click)="startRescheduling()"
-                    class="flex-1 py-3 bg-primary text-white text-sm sm:text-base font-bold rounded-xl shadow-lg shadow-primary hover:bg-primary whitespace-nowrap">
-                    Reprogramar
-                </button>
-                <!-- Moved Confirm Payment Button -->
-                <button
-                    *ngIf="!isRescheduling && selectedAppointment?.paymentStatus !== 'PAID' && selectedAppointment?.status !== 'CANCELLED'"
-                    (click)="validatePayment()"
-                    class="flex-[1.5] py-3 bg-green-600 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-green-700 shadow-md transition-all flex items-center justify-center gap-2 whitespace-nowrap">
-                    <lucide-icon [img]="icons.CheckCircle" class="w-4 h-4 sm:w-5 sm:h-5"></lucide-icon>
-                    Confirmar Pago
-                </button>
+            <div class="flex flex-1 flex-wrap gap-2">
+                <ng-container
+                    *ngIf="!isRescheduling && !['CANCELADA', 'PERDIDA', 'ATENDIDA'].includes(selectedAppointment?.status || '')">
+                    <button (click)="showCancelConfirmation()"
+                        class="flex-1 min-w-[120px] py-3 bg-red-100 text-red-700 text-sm sm:text-base font-bold rounded-xl hover:bg-red-200 transition-colors">
+                        Cancelar
+                    </button>
+                    <button
+                        *ngIf="selectedAppointment?.status === 'PROGRAMADA' || selectedAppointment?.status === 'CONFIRMADA'"
+                        (click)="changeAppointmentStatus('PERDIDA')"
+                        class="flex-1 min-w-[120px] py-3 bg-red-800 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-red-900 shadow-md transition-colors">
+                        No Asistió
+                    </button>
+                    <button (click)="startRescheduling()"
+                        class="flex-1 min-w-[120px] py-3 bg-primary text-white text-sm sm:text-base font-bold rounded-xl shadow-lg shadow-primary hover:bg-primary/90 transition-colors whitespace-nowrap">
+                        Reprogramar
+                    </button>
+                    <!-- Confirm Payment if Pending -->
+                    <button *ngIf="selectedAppointment?.paymentStatus !== 'PAID'" (click)="validatePayment()"
+                        class="flex-1 min-w-[140px] py-3 bg-green-600 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-green-700 shadow-md transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
+                        <lucide-icon [img]="icons.CheckCircle" class="w-4 h-4"></lucide-icon>
+                        Cobrar
+                    </button>
+
+                    <!-- State Progression Buttons -->
+                    <button *ngIf="selectedAppointment?.status === 'PROGRAMADA'"
+                        (click)="changeAppointmentStatus('CONFIRMADA')"
+                        class="flex-[1.5] min-w-[150px] py-3 bg-blue-600 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-blue-700 shadow-md transition-all">
+                        Paciente Confirmó
+                    </button>
+                    <button *ngIf="selectedAppointment?.status === 'CONFIRMADA'"
+                        (click)="changeAppointmentStatus('EN ESPERA')"
+                        class="flex-[1.5] min-w-[150px] py-3 bg-indigo-600 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-indigo-700 shadow-md transition-all">
+                        Paciente en Sala
+                    </button>
+                    <button *ngIf="selectedAppointment?.status === 'EN ESPERA'"
+                        (click)="changeAppointmentStatus('EN ATENCION')"
+                        class="flex-[1.5] min-w-[150px] py-3 bg-purple-600 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-purple-700 shadow-md transition-all">
+                        Atender
+                    </button>
+                    <button *ngIf="selectedAppointment?.status === 'EN ATENCION'"
+                        (click)="changeAppointmentStatus('ATENDIDA')"
+                        class="flex-[1.5] min-w-[150px] py-3 bg-emerald-700 text-white text-sm sm:text-base font-bold rounded-xl hover:bg-emerald-800 shadow-md transition-all">
+                        Finalizar Consulta
+                    </button>
+                </ng-container>
+
                 <button *ngIf="isRescheduling" (click)="saveRescheduledAppointment()" [disabled]="!modalTime()"
-                    class="flex-1 py-3 bg-green-600 text-white text-sm sm:text-base font-bold rounded-xl shadow-lg shadow-green-200 hover:bg-green-700 disabled:opacity-50">
+                    class="flex-1 py-3 bg-green-600 text-white text-sm sm:text-base font-bold rounded-xl shadow-lg shadow-green-200 hover:bg-green-700 disabled:opacity-50 transition-all">
                     Guardar
                 </button>
             </div>

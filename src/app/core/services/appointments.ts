@@ -14,7 +14,7 @@ export interface Appointment {
   appointmentDate: string; // ISO "2025-10-15"
   startTime: string; // "09:00"
   endTime: string; // "09:30"
-  status: 'SCHEDULED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  status: 'DISPONIBLE' | 'EN PROCESO DE RESERVA' | 'PROGRAMADA' | 'CONFIRMADA' | 'EN ATENCION' | 'EN ESPERA' | 'ATENDIDA' | 'PERDIDA' | 'CANCELADA';
   notes?: string;
   paymentMethod?: 'YAPE' | 'PLIN' | 'CARD' | 'CASH';
   paymentStatus?: 'PENDING' | 'PAID';
@@ -125,6 +125,6 @@ export class AppointmentsService {
   }
 
   cancelAppointment(id: string) {
-    this.updatestatus(id, 'CANCELLED');
+    this.updatestatus(id, 'CANCELADA');
   }
 }

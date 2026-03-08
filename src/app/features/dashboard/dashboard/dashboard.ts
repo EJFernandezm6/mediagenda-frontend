@@ -49,6 +49,20 @@ export class DashboardComponent implements OnInit {
   readonly statusColors: any = { domain: ['#10B981', '#F59E0B', '#EF4444', '#6366F1'] };
   readonly genderColors: any = { domain: ['#6366F1', '#EC4899', '#10B981'] };
 
+  // Appointment Status Colors map (Match with appointments-calendar/list view logic approximately)
+  readonly appointmentStatusColors: any = {
+    domain: [
+      '#D1D5DB', // DEFAULT
+      '#93C5FD', // PROGRAMADA -> blue-300
+      '#86EFAC', // CONFIRMADA -> green-300
+      '#A78BFA', // EN ATENCION -> purple-300
+      '#FCA5A5', // PERDIDA -> red-300
+      '#FDE047', // EN ESPERA -> yellow-300
+      '#6EE7B7', // ATENDIDA -> emerald-300
+      '#9CA3AF'  // CANCELADA -> gray-400
+    ]
+  };
+
   // Chart data (ngx-charts format: {name, value}[])
   paymentStatusData = signal<any[]>([]);
   specialtyDemandData = signal<any[]>([]);
@@ -58,6 +72,7 @@ export class DashboardComponent implements OnInit {
   hourData = signal<any[]>([]);
   paymentMethodsData = signal<any[]>([]);
   revenueData = signal<any[]>([]);
+  appointmentStatusesData = signal<any[]>([]);
 
   // Line chart data: [{name, series: [{name, value}]}]
   patientEvolutionData = signal<any[]>([]);
@@ -111,6 +126,7 @@ export class DashboardComponent implements OnInit {
     this.svc.frequentPatients(f, t).subscribe(d => this.frequentPatientsData.set(d));
     this.svc.revenueBySpecialty(f, t).subscribe(d => this.revenueData.set(d.map(i => ({ name: this.s(i.specialtyName), value: Number(i.revenue) }))));
     this.svc.topDoctors(f, t).subscribe(d => this.topDoctorsData.set(d));
+    this.svc.appointmentStatuses(f, t).subscribe(d => this.appointmentStatusesData.set(this.toLabelChart(d)));
     this.loadPatientEvolution();
     this.loadAppointmentEvolution();
   }

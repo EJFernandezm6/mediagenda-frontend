@@ -1,0 +1,199 @@
+<div class="p-6 max-w-7xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-primary">Reporte de Citas</h1>
+            <p class="text-gray-500 text-sm mt-1">Analiza el flujo y estado de atención de la clínica.</p>
+        </div>
+
+        <button (click)="refreshData()"
+            class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-colors">
+            <lucide-icon [img]="icons.Clock" class="w-4 h-4"></lucide-icon>
+            Actualizar Datos
+        </button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Card -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <lucide-icon [img]="icons.FileText" class="w-6 h-6"></lucide-icon>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Total Citas</p>
+                <p class="text-2xl font-bold text-gray-900">{{ totalAppointments() }}</p>
+            </div>
+        </div>
+        <!-- Atendidas Card -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div
+                class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <lucide-icon [img]="icons.CheckCircle" class="w-6 h-6"></lucide-icon>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Atendidas</p>
+                <p class="text-2xl font-bold text-gray-900">{{ totalAtendidas() }}</p>
+            </div>
+        </div>
+        <!-- En Proceso Card -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <lucide-icon [img]="icons.Clock" class="w-6 h-6"></lucide-icon>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">En Progreso / Vigentes</p>
+                <p class="text-2xl font-bold text-gray-900">{{ totalProgramadas() }}</p>
+            </div>
+        </div>
+        <!-- Canceladas Card -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                <lucide-icon [img]="icons.XCircle" class="w-6 h-6"></lucide-icon>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Canceladas / Perdidas</p>
+                <p class="text-2xl font-bold text-gray-900">{{ totalCanceladas() }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Area -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center gap-2 mb-4 text-primary font-bold">
+            <lucide-icon [img]="icons.Filter" class="w-5 h-5"></lucide-icon>
+            <h2>Filtros de Búsqueda</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Fecha Desde -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Desde</label>
+                <div class="relative">
+                    <lucide-icon [img]="icons.Calendar"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+                    <input type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); refreshData()"
+                        class="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent">
+                </div>
+            </div>
+
+            <!-- Fecha Hasta -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Hasta</label>
+                <div class="relative">
+                    <lucide-icon [img]="icons.Calendar"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+                    <input type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); refreshData()"
+                        class="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent">
+                </div>
+            </div>
+
+            <!-- Buscador Paciente -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Paciente</label>
+                <div class="relative">
+                    <lucide-icon [img]="icons.User"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+                    <input type="text" placeholder="DNI o Nombre..." [ngModel]="searchPatient()"
+                        (ngModelChange)="searchPatient.set($event)"
+                        class="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent">
+                </div>
+            </div>
+
+            <!-- Dropdown Medicos -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Especialista</label>
+                <select [ngModel]="selectedDoctorId()" (ngModelChange)="selectedDoctorId.set($event)"
+                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent">
+                    <option value="">Todos los Especialistas</option>
+                    <option *ngFor="let doc of availableDoctors()" [value]="doc.id">{{ doc.fullName }}</option>
+                </select>
+            </div>
+
+            <!-- Dropdown Estados Principales -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Estado</label>
+                <select [ngModel]="selectedStatus().length ? selectedStatus()[0] : ''"
+                    (ngModelChange)="$event ? selectedStatus.set([$event]) : selectedStatus.set([])"
+                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent">
+                    <option value="">Todos los Estados</option>
+                    <option *ngFor="let st of appointmentStatuses" [value]="st">{{ st }}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500">
+                        <th class="px-6 py-4 font-semibold">Fecha / Hora</th>
+                        <th class="px-6 py-4 font-semibold">Paciente</th>
+                        <th class="px-6 py-4 font-semibold">Especialista</th>
+                        <th class="px-6 py-4 font-semibold">Estado de Cita</th>
+                        <th class="px-6 py-4 font-semibold text-center">Cobranza</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+
+                    <!-- Empty State -->
+                    <tr *ngIf="filteredAppointments().length === 0">
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                            <div class="flex flex-col items-center justify-center">
+                                <lucide-icon [img]="icons.AlertCircle"
+                                    class="w-12 h-12 mb-3 text-gray-300"></lucide-icon>
+                                <p class="text-base font-medium text-gray-500">No se encontraron citas</p>
+                                <p class="text-sm mt-1">Intenta ajustando los filtros de búsqueda superior.</p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Rows -->
+                    <tr *ngFor="let app of filteredAppointments()" class="hover:bg-primary/5 transition-colors group">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-semibold text-gray-900">{{ app.appointmentDate }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                                <lucide-icon [img]="icons.Clock" class="w-3 h-3"></lucide-icon>
+                                {{ app.startTime }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900 line-clamp-1">{{ app.patientId }}</div>
+                            <div class="text-xs text-gray-500">DNI/ID</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 line-clamp-1">Dr(a). {{ app.doctorId }}</div>
+                            <div class="text-xs text-blue-600 line-clamp-1">{{ app.specialtyId }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span
+                                class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors shadow-sm"
+                                [class]="getStatusColorClass(app.status)">
+                                {{ app.status.toUpperCase() || 'AGENDADA' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span *ngIf="app.paymentStatus === 'PAID'"
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <lucide-icon [img]="icons.CheckCircle" class="w-3.5 h-3.5"></lucide-icon>
+                                PAGADO
+                            </span>
+                            <span *ngIf="app.paymentStatus !== 'PAID'"
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                PENDIENTE
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer / Pagination placeholder -->
+        <div
+            class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between text-sm text-gray-500">
+            Mostrando {{ filteredAppointments().length }} registros
+        </div>
+    </div>
+</div>

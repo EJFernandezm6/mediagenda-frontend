@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ViewChild } from '@angular/core';
+import { Component, inject, signal, computed, ViewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DoctorSpecialtyService, DoctorSpecialty } from './doctor-specialty.service';
@@ -17,7 +17,7 @@ import { LucideAngularModule, Plus, Trash2, Edit, Search, X, Filter } from 'luci
   templateUrl: './doctor-specialty.html',
   styleUrl: './doctor-specialty.css'
 })
-export class DoctorSpecialtyComponent {
+export class DoctorSpecialtyComponent implements OnInit {
   private associationService = inject(DoctorSpecialtyService);
   private doctorService = inject(DoctorsService);
   private specialtyService = inject(SpecialtiesService);
@@ -30,6 +30,24 @@ export class DoctorSpecialtyComponent {
   specialties = this.specialtyService.specialties;
   associations = this.associationService.associations;
 
+  // Reactivity Maps (to avoid calling functions in the template and handle async loads)
+  doctorNamesMap = computed(() => {
+    const map = new Map<string, string>();
+    this.doctors().forEach(d => {
+      // Map both the Doctor Profile ID (doctorId) and User ID (id) to handle all types of association links
+      const name = d.dni ? `${d.dni} - ${d.fullName}` : d.fullName;
+      if (d.doctorId) map.set(d.doctorId, name);
+      if (d.id) map.set(d.id, name);
+    });
+    return map;
+  });
+
+  specialtyNamesMap = computed(() => {
+    const map = new Map<string, string>();
+    this.specialties().forEach(s => map.set(s.specialtyId, s.name));
+    return map;
+  });
+
   // Filter State
   searchTerm = signal('');
   filterDoctorId = signal('');
@@ -38,6 +56,16 @@ export class DoctorSpecialtyComponent {
   // Modal State
   isModalOpen = signal(false);
   isEditMode = signal(false);
+
+  ngOnInit() {
+    this.associationService.refreshAssociations();
+    if (this.doctors().length === 0) {
+      this.doctorService.getDoctors();
+    }
+    if (this.specialties().length === 0) {
+      this.specialtyService.refreshSpecialties();
+    }
+  }
 
   // Form State
   selectedDoctorId = '';
@@ -81,13 +109,11 @@ export class DoctorSpecialtyComponent {
 
     return this.associations().filter(item => {
       // Find doctor using the stored ID (which is DoctorID)
-      const doctor = this.doctors().find(d => d.doctorId === item.doctorId || d.id === item.doctorId);
-      const doctorName = doctor?.fullName.toLowerCase() || '';
-      const doctorDNI = doctor?.dni?.toLowerCase() || '';
-      const specialtyName = this.getSpecialtyName(item.specialtyId).toLowerCase();
+      const doctorName = this.doctorNamesMap().get(item.doctorId)?.toLowerCase() || '';
+      const specialtyName = this.specialtyNamesMap().get(item.specialtyId)?.toLowerCase() || '';
 
       // Search by doctor name, DNI, or specialty name
-      const matchesSearch = doctorName.includes(term) || doctorDNI.includes(term) || specialtyName.includes(term);
+      const matchesSearch = doctorName.includes(term) || specialtyName.includes(term);
 
       // Filter by doctor ID (Profile ID)
       const matchesDoctor = !docFilter || item.doctorId === docFilter;
@@ -95,15 +121,15 @@ export class DoctorSpecialtyComponent {
 
       return matchesSearch && matchesDoctor && matchesSpecialty;
     }).sort((a, b) => {
-      const specA = this.getSpecialtyName(a.specialtyId).toLowerCase();
-      const specB = this.getSpecialtyName(b.specialtyId).toLowerCase();
+      const specA = this.specialtyNamesMap().get(a.specialtyId)?.toLowerCase() || '';
+      const specB = this.specialtyNamesMap().get(b.specialtyId)?.toLowerCase() || '';
 
       if (specA < specB) return -1;
       if (specA > specB) return 1;
 
       // Secondary sort by Doctor Name
-      const docA = this.getDoctorName(a.doctorId).toLowerCase();
-      const docB = this.getDoctorName(b.doctorId).toLowerCase();
+      const docA = this.doctorNamesMap().get(a.doctorId)?.toLowerCase() || '';
+      const docB = this.doctorNamesMap().get(b.doctorId)?.toLowerCase() || '';
       return docA.localeCompare(docB);
     });
   });
@@ -116,7 +142,7 @@ export class DoctorSpecialtyComponent {
       if (!groups.has(item.specialtyId)) {
         groups.set(item.specialtyId, {
           specialtyId: item.specialtyId,
-          specialtyName: this.getSpecialtyName(item.specialtyId),
+          specialtyName: this.specialtyNamesMap().get(item.specialtyId) || 'Desconocida',
           items: []
         });
       }
@@ -178,7 +204,7 @@ export class DoctorSpecialtyComponent {
     const doctor = this.doctors().find(d => d.doctorId === id || d.id === id);
 
     if (!doctor) {
-      // console.warn('Doctor not found for ID:', id, 'Available doctors:', this.doctors());
+      console.warn('Doctor not found for ID:', id, 'Available doctors count:', this.doctors().length);
       return 'Desconocido';
     }
     return doctor.dni ? `${doctor.dni} - ${doctor.fullName}` : doctor.fullName;
@@ -256,7 +282,7 @@ export class DoctorSpecialtyComponent {
 
     const confirmed = await this.confirmService.confirm({
       title: 'Eliminar Asignación',
-      message: `¿Estás seguro de eliminar la asignación de ${this.getSpecialtyName(item.specialtyId)} a ${this.getDoctorName(item.doctorId)}?`,
+      message: `¿Estás seguro de eliminar la asignación de ${this.specialtyNamesMap().get(item.specialtyId)} a ${this.doctorNamesMap().get(item.doctorId)}?`,
       confirmText: 'Eliminar',
       cancelText: 'Cancelar'
     });

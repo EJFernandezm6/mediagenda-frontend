@@ -112,6 +112,23 @@
       </div>
     </div>
 
+    <!-- Distribución de Estados de Citas -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-emerald-500"></lucide-icon>
+        Distribución de Estados de Citas
+      </h3>
+      <div class="flex items-center justify-center" style="height: 280px">
+        <ngx-charts-pie-chart *ngIf="appointmentStatusesData().length > 0; else emptyApptStatus"
+          [scheme]="appointmentStatusColors" [results]="appointmentStatusesData()" [legend]="true" [legendTitle]="''"
+          [labels]="true" [labelFormatting]="pieValueFormat" [doughnut]="true">
+        </ngx-charts-pie-chart>
+        <ng-template #emptyApptStatus>
+          <p class="text-gray-400 text-sm">Sin datos para el período</p>
+        </ng-template>
+      </div>
+    </div>
+
     <!-- Citas por Especialidad -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
       <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
