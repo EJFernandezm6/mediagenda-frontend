@@ -107,6 +107,10 @@ export class ScheduleConfigComponent {
     return doc ? doc.fullName : 'Desconocido';
   }
 
+  get isSelectionComplete(): boolean {
+    return !!(this.selectedDoctorId() && this.formData.specialtyId);
+  }
+
   // Min Date for Date Picker
   minDate = new Date().toISOString().split('T')[0];
 

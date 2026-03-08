@@ -70,6 +70,7 @@ export class AppointmentsCalendarComponent {
   // Filters
   selectedDoctorId = signal<string>('');
   selectedSpecialtyId = signal<string>('');
+  paymentStatusFilter = signal<'ALL' | 'PAID' | 'PENDING'>('ALL');
 
   constructor() {
     this.patientsService.getAllPatientsForSelect().subscribe(data => {
@@ -120,6 +121,19 @@ export class AppointmentsCalendarComponent {
         });
       }
     });
+
+    // Body Scroll Lock Effect
+    effect(() => {
+      if (this.isModalOpen() || this.isDetailsModalOpen()) {
+        document.body.classList.add('overflow-hidden');
+      } else {
+        document.body.classList.remove('overflow-hidden');
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    document.body.classList.remove('overflow-hidden');
   }
 
   // Calendar State
@@ -133,8 +147,25 @@ export class AppointmentsCalendarComponent {
     });
   });
 
+  canGoBack = computed(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // For week view, check if start of current view is before start of today's week
+    if (this.viewMode() === 'week') {
+      const startOfView = this.getStartOfWeek(this.currentDate());
+      const startOfTodayWeek = this.getStartOfWeek(today);
+      return startOfView.getTime() > startOfTodayWeek.getTime();
+    }
+
+    // For day view, check if view date is before today
+    const viewDate = new Date(this.currentDate());
+    viewDate.setHours(0, 0, 0, 0);
+    return viewDate.getTime() > today.getTime();
+  });
+
   // Modal State
-  isModalOpen = false;
+  isModalOpen = signal(false);
   saving = signal(false);
   selectedSlot: { date: string, time: string } | null = null;
 
@@ -150,7 +181,7 @@ export class AppointmentsCalendarComponent {
   modalPaymentProof = signal('');
 
   // Details Modal State
-  isDetailsModalOpen = false;
+  isDetailsModalOpen = signal(false);
   selectedAppointment: Appointment | null = null;
   isRescheduling = false;
   isConfirmingCancel = false;
@@ -267,7 +298,9 @@ export class AppointmentsCalendarComponent {
     // Extract unique dates from schedules
     const dates = new Set<string>();
     schedules.forEach(s => {
-      if (s.date) dates.add(s.date);
+      if (s.date && !this.isPastDate(s.date)) {
+        dates.add(s.date);
+      }
     });
 
     return Array.from(dates).sort();
@@ -301,15 +334,21 @@ export class AppointmentsCalendarComponent {
       }
     }
 
-    // 4. Filtrar slots ya ocupados
+    // 4. Filtrar slots ya ocupados y pasados
     return slots.filter(time => {
+      // 1. Check if slot is already booked
       const isBooked = this.appointments().some(a =>
         a.doctorId === doctorId &&
         a.appointmentDate === date &&
         this.normalizeTime(a.startTime) === time &&
         a.status !== 'CANCELADA'
       );
-      return !isBooked;
+      if (isBooked) return false;
+
+      // 2. Check if slot is in the past (only relevant for today)
+      if (this.isPastTime(date, time)) return false;
+
+      return true;
     });
   });
 
@@ -457,8 +496,15 @@ export class AppointmentsCalendarComponent {
     const startOfNewView = this.viewMode() === 'week' ? this.getStartOfWeek(newDate) : newDate;
     startOfNewView.setHours(0, 0, 0, 0);
 
+    // If trying to go back (offset < 0), check if we can
+    if (offset < 0 && !this.canGoBack()) {
+      return;
+    }
+
+    // Extra double-check logic
     if (startOfNewView < startOfCurrentWeek) {
-      return; // Prevent navigation
+      // If we are already at the current week, don't allow going back even further
+      if (offset < 0) return;
     }
 
     this.currentDate.set(newDate);
@@ -530,8 +576,14 @@ export class AppointmentsCalendarComponent {
       );
 
       if (matchingApp) {
-        items.push({ type: 'booked', appointment: matchingApp });
-        continue;
+        // Apply Payment Filter
+        const filter = this.paymentStatusFilter();
+        if (filter === 'ALL' ||
+          (filter === 'PAID' && matchingApp.paymentStatus === 'PAID') ||
+          (filter === 'PENDING' && matchingApp.paymentStatus !== 'PAID')) {
+          items.push({ type: 'booked', appointment: matchingApp });
+          continue;
+        }
       }
 
       // If it's a date before today, hide availability slots
@@ -628,7 +680,7 @@ export class AppointmentsCalendarComponent {
     this.modalPaymentMethod.set('CASH');
     this.modalTransactionId.set('');
     this.modalPaymentProof.set('');
-    this.isModalOpen = true;
+    this.isModalOpen.set(true);
   }
 
   // Check if form has data
@@ -657,7 +709,7 @@ export class AppointmentsCalendarComponent {
   }
 
   closeModal() {
-    this.isModalOpen = false;
+    this.isModalOpen.set(false);
     // Reset state? maybe cleaner to do it on open
   }
 
@@ -681,7 +733,7 @@ export class AppointmentsCalendarComponent {
 
   getDuration(doctorId: string, specialtyId: string): number {
     const assoc = this.doctorSpecialtyService.associations()
-      .find(a => a.doctorId === doctorId && a.specialtyId === specialtyId);
+      .find(a => (a.doctorId === doctorId || (a as any).id === doctorId || (a as any).userId === doctorId) && a.specialtyId === specialtyId);
     return assoc && assoc.durationMinutes > 0 ? assoc.durationMinutes : 30; // Default 30
   }
 
@@ -736,7 +788,7 @@ export class AppointmentsCalendarComponent {
   }
 
   getDoctorName(id: string) {
-    return this.doctors().find(d => d.id === id || d.doctorId === id)?.fullName || 'Desconocido';
+    return this.doctors().find(d => d.id === id || d.doctorId === id || (d as any).userId === id)?.fullName || 'Desconocido';
   }
 
   getSpecialtyName(id: string) {
@@ -763,12 +815,12 @@ export class AppointmentsCalendarComponent {
 
   openAppointmentDetails(appointment: Appointment) {
     this.selectedAppointment = appointment;
-    this.isDetailsModalOpen = true;
+    this.isDetailsModalOpen.set(true);
     this.isRescheduling = false;
   }
 
   closeDetailsModal() {
-    this.isDetailsModalOpen = false;
+    this.isDetailsModalOpen.set(false);
     this.selectedAppointment = null;
     this.isRescheduling = false;
     this.isConfirmingCancel = false;

@@ -33,7 +33,7 @@ export class PatientDetailComponent implements OnInit {
   }
 
   getDoctorName(id: string) {
-    return this.doctorService.doctors().find(d => d.id === id)?.fullName || 'Desconocido';
+    return this.doctorService.doctors().find(d => d.id === id || d.doctorId === id || (d as any).userId === id)?.fullName || 'Desconocido';
   }
 
   getSpecialtyName(id: string) {

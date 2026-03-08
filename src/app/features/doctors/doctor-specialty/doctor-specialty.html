@@ -144,13 +144,13 @@
                     <div class="mt-4 space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 text-left mb-1">Especialista</label>
-                            <app-doctor-selector [disabled]="isEditMode()" [requireActive]="true"
+                            <app-doctor-selector [requireActive]="true"
                                 (selectionChanged)="selectedDoctorId = $event"></app-doctor-selector>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 text-left mb-1">Especialidad</label>
-                            <app-specialty-selector [disabled]="isEditMode()"
+                            <app-specialty-selector
                                 (selectionChanged)="selectedSpecialtyId = $event"></app-specialty-selector>
                         </div>
 

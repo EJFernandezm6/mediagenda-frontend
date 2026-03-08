@@ -37,7 +37,7 @@
                                 class="text-red-500">*</span></label>
                         <app-datepicker [value]="formData.date"
                             (valueChange)="formData.date = $event; onDateChange($event)"
-                            [disabled]="!selectedDoctorId()">
+                            [disabled]="!isSelectionComplete">
                         </app-datepicker>
                     </div>
                 </div>
@@ -49,13 +49,13 @@
                         <div class="w-full">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
                             <input [(ngModel)]="formData.startTime" (ngModelChange)="onStartTimeChange()" type="time"
-                                [disabled]="!selectedDoctorId()"
+                                [disabled]="!isSelectionComplete"
                                 class="block w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm disabled:bg-gray-100 disabled:text-gray-400">
                         </div>
                         <span class="text-gray-400 font-bold self-end pb-3 px-1">-</span>
                         <div class="w-full relative">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
-                            <select [(ngModel)]="formData.endTime" [disabled]="!selectedDoctorId()"
+                            <select [(ngModel)]="formData.endTime" [disabled]="!isSelectionComplete"
                                 class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
                                 <option *ngFor="let time of validEndTimes()" [value]="time">{{ time }}</option>
                             </select>
@@ -73,7 +73,7 @@
                     <div class="lg:col-span-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Repetir asignación:</label>
                         <div class="relative">
-                            <select [(ngModel)]="formData.weeksToRepeat" [disabled]="!selectedDoctorId()"
+                            <select [(ngModel)]="formData.weeksToRepeat" [disabled]="!isSelectionComplete"
                                 class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
                                 <option [ngValue]="0">Solo esta fecha</option>
                                 <option [ngValue]="4">Repetir por 1 mes</option>

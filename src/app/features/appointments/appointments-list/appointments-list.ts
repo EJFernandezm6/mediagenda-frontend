@@ -98,6 +98,20 @@ export class AppointmentsList implements OnInit {
   totalProgramadas = computed(() => this.filteredAppointments().filter(a => ['PROGRAMADA', 'CONFIRMADA', 'EN ESPERA', 'EN ATENCION'].includes(a.status || '')).length);
   totalCanceladas = computed(() => this.filteredAppointments().filter(a => ['CANCELADA', 'PERDIDA'].includes(a.status || '')).length);
 
+  getDoctorName(id: string) {
+    return this.availableDoctors().find(d => d.id === id || d.doctorId === id || (d as any).userId === id)?.fullName || id;
+  }
+
+  getSpecialtyName(id: string) {
+    return this.availableSpecialties().find(s => s.specialtyId === id)?.name || id;
+  }
+
+  getPatientName(id: string) {
+    // If we have a way to fetch patient names here, we should. 
+    // For now we use the ID or search if available.
+    return id;
+  }
+
   // Status mapping helper
   getStatusColorClass(status: string | undefined): string {
     switch (status) {

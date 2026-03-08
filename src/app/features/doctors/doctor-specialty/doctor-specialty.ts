@@ -34,10 +34,11 @@ export class DoctorSpecialtyComponent implements OnInit {
   doctorNamesMap = computed(() => {
     const map = new Map<string, string>();
     this.doctors().forEach(d => {
-      // Map both the Doctor Profile ID (doctorId) and User ID (id) to handle all types of association links
+      // Map all possible IDs to handle all types of association links
       const name = d.dni ? `${d.dni} - ${d.fullName}` : d.fullName;
       if (d.doctorId) map.set(d.doctorId, name);
       if (d.id) map.set(d.id, name);
+      if ((d as any).userId) map.set((d as any).userId, name);
     });
     return map;
   });

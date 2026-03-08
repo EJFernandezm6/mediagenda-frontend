@@ -31,8 +31,21 @@ export class DoctorsListComponent implements OnInit {
   currentPage = signal(1);
   itemsPerPage = 9;
 
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
+
   ngOnInit() {
-    // Relying on service entirely for first load via effect
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(value => {
+      this.searchTerm.set(value);
+      this.currentPage.set(1);
+    });
+  }
+
+  ngOnDestroy() {
+    this.searchSubscription?.unsubscribe();
   }
 
   // Modal State
@@ -83,8 +96,7 @@ export class DoctorsListComponent implements OnInit {
 
   onSearchInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.searchTerm.set(input.value);
-    this.onSearchChange();
+    this.searchSubject.next(input.value);
   }
 
   onDocumentTypeChange() {
