@@ -8,11 +8,14 @@ import { FormsModule } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
+import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
+import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
+import { CardComponent } from '../../../shared/components/ui/card/card.component';
 
 @Component({
   selector: 'app-doctors-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule, RouterLink, PaginationComponent],
+  imports: [CommonModule, LucideAngularModule, FormsModule, RouterLink, PaginationComponent, ButtonComponent, BadgeComponent, CardComponent],
   templateUrl: './doctors-list.html',
   styleUrl: './doctors-list.css'
 })

@@ -138,7 +138,10 @@ export class DoctorsService {
         // Backend returns DoctorResponse which has doctorId
         return this.http.patch(`${this.doctorsUrl}/${createdDoctor.doctorId}/status`, { isActive: true });
       }),
-      tap(() => this.refreshDoctors())
+      tap(() => {
+        this.refreshDoctors();
+        this.refreshSelectableDoctors();
+      })
     );
   }
 
@@ -231,7 +234,10 @@ export class DoctorsService {
     }
 
     return forkJoin([userUpdate$, statusUpdate$, profileUpdate$]).pipe(
-      tap(() => this.refreshDoctors())
+      tap(() => {
+        this.refreshDoctors();
+        this.refreshSelectableDoctors();
+      })
     );
   }
 

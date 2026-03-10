@@ -60,8 +60,9 @@ export class DoctorSpecialtyComponent implements OnInit {
 
   ngOnInit() {
     this.associationService.refreshAssociations();
+    this.doctorService.refreshSelectableDoctors();
     if (this.doctors().length === 0) {
-      this.doctorService.getDoctors();
+      this.doctorService.refreshDoctors();
     }
     if (this.specialties().length === 0) {
       this.specialtyService.refreshSpecialties();

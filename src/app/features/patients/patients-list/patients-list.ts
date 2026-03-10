@@ -7,13 +7,16 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PatientsService, Patient, Consultation } from '../../../core/services/patients';
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
-import { LucideAngularModule, Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns } from 'lucide-angular';
+import { LucideAngularModule, Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns, X } from 'lucide-angular';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
+import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
+import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
+import { CardComponent } from '../../../shared/components/ui/card/card.component';
 
 @Component({
   selector: 'app-patients-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent, ButtonComponent, BadgeComponent, CardComponent],
   templateUrl: './patients-list.html',
   styleUrl: './patients-list.css'
 })
@@ -24,7 +27,7 @@ export class PatientsListComponent implements OnInit {
   private specialtyService = inject(SpecialtiesService);
 
 
-  readonly icons = { Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns };
+  readonly icons = { Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns, X };
 
 
   patients = this.service.patients;

@@ -9,14 +9,17 @@ import { SchedulesService } from '../../../core/services/schedules';
 import { PatientsService } from '../../../core/services/patients';
 import { ConfigurationService } from '../../../core/services/configuration';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
-import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle } from 'lucide-angular';
+import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle, Stethoscope, Briefcase, Wallet, Check } from 'lucide-angular';
 import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
 import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
+import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
+import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
+import { CardComponent } from '../../../shared/components/ui/card/card.component';
 
 @Component({
   selector: 'app-appointments-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent, DatePickerComponent, ButtonComponent, BadgeComponent, CardComponent],
   templateUrl: './appointments-calendar.html',
   styleUrl: './appointments-calendar.css'
 })
@@ -30,7 +33,7 @@ export class AppointmentsCalendarComponent {
   protected configService = inject(ConfigurationService);
   private route = inject(ActivatedRoute);
 
-  readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle };
+  readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle, Stethoscope, Briefcase, Wallet, Check };
 
   config = this.configService.settings;
 
@@ -948,21 +951,28 @@ export class AppointmentsCalendarComponent {
     return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
   }
 
-  getDetailsHeaderClass(): string {
-    if (!this.selectedAppointment) return 'bg-primary';
+  getAppointmentStatusVariant(app: Appointment | null): 'primary' | 'success' | 'warning' | 'danger' | 'neutral' {
+    if (!app || !app.status) return 'neutral';
+    const s = app.status;
+    if (['CONFIRMADA', 'ATENDIDA'].includes(s)) return 'success';
+    if (s === 'PROGRAMADA') return 'warning';
+    if (['EN ESPERA', 'EN ATENCION'].includes(s)) return 'primary';
+    if (['CANCELADA', 'PERDIDA'].includes(s)) return 'danger';
+    return 'neutral';
+  }
 
-    switch (this.selectedAppointment.status) {
-      case 'DISPONIBLE': return 'bg-gray-500';
-      case 'EN PROCESO DE RESERVA':
-      case 'EN_PROCESO_RESERVA': return 'bg-yellow-500';
-      case 'PROGRAMADA': return 'bg-blue-500';
-      case 'CONFIRMADA': return 'bg-green-600';
-      case 'EN ATENCION': return 'bg-purple-600';
-      case 'EN ESPERA': return 'bg-orange-500';
-      case 'ATENDIDA': return 'bg-emerald-700';
-      case 'PERDIDA': return 'bg-red-800';
-      case 'CANCELADA': return 'bg-red-600';
-      default: return 'bg-primary';
-    }
+  getDetailsHeaderClass(): string {
+    return 'bg-gray-50 border-b border-gray-100';
+  }
+
+  getPaymentMethodLabel(method: string | undefined): string {
+    if (!method) return 'No especificado';
+    const m = method.toUpperCase();
+    if (m === 'CASH' || m === 'EFECTIVO') return 'Efectivo';
+    if (m === 'YAPE') return 'Yape';
+    if (m === 'PLIN') return 'Plin';
+    if (m === 'TRANSFER' || m === 'TRANSFERENCIA') return 'Transferencia';
+    if (m === 'CARD' || m === 'TARJETA') return 'Tarjeta';
+    return method;
   }
 }
