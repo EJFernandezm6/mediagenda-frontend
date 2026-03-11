@@ -58,13 +58,21 @@ export class ScheduleConfigComponent {
   }
 
   // Inline Form State
-  formData = {
-    date: new Date().toISOString().split('T')[0],
-    startTime: '09:00',
-    endTime: '',
-    specialtyId: '',
-    weeksToRepeat: 0
-  };
+  formData: {
+    date: string;
+    startTime: string;
+    endTime: string;
+    specialtyId: string;
+    weeksToRepeat: number;
+    modality: 'PRESENCIAL' | 'VIRTUAL';
+  } = {
+      date: new Date().toISOString().split('T')[0],
+      startTime: '09:00',
+      endTime: '',
+      specialtyId: '',
+      weeksToRepeat: 0,
+      modality: 'PRESENCIAL'
+    };
 
   viewMode: 'list' = 'list';
 
@@ -109,6 +117,17 @@ export class ScheduleConfigComponent {
 
   get isSelectionComplete(): boolean {
     return !!(this.selectedDoctorId() && this.formData.specialtyId);
+  }
+
+  get isFormValid(): boolean {
+    return !!(
+      this.selectedDoctorId() &&
+      this.formData.specialtyId &&
+      this.formData.date &&
+      this.formData.startTime &&
+      this.formData.endTime &&
+      this.formData.modality
+    );
   }
 
   // Min Date for Date Picker
@@ -271,7 +290,8 @@ export class ScheduleConfigComponent {
           specialtyId: this.formData.specialtyId,
           date: isoDate,
           startTime: formatTime(this.formData.startTime),
-          endTime: formatTime(this.formData.endTime)
+          endTime: formatTime(this.formData.endTime),
+          modality: this.formData.modality
         });
       }
 
@@ -283,6 +303,7 @@ export class ScheduleConfigComponent {
           this.formData.startTime = '09:00';
           this.formData.endTime = '';
           this.formData.weeksToRepeat = 0;
+          this.formData.modality = 'PRESENCIAL';
           this.updateValidEndTimes();
         },
         error: (err) => {

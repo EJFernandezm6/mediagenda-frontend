@@ -11,6 +11,8 @@ export interface Schedule {
   date: string; // specific date YYYY-MM-DD
   startTime: string; // "09:00"
   endTime: string; // "13:00"
+  modality: 'PRESENCIAL' | 'VIRTUAL' | string;
+  schedule_type?: string;
 }
 
 @Injectable({

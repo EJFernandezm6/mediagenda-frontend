@@ -41,6 +41,11 @@ module.exports = {
                 'border-main': 'var(--border-main)',
                 'border-strong': 'var(--border-strong)',
             },
+            textColor: {
+                main: 'var(--text-main)',
+                muted: 'var(--text-muted)',
+                light: 'var(--text-light)',
+            },
             borderColor: {
                 DEFAULT: 'var(--border-main)',
                 soft: 'var(--border-soft)',

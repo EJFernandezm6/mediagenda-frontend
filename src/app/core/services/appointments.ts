@@ -16,10 +16,11 @@ export interface Appointment {
   endTime: string; // "09:30"
   status: 'DISPONIBLE' | 'EN PROCESO DE RESERVA' | 'EN_PROCESO_RESERVA' | 'PROGRAMADA' | 'CONFIRMADA' | 'EN ATENCION' | 'EN ESPERA' | 'ATENDIDA' | 'PERDIDA' | 'CANCELADA';
   notes?: string;
-  paymentMethod?: 'YAPE' | 'PLIN' | 'CARD' | 'CASH';
+  paymentMethod?: 'CASH' | 'CARD' | 'TRANSFER';
   paymentStatus?: 'PENDING' | 'PAID';
-  transactionId?: string;
   paymentProofUrl?: string;
+  modality?: 'PRESENCIAL' | 'VIRTUAL' | string;
+  appointment_type?: string;
 }
 
 @Injectable({

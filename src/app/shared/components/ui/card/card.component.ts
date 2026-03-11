@@ -10,9 +10,11 @@ import { CommonModule } from '@angular/common';
 export class CardComponent {
     @Input() variant: 'elevated' | 'flat' | 'outline' = 'elevated';
     @Input() noPadding: boolean = false;
+    @Input() overflowVisible: boolean = false;
 
     get cardClasses(): string {
-        const baseClasses = 'bg-surface rounded-3xl overflow-hidden transition-all';
+        const overflowClass = this.overflowVisible ? 'overflow-visible' : 'overflow-hidden';
+        const baseClasses = `bg-surface rounded-3xl ${overflowClass} transition-all`;
 
         const variantClasses = {
             elevated: 'shadow-md hover:shadow-lg border border-border-soft',

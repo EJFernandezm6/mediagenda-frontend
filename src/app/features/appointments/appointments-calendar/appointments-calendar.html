@@ -18,10 +18,10 @@
         </div>
 
         <!-- Filters Row (Design System implementation) -->
-        <app-card variant="flat" [noPadding]="true" class="w-full">
+        <app-card variant="flat" [noPadding]="true" [overflowVisible]="true" class="w-full relative z-30">
             <div class="flex flex-wrap items-center gap-4 p-3 w-full">
                 <!-- Specialty Filter -->
-                <div class="min-w-[280px] flex-1 md:flex-none">
+                <div class="min-w-[280px] flex-1 md:flex-none relative z-40">
                     <label class="ml-1">Especialidad</label>
                     <app-searchable-select [options]="specialtyOptions" [value]="selectedSpecialtyId()"
                         (valueChange)="selectedSpecialtyId.set($event.toString()); selectedDoctorId.set('')"
@@ -30,7 +30,7 @@
                 </div>
 
                 <!-- Doctor Filter -->
-                <div class="min-w-[280px] flex-1 md:flex-none">
+                <div class="min-w-[280px] flex-1 md:flex-none relative z-30">
                     <label class="ml-1">Médico Especialista</label>
                     <app-searchable-select [options]="doctorOptions" [value]="selectedDoctorId()"
                         (valueChange)="selectedDoctorId.set($event.toString())" placeholder="Todos los médicos"
@@ -104,22 +104,21 @@
                     </app-button>
                 </div>
 
-                <!-- Payment Filter -->
+                <!-- Modality Filter -->
                 <div class="bg-muted p-1 rounded-xl flex border border-border-soft">
-                    <app-button size="sm" [variant]="paymentStatusFilter() === 'ALL' ? 'accent' : 'ghost'"
-                        (onClick)="paymentStatusFilter.set('ALL')"
-                        class="!rounded-lg !py-1.5 !px-3 shadow-none text-[10px]">
+                    <app-button size="sm" [variant]="modalityFilter() === 'ALL' ? 'accent' : 'ghost'"
+                        (onClick)="modalityFilter.set('ALL')" class="!rounded-lg !py-1.5 !px-3 shadow-none text-[10px]">
                         Todas
                     </app-button>
-                    <app-button size="sm" [variant]="paymentStatusFilter() === 'PAID' ? 'success' : 'ghost'"
-                        (onClick)="paymentStatusFilter.set('PAID')"
+                    <app-button size="sm" [variant]="modalityFilter() === 'PRESENCIAL' ? 'primary' : 'ghost'"
+                        (onClick)="modalityFilter.set('PRESENCIAL')"
                         class="!rounded-lg !py-1.5 !px-3 shadow-none text-[10px]">
-                        Pagadas
+                        Presenciales
                     </app-button>
-                    <app-button size="sm" [variant]="paymentStatusFilter() === 'PENDING' ? 'warning' : 'ghost'"
-                        (onClick)="paymentStatusFilter.set('PENDING')"
+                    <app-button size="sm" [variant]="modalityFilter() === 'VIRTUAL' ? 'success' : 'ghost'"
+                        (onClick)="modalityFilter.set('VIRTUAL')"
                         class="!rounded-lg !py-1.5 !px-3 shadow-none text-[10px]">
-                        Pendientes
+                        Virtuales
                     </app-button>
                 </div>
             </div>
@@ -176,6 +175,16 @@
                         <div *ngFor="let day of weekDays(); let i = index"
                             [class]="(!isWorkingDay(i) || isPastDate(day.iso) ? 'bg-gray-100/70 ' : '') + 'border-r border-gray-100 last:border-r-0 relative p-1 min-h-[3.5rem]'">
 
+                            <!-- Current Time Indicator -->
+                            <ng-container *ngIf="isToday(day.iso) && isCurrentTimeSlot(time)">
+                                <div class="absolute left-0 right-0 border-t-2 border-red-500 z-50 pointer-events-none"
+                                    [style.top]="getCurrentTimeOffsetInSlot(time) + '%'">
+                                    <div
+                                        class="absolute -top-[5px] -left-1 w-[10px] h-[10px] bg-red-500 rounded-full shadow-sm">
+                                    </div>
+                                </div>
+                            </ng-container>
+
                             <!-- Logic to determine slot content -->
                             <ng-container *ngIf="getSlotStatus(day.iso, time, i) as items">
 
@@ -189,7 +198,7 @@
 
                                         <!-- Available Card -->
                                         <button *ngIf="item.type === 'available'"
-                                            (click)="!item.isPast && openBookingModal(day.iso, time, item.doctorId, item.specialtyId)"
+                                            (click)="!item.isPast && openBookingModal(day.iso, time, item.doctorId, item.specialtyId, item.modality)"
                                             [disabled]="item.isPast"
                                             [ngClass]="(items.length >= 3 ? 'w-8 h-8 p-0 justify-center ' : 'w-full min-h-[30px] p-0.5 ') + 
                                                        (item.isPast ? 'opacity-100 cursor-not-allowed bg-gray-200 border-gray-300 border-dashed text-gray-500' : 'cursor-pointer hover:bg-blue-100 hover:border-solid hover:shadow-md bg-blue-50 border-blue-300 border-dashed')"
@@ -271,7 +280,19 @@
 
                     <!-- Day View Column -->
                     <ng-container *ngIf="viewMode() === 'day'">
-                        <div class="relative p-2 bg-white">
+                        <div class="relative p-2 bg-white min-h-[3.5rem]">
+
+                            <!-- Current Time Indicator -->
+                            <ng-container
+                                *ngIf="isToday(currentDate().toISOString().split('T')[0]) && isCurrentTimeSlot(time)">
+                                <div class="absolute left-0 right-0 border-t-2 border-red-500 z-50 pointer-events-none"
+                                    [style.top]="getCurrentTimeOffsetInSlot(time) + '%'">
+                                    <div
+                                        class="absolute -top-[5px] -left-1 w-[10px] h-[10px] bg-red-500 rounded-full shadow-sm">
+                                    </div>
+                                </div>
+                            </ng-container>
+
                             <!-- Show Current Day (Today) -->
                             <!-- Reusing getSlotStatus logic with current date -->
                             <ng-container
@@ -389,10 +410,9 @@
     <!-- Modal Positioner -->
     <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
         <!-- Modal Content -->
-        <div
-            class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col relative z-10 overflow-hidden animate-fade-in-up">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col relative z-10 animate-fade-in-up">
             <!-- Modal Header (Fixed) -->
-            <div class="bg-primary px-6 py-4 shrink-0 flex items-center justify-between shadow-md z-20">
+            <div class="bg-primary px-6 py-4 shrink-0 flex items-center justify-between shadow-md z-20 rounded-t-2xl">
                 <div>
                     <h2 class="text-xl font-bold text-white">Agendar nueva cita</h2>
                     <p class="text-primary text-sm">Selecciona los detalles de tu consulta</p>
@@ -404,10 +424,10 @@
             </div>
 
             <!-- Modal Body (Scrollable) -->
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+            <div class="p-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Left Column: Form Details -->
-                    <div class="space-y-5">
+                    <div class="space-y-5 relative z-50">
                         <div>
                             <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">Detalles</h3>
                             <p class="text-xs text-gray-500">Completa la información requerida</p>
@@ -435,20 +455,47 @@
                             </app-searchable-select>
                         </div>
 
+                        <!-- Modality -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                                Modalidad <span class="text-red-500">*</span>
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button"
+                                    (click)="modalModality.set('PRESENCIAL'); modalDate.set(''); modalTime.set('')"
+                                    [disabled]="!modalDoctorId() || !modalSpecialtyId()" [ngClass]="{
+                                        'bg-blue-50 border-blue-200 text-blue-700 ring-2 ring-blue-500 ring-offset-1': modalModality() === 'PRESENCIAL',
+                                        'bg-white border-gray-200 text-gray-600 hover:bg-gray-50': modalModality() !== 'PRESENCIAL',
+                                        'opacity-50 cursor-not-allowed bg-gray-50': !modalDoctorId() || !modalSpecialtyId()
+                                    }"
+                                    class="flex items-center justify-center gap-2 rounded-xl border py-[10px] px-4 text-sm font-bold transition-all mt-1">
+                                    <lucide-icon [img]="icons.User" class="w-4 h-4"></lucide-icon>
+                                    Presencial
+                                </button>
+                                <button type="button"
+                                    (click)="modalModality.set('VIRTUAL'); modalDate.set(''); modalTime.set('')"
+                                    [disabled]="!modalDoctorId() || !modalSpecialtyId()" [ngClass]="{
+                                        'bg-purple-50 border-purple-200 text-purple-700 ring-2 ring-purple-500 ring-offset-1': modalModality() === 'VIRTUAL',
+                                        'bg-white border-gray-200 text-gray-600 hover:bg-gray-50': modalModality() !== 'VIRTUAL',
+                                        'opacity-50 cursor-not-allowed bg-gray-50': !modalDoctorId() || !modalSpecialtyId()
+                                    }"
+                                    class="flex items-center justify-center gap-2 rounded-xl border py-[10px] px-4 text-sm font-bold transition-all mt-1">
+                                    <lucide-icon [img]="icons.Briefcase" class="w-4 h-4"></lucide-icon>
+                                    Virtual
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Date -->
                         <div>
                             <div class="flex justify-between items-center mb-2">
                                 <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide">
                                     Fecha <span class="text-red-500">*</span>
                                 </label>
-                                <span *ngIf="!modalDoctorId() || !modalSpecialtyId()"
-                                    class="text-[10px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded">
-                                    Selecciona especialidad y médico primero
-                                </span>
                             </div>
                             <app-datepicker [value]="modalDate()" (valueChange)="modalDate.set($event)"
                                 [enabledDates]="validDatesForModal()"
-                                [disabled]="!modalDoctorId() || !modalSpecialtyId()">
+                                [disabled]="!modalDoctorId() || !modalSpecialtyId() || !modalModality()">
                             </app-datepicker>
                         </div>
 
@@ -473,7 +520,7 @@
 
                         <div *ngIf="availableSlotsForModal().length > 0"
                             class="flex-1 grid grid-cols-3 gap-3 content-start overflow-y-auto pr-1 custom-scrollbar max-h-[300px]">
-                            <button *ngFor="let slot of availableSlotsForModal()" (click)="modalTime.set(slot)"
+                            <button *ngFor="let slot of availableSlotsForModal()" (click)="selectTimeSlot(slot)"
                                 [class]="'py-2 px-1 h-10 flex items-center justify-center text-sm font-bold rounded-xl border-2 transition-all duration-200 ' + 
                                 (modalTime() === slot 
                                     ? 'bg-primary border-primary text-white shadow-lg shadow-primary/40 scale-105' 
@@ -546,7 +593,8 @@
                     Cancelar
                 </button>
                 <button (click)="saveAppointment()"
-                    [disabled]="saving() || !modalPatientId() || !modalTime() || !modalDoctorId()" type="button"
+                    [disabled]="saving() || !modalPatientId() || !modalTime() || !modalDoctorId() || !modalModality()"
+                    type="button"
                     class="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary hover:bg-primary transition-all disabled:opacity-50 disabled:shadow-none">
                     <span *ngIf="!saving()">Confirmar Cita</span>
                     <span *ngIf="saving()">Guardando...</span>
@@ -564,11 +612,11 @@
     <!-- Modal Positioner -->
     <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
         <!-- Modal Content -->
-        <div
-            class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col relative z-10 overflow-hidden animate-fade-in-up">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl flex flex-col relative z-10 animate-fade-in-up">
 
             <!-- Header (Fixed - Professional White) -->
-            <div class="bg-white px-6 py-4 shrink-0 flex items-center justify-between border-b border-gray-100 z-20">
+            <div
+                class="bg-white px-6 py-4 shrink-0 flex items-center justify-between border-b border-gray-100 z-20 rounded-t-3xl">
                 <div>
                     <h2 class="text-lg font-bold text-gray-900 leading-tight">Detalles de la cita</h2>
                     <p class="text-gray-400 text-[10px] font-semibold uppercase tracking-wider mt-0.5">Información
@@ -582,7 +630,7 @@
             </div>
 
             <!-- Body (Scrollable) -->
-            <div class="p-6 sm:p-7 overflow-y-auto custom-scrollbar flex-1 bg-white">
+            <div class="p-6 sm:p-7 flex-1 bg-white" [ngClass]="{'rounded-b-3xl': isConfirmingCancel}">
 
                 <!-- Standard View -->
                 <div *ngIf="selectedAppointment && !isRescheduling && !isConfirmingCancel" class="space-y-6">
@@ -631,16 +679,26 @@
                             </div>
                         </div>
 
-                        <!-- Fecha -->
+                        <!-- Fecha & Modalidad -->
                         <div class="flex items-start gap-4">
                             <div class="mt-0.5 p-2 bg-orange-50 rounded-lg text-orange-600">
                                 <lucide-icon [img]="icons.Calendar" class="w-4 h-4"></lucide-icon>
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Fecha</label>
-                                <p class="text-sm font-bold text-gray-800 capitalize">{{
-                                    formatDate(selectedAppointment.appointmentDate) }}</p>
+                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Fecha
+                                    y Modalidad</label>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm font-bold text-gray-800 capitalize">{{
+                                        formatDate(selectedAppointment.appointmentDate) }}</p>
+                                    <span class="text-gray-300">|</span>
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-bold border capitalize"
+                                        [ngClass]="(selectedAppointment.modality || selectedAppointment.appointment_type || '').toUpperCase() === 'PRESENCIAL' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'">
+                                        {{ (selectedAppointment.modality || selectedAppointment.appointment_type ||
+                                        'Desconocido') | lowercase }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -736,7 +794,8 @@
                                     Selecciona un médico primero
                                 </span>
                             </div>
-                            <app-datepicker [value]="modalDate()" (valueChange)="modalDate.set($event)"
+                            <app-datepicker [value]="modalDate()"
+                                (valueChange)="modalDate.set($event); modalTime.set('')"
                                 [enabledDates]="validDatesForModal()" [disabled]="!modalDoctorId()">
                             </app-datepicker>
                         </div>
@@ -754,7 +813,7 @@
                                 <label
                                     class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Médico</label>
                                 <app-searchable-select [options]="modalDoctorOptions()" [value]="modalDoctorId()"
-                                    (valueChange)="modalDoctorId.set($event.toString())"
+                                    (valueChange)="modalDoctorId.set($event.toString()); modalTime.set('')"
                                     placeholder="Seleccionar médico" displayMode="default">
                                 </app-searchable-select>
                             </div>
@@ -764,12 +823,22 @@
                             <label
                                 class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Horario
                                 Disponible</label>
-                            <div class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
+
+                            <!-- Available Slots Grid -->
+                            <div *ngIf="availableSlotsForModal().length > 0"
+                                class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
                                 <button *ngFor="let slot of availableSlotsForModal()" (click)="modalTime.set(slot)"
                                     [class]="'py-2.5 text-xs font-bold rounded-xl border transition-all ' + 
                                 (modalTime() === slot ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-100' : 'bg-white text-gray-700 border-gray-200 hover:border-blue-400')">
                                     {{ slot }}
                                 </button>
+                            </div>
+
+                            <!-- No Slots Message -->
+                            <div *ngIf="availableSlotsForModal().length === 0"
+                                class="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+                                <p class="text-sm text-gray-500 font-medium">No hay horarios disponibles para esta
+                                    selección.</p>
                             </div>
                         </div>
                     </div>
@@ -798,7 +867,7 @@
 
             <!-- Footer -->
             <div *ngIf="!isConfirmingCancel"
-                class="bg-gray-50 px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 shrink-0">
+                class="bg-gray-50 px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 shrink-0 rounded-b-3xl">
 
                 <!-- Left: Secondary Actions -->
                 <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -822,36 +891,41 @@
                 <div class="flex flex-wrap items-center justify-end gap-3 w-full sm:w-auto">
                     <ng-container
                         *ngIf="!isRescheduling && !['CANCELADA', 'PERDIDA', 'ATENDIDA'].includes(selectedAppointment?.status || '')">
-
                         <!-- Status Actions -->
-                        <app-button *ngIf="selectedAppointment?.status === 'PROGRAMADA'" variant="outline"
-                            (onClick)="changeAppointmentStatus('CONFIRMADA')" class="min-w-[140px]">
+                        <app-button *ngIf="selectedAppointment?.status === 'PROGRAMADA'" variant="primary"
+                            (onClick)="changeAppointmentStatus('CONFIRMADA')" class="min-w-[150px]">
+                            <lucide-icon [img]="icons.CheckCircle" class="w-4 h-4 mr-2"></lucide-icon>
                             Confirmar Cita
                         </app-button>
 
                         <app-button *ngIf="selectedAppointment?.status === 'CONFIRMADA'" variant="ghost"
-                            (onClick)="changeAppointmentStatus('PERDIDA')" class="!text-danger !bg-danger-soft/20">
+                            (onClick)="changeAppointmentStatus('PERDIDA')"
+                            class="!text-danger hover:!bg-danger-soft/10">
+                            <lucide-icon [img]="icons.XCircle" class="w-4 h-4 mr-2"></lucide-icon>
                             No Asistió
                         </app-button>
 
                         <app-button *ngIf="selectedAppointment?.status === 'CONFIRMADA'" variant="accent"
-                            (onClick)="changeAppointmentStatus('EN ESPERA')">
+                            (onClick)="changeAppointmentStatus('EN ESPERA')" class="min-w-[130px]">
+                            <lucide-icon [img]="icons.Users" class="w-4 h-4 mr-2"></lucide-icon>
                             En Sala
                         </app-button>
 
-                        <app-button *ngIf="selectedAppointment?.status === 'EN ESPERA'" variant="accent"
-                            (onClick)="changeAppointmentStatus('EN ATENCION')" class="!bg-purple-600">
+                        <app-button *ngIf="selectedAppointment?.status === 'EN ESPERA'" variant="warning"
+                            (onClick)="changeAppointmentStatus('EN ATENCION')" class="min-w-[130px]">
+                            <lucide-icon [img]="icons.Stethoscope" class="w-4 h-4 mr-2"></lucide-icon>
                             Atender
                         </app-button>
 
-                        <app-button *ngIf="selectedAppointment?.status === 'EN ATENCION'" variant="accent"
-                            (onClick)="changeAppointmentStatus('ATENDIDA')" class="!bg-success">
-                            Finalizar Consulta
+                        <app-button *ngIf="selectedAppointment?.status === 'EN ATENCION'" variant="danger"
+                            (onClick)="changeAppointmentStatus('ATENDIDA')" class="min-w-[150px]">
+                            <lucide-icon [img]="icons.Flag" class="w-4 h-4 mr-2"></lucide-icon>
+                            Finalizar
                         </app-button>
 
                         <!-- Payment Action (Always Available if Pending) -->
                         <app-button *ngIf="selectedAppointment?.paymentStatus !== 'PAID'" variant="success"
-                            (onClick)="validatePayment()" class="min-w-[160px] shadow-lg shadow-success/20">
+                            (onClick)="validatePayment()" class="min-w-[170px] shadow-lg shadow-success/20">
                             <lucide-icon [img]="icons.Check" class="w-4 h-4 mr-2"></lucide-icon>
                             Confirmar Pago
                         </app-button>
@@ -859,7 +933,8 @@
 
                     <!-- Reschedule Save -->
                     <app-button *ngIf="isRescheduling" (onClick)="saveRescheduledAppointment()"
-                        [disabled]="!modalTime()" variant="accent" class="min-w-[160px]">
+                        [disabled]="!modalTime() || !availableSlotsForModal().includes(modalTime())" variant="accent"
+                        class="min-w-[160px]">
                         <lucide-icon [img]="icons.Check" class="w-4 h-4 mr-2"></lucide-icon>
                         Guardar Cambios
                     </app-button>

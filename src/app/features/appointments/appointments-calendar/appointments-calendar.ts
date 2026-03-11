@@ -9,7 +9,7 @@ import { SchedulesService } from '../../../core/services/schedules';
 import { PatientsService } from '../../../core/services/patients';
 import { ConfigurationService } from '../../../core/services/configuration';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
-import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle, Stethoscope, Briefcase, Wallet, Check } from 'lucide-angular';
+import { LucideAngularModule, ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle, Stethoscope, Briefcase, Wallet, Check, ChevronDown, XCircle, Users, Flag } from 'lucide-angular';
 import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
 import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
@@ -33,7 +33,7 @@ export class AppointmentsCalendarComponent {
   protected configService = inject(ConfigurationService);
   private route = inject(ActivatedRoute);
 
-  readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle, Stethoscope, Briefcase, Wallet, Check };
+  readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle, Stethoscope, Briefcase, Wallet, Check, ChevronDown, XCircle, Users, Flag };
 
   config = this.configService.settings;
 
@@ -73,7 +73,7 @@ export class AppointmentsCalendarComponent {
   // Filters
   selectedDoctorId = signal<string>('');
   selectedSpecialtyId = signal<string>('');
-  paymentStatusFilter = signal<'ALL' | 'PAID' | 'PENDING'>('ALL');
+  modalityFilter = signal<'ALL' | 'PRESENCIAL' | 'VIRTUAL'>('ALL');
 
   constructor() {
     this.patientsService.getAllPatientsForSelect().subscribe(data => {
@@ -89,10 +89,10 @@ export class AppointmentsCalendarComponent {
         const start = this.getStartOfWeek(current);
         const end = new Date(start);
         end.setDate(start.getDate() + 6);
-        from = start.toISOString().split('T')[0];
-        to = end.toISOString().split('T')[0];
+        from = this.toIsoDate(start);
+        to = this.toIsoDate(end);
       } else {
-        from = to = current.toISOString().split('T')[0];
+        from = to = this.toIsoDate(current);
       }
 
       this.appointmentsService.refreshAppointmentsByRange(from, to);
@@ -133,10 +133,57 @@ export class AppointmentsCalendarComponent {
         document.body.classList.remove('overflow-hidden');
       }
     });
+
+    // Timer for Current Time Indicator
+    this.timerInterval = setInterval(() => {
+      this.currentTime.set(new Date());
+    }, 60000); // Update every minute
   }
 
   ngOnDestroy() {
     document.body.classList.remove('overflow-hidden');
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+  }
+
+  // Helper to get local date as YYYY-MM-DD
+  toIsoDate(date: Date): string {
+    if (!date) return '';
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const y = d.getFullYear();
+    const m = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  // --- Current Time Indicator logic ---
+  currentTime = signal<Date>(new Date());
+  private timerInterval: any;
+
+  isToday(dateIso: string): boolean {
+    return dateIso === this.toIsoDate(this.currentTime());
+  }
+
+  isCurrentTimeSlot(slotTime: string): boolean {
+    const now = this.currentTime();
+    const [h, m] = slotTime.split(':').map(Number);
+    const slotMins = h * 60 + m;
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+
+    return nowMins >= slotMins && nowMins < slotMins + 30; // Assuming 30min slots
+  }
+
+  getCurrentTimeOffsetInSlot(slotTime: string): number {
+    const now = this.currentTime();
+    const [h, m] = slotTime.split(':').map(Number);
+    const slotMins = h * 60 + m;
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+
+    const diff = nowMins - slotMins;
+    if (diff < 0 || diff >= 30) return 0;
+
+    return (diff / 30) * 100;
   }
 
   // Calendar State
@@ -151,20 +198,7 @@ export class AppointmentsCalendarComponent {
   });
 
   canGoBack = computed(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // For week view, check if start of current view is before start of today's week
-    if (this.viewMode() === 'week') {
-      const startOfView = this.getStartOfWeek(this.currentDate());
-      const startOfTodayWeek = this.getStartOfWeek(today);
-      return startOfView.getTime() > startOfTodayWeek.getTime();
-    }
-
-    // For day view, check if view date is before today
-    const viewDate = new Date(this.currentDate());
-    viewDate.setHours(0, 0, 0, 0);
-    return viewDate.getTime() > today.getTime();
+    return true; // Unblocked per user request
   });
 
   // Modal State
@@ -176,8 +210,9 @@ export class AppointmentsCalendarComponent {
   modalPatientId = signal('');
   modalSpecialtyId = signal('');
   modalDoctorId = signal('');
-  modalDate = signal(new Date().toISOString().split('T')[0]);
+  modalDate = signal(this.toIsoDate(new Date()));
   modalTime = signal('');
+  modalModality = signal<'PRESENCIAL' | 'VIRTUAL' | ''>('');
   modalNotes = signal('');
   modalPaymentMethod = signal('CASH');
   modalTransactionId = signal('');
@@ -203,7 +238,7 @@ export class AppointmentsCalendarComponent {
 
   // Appointments for All Doctors (Today) - Used for Daily View logic mostly
   globalAppointments = computed(() => {
-    const today = this.currentDate().toISOString().split('T')[0];
+    const today = this.toIsoDate(this.currentDate());
     return this.appointments().filter(a => a.appointmentDate === today && a.status !== 'CANCELADA');
   });
 
@@ -293,16 +328,19 @@ export class AppointmentsCalendarComponent {
   validDatesForModal = computed(() => {
     const doctorId = this.modalDoctorId();
     const specialtyId = this.modalSpecialtyId();
+    const modality = this.modalModality();
 
-    if (!doctorId || !specialtyId) return []; // Empty array means disabled when enforced
+    if (!doctorId || !specialtyId || !modality) return []; // Require modality to pick a date
 
     const schedules = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId);
 
-    // Extract unique dates from schedules
+    // Extract unique dates from schedules that match the selected modality
     const dates = new Set<string>();
     schedules.forEach(s => {
-      if (s.date && !this.isPastDate(s.date)) {
-        dates.add(s.date);
+      const sModality = (s.modality || s.schedule_type || 'PRESENCIAL').toUpperCase();
+      const sDate = s.date ? String(s.date).trim() : '';
+      if (sDate && !this.isPastDate(sDate) && sModality === modality) {
+        dates.add(sDate);
       }
     });
 
@@ -312,16 +350,20 @@ export class AppointmentsCalendarComponent {
   availableSlotsForModal = computed(() => {
     const doctorId = this.modalDoctorId();
     const specialtyId = this.modalSpecialtyId();
+    const modality = this.modalModality();
     const date = this.modalDate();
 
-    if (!doctorId || !specialtyId || !date) return [];
+    if (!doctorId || !specialtyId || !modality || !date) return [];
 
     // 1. Obtener duración de la asociación médico-especialidad
     const duration = this.getDuration(doctorId, specialtyId);
 
-    // 2. Obtener horarios del médico para esa especialidad en esa fecha
+    // 2. Obtener horarios del médico para esa especialidad en esa fecha y ATENDIENDO LA MODALIDAD CORRECTA
     const schedules = this.scheduleService.getSchedulesForDoctor(doctorId, specialtyId)
-      .filter(s => s.date === date);
+      .filter(s => {
+        const sModality = (s.modality || s.schedule_type || 'PRESENCIAL').toUpperCase();
+        return s.date === date && sModality === modality;
+      });
 
     if (schedules.length === 0) return [];
 
@@ -361,11 +403,7 @@ export class AppointmentsCalendarComponent {
     for (let i = 0; i < 7; i++) {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
-      const iso = [
-        d.getFullYear(),
-        (d.getMonth() + 1).toString().padStart(2, '0'),
-        d.getDate().toString().padStart(2, '0')
-      ].join('-');
+      const iso = this.toIsoDate(d);
 
       days.push({
         date: d,
@@ -422,10 +460,10 @@ export class AppointmentsCalendarComponent {
 
       // Filter schedules to current view dates
       if (mode === 'day') {
-        const todayStr = currentDate.toISOString().split('T')[0];
+        const todayStr = this.toIsoDate(currentDate);
         docSchedules = docSchedules.filter(s => s.date === todayStr);
       } else {
-        const startOfWeekStr = this.getStartOfWeek(currentDate).toISOString().split('T')[0];
+        const startOfWeekStr = this.toIsoDate(this.getStartOfWeek(currentDate));
         // Simplified check, could check bounds.
         docSchedules = docSchedules.filter(s => s.date >= startOfWeekStr);
       }
@@ -450,7 +488,7 @@ export class AppointmentsCalendarComponent {
       if (a.status === 'CANCELADA') continue;
 
       // In day view, date must match
-      if (mode === 'day' && a.appointmentDate !== currentDate.toISOString().split('T')[0]) continue;
+      if (mode === 'day' && a.appointmentDate !== this.toIsoDate(currentDate)) continue;
 
       timeSet.add(this.normalizeTime(a.startTime));
     }
@@ -472,10 +510,13 @@ export class AppointmentsCalendarComponent {
   });
 
   getStartOfWeek(date: Date) {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    return new Date(d.setDate(diff));
+    // Create date at midnight local to avoid any hour-based shifting during setDate
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+    const day = d.getDay(); // 0 = Sunday, 1 = Monday
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d);
+    monday.setDate(diff);
+    return monday;
   }
 
   changeWeek(offset: number) {
@@ -484,30 +525,6 @@ export class AppointmentsCalendarComponent {
       newDate.setDate(newDate.getDate() + (offset * 7));
     } else {
       newDate.setDate(newDate.getDate() + offset);
-    }
-
-    // Restriction: Cannot go before current week/day
-    const today = new Date();
-    const startOfCurrentWeek = this.getStartOfWeek(today);
-    // Reset time for comparison
-    startOfCurrentWeek.setHours(0, 0, 0, 0);
-
-    // We check if the new view's start date is before the current week's start
-    // If viewMode is week, newDate is just a date within that week, so getStartOfWeek(newDate) should be >= startOfCurrentWeek
-    // If viewMode is day, newDate should be today or future (or at least within current week? User said "semana actual y posteriores")
-
-    const startOfNewView = this.viewMode() === 'week' ? this.getStartOfWeek(newDate) : newDate;
-    startOfNewView.setHours(0, 0, 0, 0);
-
-    // If trying to go back (offset < 0), check if we can
-    if (offset < 0 && !this.canGoBack()) {
-      return;
-    }
-
-    // Extra double-check logic
-    if (startOfNewView < startOfCurrentWeek) {
-      // If we are already at the current week, don't allow going back even further
-      if (offset < 0) return;
     }
 
     this.currentDate.set(newDate);
@@ -520,13 +537,7 @@ export class AppointmentsCalendarComponent {
   // ...
 
   isPastDate(dateStr: string): boolean {
-    const today = new Date();
-    // Get local date string YYYY-MM-DD
-    const todayStr = [
-      today.getFullYear(),
-      (today.getMonth() + 1).toString().padStart(2, '0'),
-      today.getDate().toString().padStart(2, '0')
-    ].join('-');
+    const todayStr = this.toIsoDate(new Date());
     return dateStr < todayStr;
   }
 
@@ -534,12 +545,7 @@ export class AppointmentsCalendarComponent {
     if (this.isPastDate(dateStr)) return true;
 
     // If today, check time against local time
-    const today = new Date();
-    const todayStr = [
-      today.getFullYear(),
-      (today.getMonth() + 1).toString().padStart(2, '0'),
-      today.getDate().toString().padStart(2, '0')
-    ].join('-');
+    const todayStr = this.toIsoDate(new Date());
 
     if (dateStr === todayStr) {
       const now = new Date();
@@ -570,31 +576,26 @@ export class AppointmentsCalendarComponent {
     for (const docId of doctorsToCheck) {
       const docName = this.getDoctorName(docId);
 
+      // Modality Filter
+      const modFilter = this.modalityFilter();
+
       // Check Appointments
-      const matchingApp = this.appointments().find(a =>
-        a.doctorId === docId &&
-        a.appointmentDate === dateIso &&
-        this.normalizeTime(a.startTime) === time &&
-        a.status !== 'CANCELADA'
-      );
+      const matchingApp = this.appointments().find(a => {
+        const aDocId = String(a.doctorId || '').trim();
+        const aUserId = String((a as any).userId || '').trim();
+        const targetId = String(docId || '').trim();
 
-      if (matchingApp) {
-        // Apply Payment Filter
-        const filter = this.paymentStatusFilter();
-        if (filter === 'ALL' ||
-          (filter === 'PAID' && matchingApp.paymentStatus === 'PAID') ||
-          (filter === 'PENDING' && matchingApp.paymentStatus !== 'PAID')) {
-          items.push({ type: 'booked', appointment: matchingApp });
-          continue;
-        }
-      }
+        const idMatch = aDocId === targetId || aUserId === targetId;
+        const dateMatch = String(a.appointmentDate || '').includes(dateIso);
+        const timeMatch = this.normalizeTime(a.startTime) === time;
 
-      // If it's a date before today, hide availability slots
-      if (this.isPastDate(dateIso)) continue;
+        return idMatch && dateMatch && timeMatch && a.status !== 'CANCELADA';
+      });
 
-      // Check Schedule availability
+      // Check Schedule availability to get the modality of this block
       let isWorking = false;
       let workingSpecialtyId = '';
+      let workingModality = '';
 
       // Helper logic
       const checkSchedule = (schedulesList: any[]) => {
@@ -611,6 +612,7 @@ export class AppointmentsCalendarComponent {
             if (timeMins >= startMins && timeMins < endMins) {
               isWorking = true;
               workingSpecialtyId = s.specialtyId;
+              workingModality = (s.modality || s.schedule_type || 'PRESENCIAL').toUpperCase();
               return;
             }
           }
@@ -626,16 +628,30 @@ export class AppointmentsCalendarComponent {
         checkSchedule(allSchedules);
       }
 
+      if (matchingApp) {
+        const appModality = (matchingApp.modality || (matchingApp as any).appointment_type || workingModality || 'PRESENCIAL').toUpperCase();
+        if (modFilter === 'ALL' || modFilter === appModality) {
+          items.push({ type: 'booked', appointment: matchingApp });
+        }
+        continue;
+      }
+
+      // If it's a date before today, hide availability slots
+      if (this.isPastDate(dateIso)) continue;
+
       if (isWorking) {
-        items.push({
-          type: 'available',
-          doctorId: docId,
-          doctorName: docName,
-          date: dateIso,
-          time: time,
-          specialtyId: workingSpecialtyId,
-          isPast: isPast
-        });
+        if (modFilter === 'ALL' || modFilter === workingModality) {
+          items.push({
+            type: 'available',
+            doctorId: docId,
+            doctorName: docName,
+            date: dateIso,
+            time: time,
+            specialtyId: workingSpecialtyId,
+            modality: workingModality,
+            isPast: isPast
+          });
+        }
       }
     }
 
@@ -648,11 +664,12 @@ export class AppointmentsCalendarComponent {
     return res.filter((item: any) => item.type === 'booked').map((item: any) => item.appointment);
   }
 
-  openBookingModal(dateIso: string, time: string, doctorId?: string, specialtyId?: string) {
+  openBookingModal(dateIso: string, time: string, doctorId?: string, specialtyId?: string, modality?: string) {
     this.selectedSlot = { date: dateIso, time };
     this.modalPatientId.set('');
     this.modalSpecialtyId.set(specialtyId || this.selectedSpecialtyId() || '');
     this.modalDoctorId.set(doctorId || this.selectedDoctorId() || '');
+    this.modalModality.set((modality as any) || '');
     this.modalDate.set(dateIso);
 
     // Snap time to valid slot if needed
@@ -678,12 +695,16 @@ export class AppointmentsCalendarComponent {
       }
     }
 
-    this.modalTime.set(alignedTime);
+    this.selectTimeSlot(alignedTime);
     this.modalNotes.set('');
     this.modalPaymentMethod.set('CASH');
     this.modalTransactionId.set('');
     this.modalPaymentProof.set('');
     this.isModalOpen.set(true);
+  }
+
+  selectTimeSlot(time: string) {
+    this.modalTime.set(time);
   }
 
   // Check if form has data
@@ -772,7 +793,8 @@ export class AppointmentsCalendarComponent {
         paymentMethod: this.modalPaymentMethod() as any,
         paymentStatus: this.modalPaymentMethod() === 'CASH' ? 'PENDING' : 'PAID',
         transactionId: this.modalTransactionId(),
-        paymentProofUrl: this.modalPaymentProof()
+        paymentProofUrl: this.modalPaymentProof(),
+        modality: this.modalModality()
       }).subscribe({
         next: () => {
           this.saving.set(false);
@@ -845,7 +867,7 @@ export class AppointmentsCalendarComponent {
       this.modalPatientId.set(this.selectedAppointment.patientId);
       this.modalNotes.set(this.selectedAppointment.notes || '');
       this.modalPaymentMethod.set(this.selectedAppointment.paymentMethod || 'CASH');
-      this.modalTransactionId.set(this.selectedAppointment.transactionId || '');
+      this.modalModality.set((this.selectedAppointment.modality || 'PRESENCIAL') as any);
     }
   }
 
@@ -881,7 +903,7 @@ export class AppointmentsCalendarComponent {
         endTime: this.addMinutes(this.modalTime(), duration),
         notes: this.modalNotes(),
         paymentMethod: this.modalPaymentMethod() as any,
-        transactionId: this.modalTransactionId()
+        modality: this.modalModality() as any
       };
 
       // Update in service (you'll need to add this method to the service)

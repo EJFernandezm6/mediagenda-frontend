@@ -160,8 +160,10 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900 line-clamp-1">{{ app.patientId }}</div>
-                            <div class="text-xs text-gray-500">DNI/ID</div>
+                            <div class="text-sm font-medium text-gray-900 line-clamp-1">
+                                {{ getPatientName(app.patientId) }}
+                            </div>
+                            <div class="text-xs text-gray-500">DNI/ID: {{ app.patientId }}</div>
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900 line-clamp-1">Dr(a). {{ getDoctorName(app.doctorId) }}

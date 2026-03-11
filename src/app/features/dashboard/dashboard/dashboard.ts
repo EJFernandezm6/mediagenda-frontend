@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import {
   LucideAngularModule,
   TrendingUp, Activity, CreditCard, Users,
-  CalendarCheck, Clock, DollarSign
+  CalendarCheck, Clock, DollarSign,
+  CheckCircle, XCircle, AlertCircle
 } from 'lucide-angular';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import {
@@ -26,7 +27,11 @@ export class DashboardComponent implements OnInit {
 
   currencySymbol = computed(() => this.configSvc.settings().currency === 'USD' ? '$' : 'S/');
 
-  readonly icons = { TrendingUp, Activity, CreditCard, Users, CalendarCheck, Clock, DollarSign };
+  readonly icons = {
+    TrendingUp, Activity, CreditCard, Users,
+    CalendarCheck, Clock, DollarSign,
+    CheckCircle, XCircle, AlertCircle
+  };
 
   // Date range filter
   fromDate = this.defaultFrom();
@@ -78,6 +83,12 @@ export class DashboardComponent implements OnInit {
   patientEvolutionData = signal<any[]>([]);
   appointmentEvolutionData = signal<any[]>([]);
 
+  // Summary KPIs
+  totalAppointments = signal<number>(0);
+  attendedAppointments = signal<number>(0);
+  activeAppointments = signal<number>(0);
+  cancelledAppointments = signal<number>(0);
+
   // Table data
   frequentPatientsData = signal<FrequentPatientItem[]>([]);
   topDoctorsData = signal<TopDoctorItem[]>([]);
@@ -126,9 +137,36 @@ export class DashboardComponent implements OnInit {
     this.svc.frequentPatients(f, t).subscribe(d => this.frequentPatientsData.set(d));
     this.svc.revenueBySpecialty(f, t).subscribe(d => this.revenueData.set(d.map(i => ({ name: this.s(i.specialtyName), value: Number(i.revenue) }))));
     this.svc.topDoctors(f, t).subscribe(d => this.topDoctorsData.set(d));
-    this.svc.appointmentStatuses(f, t).subscribe(d => this.appointmentStatusesData.set(this.toLabelChart(d)));
+    this.svc.appointmentStatuses(f, t).subscribe(d => {
+      this.appointmentStatusesData.set(this.toLabelChart(d));
+      this.calculateSummaryKpis(d);
+    });
     this.loadPatientEvolution();
     this.loadAppointmentEvolution();
+  }
+
+  private calculateSummaryKpis(items: any[]) {
+    let total = 0;
+    let attended = 0;
+    let active = 0;
+    let cancelled = 0;
+
+    items.forEach(item => {
+      const count = item.count;
+      total += count;
+      if (item.label === 'ATENDIDA') {
+        attended += count;
+      } else if (['PROGRAMADA', 'CONFIRMADA', 'EN ESPERA', 'EN ATENCION', 'EN_PROCESO_RESERVA'].includes(item.label)) {
+        active += count;
+      } else if (['CANCELADA', 'PERDIDA'].includes(item.label)) {
+        cancelled += count;
+      }
+    });
+
+    this.totalAppointments.set(total);
+    this.attendedAppointments.set(attended);
+    this.activeAppointments.set(active);
+    this.cancelledAppointments.set(cancelled);
   }
 
   loadPatientEvolution() {

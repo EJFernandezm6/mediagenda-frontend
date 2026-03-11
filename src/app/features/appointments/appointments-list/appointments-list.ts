@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AppointmentsService, Appointment } from '../../../core/services/appointments';
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
+import { PatientsService } from '../../../core/services/patients';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Search, Filter, Calendar, User, FileText, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-angular';
 
@@ -22,6 +23,7 @@ export class AppointmentsList implements OnInit {
   private appointmentsService = inject(AppointmentsService);
   private doctorsService = inject(DoctorsService);
   private specialtiesService = inject(SpecialtiesService);
+  private patientsService = inject(PatientsService);
 
   // Icons
   readonly icons = {
@@ -32,6 +34,7 @@ export class AppointmentsList implements OnInit {
   allAppointments = this.appointmentsService.appointments;
   availableDoctors = this.doctorsService.doctors;
   availableSpecialties = this.specialtiesService.specialties;
+  patients = signal<any[]>([]);
 
   // Filters State
   dateFrom = signal<string>(toISODate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
@@ -55,6 +58,10 @@ export class AppointmentsList implements OnInit {
       this.doctorsService.getDoctors();
       this.specialtiesService.refreshSpecialties();
     }
+    // Load patients for name mapping
+    this.patientsService.getAllPatientsForSelect().subscribe(data => {
+      this.patients.set(data.content);
+    });
   }
 
   refreshData() {
@@ -83,9 +90,8 @@ export class AppointmentsList implements OnInit {
     const searchStr = this.searchPatient().toLowerCase();
     if (searchStr) {
       list = list.filter(a => {
-        // We'll need to fetch the patient name or assume it comes mapped.
-        // For now, if patientId contains the string, or we have patient name.
-        return a.patientId.toLowerCase().includes(searchStr);
+        const pName = this.getPatientName(a.patientId).toLowerCase();
+        return a.patientId.toLowerCase().includes(searchStr) || pName.includes(searchStr);
       });
     }
 
@@ -107,9 +113,7 @@ export class AppointmentsList implements OnInit {
   }
 
   getPatientName(id: string) {
-    // If we have a way to fetch patient names here, we should. 
-    // For now we use the ID or search if available.
-    return id;
+    return this.patients().find(p => p.patientId === id || (p as any).id === id)?.fullName || id;
   }
 
   // Status mapping helper
