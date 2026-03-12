@@ -70,8 +70,17 @@ export class SearchableSelectComponent {
         );
     });
 
-    onSearchChange(text: string) {
-        this.searchText.set(text);
+    onSearchChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const value = input.value;
+        // Solo permitir letras, números y espacios
+        const sanitized = value.replace(/[^a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚ]/g, '');
+        
+        if (value !== sanitized) {
+            input.value = sanitized;
+        }
+        
+        this.searchText.set(sanitized);
         this.openDropdown();
     }
 

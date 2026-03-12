@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
-import { LucideAngularModule, Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power } from 'lucide-angular';
+import { LucideAngularModule, Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power, X, ChevronDown, ChevronUp } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -38,7 +38,7 @@ export class DoctorsListComponent implements OnInit {
   doctors = this.service.doctors;
 
   // Icons
-  readonly icons = { Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power };
+  readonly icons = { Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power, X, ChevronDown, ChevronUp };
 
   // Local Pagination & Search State
   searchTerm = signal('');
@@ -63,10 +63,43 @@ export class DoctorsListComponent implements OnInit {
   isModalOpen = false;
   isSaving = false;
   editingId: string | null = null;
-  form: any = { fullName: '', documentType: 'DNI', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: '' };
+  form: any = { 
+    fullName: '', 
+    docType: 'DNI', 
+    dni: '', 
+    cmp: '', 
+    email: '', 
+    countryCode: '51',
+    phone: '', 
+    active: true, 
+    photoUrl: '' 
+  };
+
+  // Dropdown signals
+  showDocTypeDropdown = signal(false);
+  showStatusDropdown = signal(false);
 
   // Validation
   emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  toggleDocTypeDropdown() {
+    this.showDocTypeDropdown.set(!this.showDocTypeDropdown());
+  }
+
+  toggleStatusDropdown() {
+    this.showStatusDropdown.set(!this.showStatusDropdown());
+  }
+
+  selectDocType(type: 'DNI' | 'CE') {
+    this.form.docType = type;
+    this.form.dni = '';
+    this.showDocTypeDropdown.set(false);
+  }
+
+  selectStatus(active: boolean) {
+    this.form.active = active;
+    this.showStatusDropdown.set(false);
+  }
 
   // Computed state for local filtering and pagination
   filteredDoctors = computed(() => {
@@ -109,40 +142,67 @@ export class DoctorsListComponent implements OnInit {
     this.currentPage.set(1);
   }
 
-  onDocumentTypeChange() {
-    let val = this.form.dni || '';
-    if (this.form.documentType === 'DNI') {
-      val = val.replace(/\D/g, '');
-      if (val.length > 8) val = val.substring(0, 8);
-    } else {
-      val = val.replace(/[^a-zA-Z0-9]/g, '');
-      if (val.length > 9) val = val.substring(0, 9);
-    }
-    this.form.dni = val;
+  onNameInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const val = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+    if (input.value !== val) input.value = val;
+    this.form.fullName = val;
   }
 
   onDocumentInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    // DNI only digits (8 max). CE digits+letters (9 max).
-    if (this.form.documentType === 'DNI') {
-      let val = input.value.replace(/\D/g, '');
+    let val = input.value;
+    
+    if (this.form.docType === 'DNI') {
+      val = val.replace(/\D/g, ''); 
       if (val.length > 8) val = val.substring(0, 8);
-      if (input.value !== val) input.value = val;
-      this.form.dni = val;
     } else {
-      let val = input.value.replace(/[^a-zA-Z0-9]/g, '');
-      if (val.length > 9) val = val.substring(0, 9);
-      if (input.value !== val) input.value = val;
-      this.form.dni = val; // Store CE in DNI field for DB simplicity
+      val = val.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      if (val.length > 12) val = val.substring(0, 12);
     }
+    
+    if (input.value !== val) input.value = val;
+    this.form.dni = val;
+  }
+
+  onCountryCodeInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    if (val.length > 4) val = val.substring(0, 4);
+    if (input.value !== val) input.value = val;
+    this.form.countryCode = val;
+  }
+
+  onPhoneInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    if (val.length > 9) val = val.substring(0, 9);
+    if (input.value !== val) input.value = val;
+    this.form.phone = val;
   }
 
   onCmpInput(event: Event) {
     const input = event.target as HTMLInputElement;
     let val = input.value.replace(/\D/g, '');
-    if (val.length > 6) val = val.substring(0, 6);
+    if (val.length > 8) val = val.substring(0, 8);
     if (input.value !== val) input.value = val;
     this.form.cmp = val;
+  }
+
+  get isDuplicateDni() {
+    if (!this.form.dni) return false;
+    return this.doctors().some(d => 
+      d.dni?.toLowerCase() === this.form.dni?.toLowerCase() && 
+      d.id !== this.editingId
+    );
+  }
+
+  get isDuplicateCmp() {
+    if (!this.form.cmp) return false;
+    return this.doctors().some(d => 
+      d.cmp?.toLowerCase() === this.form.cmp?.toLowerCase() && 
+      d.id !== this.editingId
+    );
   }
 
   private loadDoctors() {
@@ -150,13 +210,13 @@ export class DoctorsListComponent implements OnInit {
   }
 
   get isFormValid() {
-    const isDocValid = this.form.documentType === 'DNI' ? this.form.dni?.length === 8 : this.form.dni?.length > 4;
     return this.form.fullName?.trim() &&
-      this.form.phone?.trim() &&
-      this.form.cmp?.trim() &&
-      this.form.dni?.trim() &&
-      isDocValid &&
-      this.emailRegex.test(this.form.email || '');
+      this.form.phone?.trim()?.length >= 7 &&
+      this.form.countryCode?.trim()?.length >= 1 &&
+      (this.form.docType === 'DNI' ? this.form.dni?.trim()?.length === 8 : this.form.dni?.trim()?.length >= 4) &&
+      (!this.form.email || this.emailRegex.test(this.form.email)) &&
+      !this.isDuplicateDni &&
+      !this.isDuplicateCmp;
   }
 
   isMissingData(doctor: Doctor) {
@@ -167,7 +227,6 @@ export class DoctorsListComponent implements OnInit {
     const fields = [];
     if (!doctor.fullName?.trim()) fields.push('Nombre');
     if (!doctor.phone?.trim()) fields.push('Teléfono');
-    if (!doctor.cmp?.trim()) fields.push('Colegiatura');
     if (!doctor.dni?.trim()) fields.push('Doc. Identidad');
     if (!doctor.email?.trim()) fields.push('Email');
     if (doctor.email && !this.emailRegex.test(doctor.email)) fields.push('Email Inválido');
@@ -177,10 +236,24 @@ export class DoctorsListComponent implements OnInit {
   openModal(doctor?: Doctor) {
     if (doctor) {
       this.editingId = doctor.id;
-      this.form = { ...doctor, documentType: doctor.dni?.length === 8 && /^\d+$/.test(doctor.dni) ? 'DNI' : 'CE' };
+      this.form = { 
+        ...doctor, 
+        docType: doctor.dni?.length === 8 && /^\d+$/.test(doctor.dni) ? 'DNI' : 'CE',
+        countryCode: '51' // Default or extracted if saved
+      };
     } else {
       this.editingId = null;
-      this.form = { fullName: '', documentType: 'DNI', dni: '', cmp: '', email: '', phone: '', active: true, photoUrl: 'https://ui-avatars.com/api/?background=random' };
+      this.form = { 
+        fullName: '', 
+        docType: 'DNI', 
+        dni: '', 
+        cmp: '', 
+        email: '', 
+        countryCode: '51',
+        phone: '', 
+        active: true, 
+        photoUrl: 'https://ui-avatars.com/api/?background=random' 
+      };
     }
     this.isModalOpen = true;
   }
@@ -198,6 +271,18 @@ export class DoctorsListComponent implements OnInit {
       if (!this.form.photoUrl?.startsWith('data:image')) {
         this.form.photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.form.fullName)}&background=random`;
       }
+    }
+
+    if (this.isDuplicateDni) {
+      alert(`Ya existe un especialista registrado con el Documento: ${this.form.dni}`);
+      this.isSaving = false;
+      return;
+    }
+
+    if (this.isDuplicateCmp) {
+      alert(`Ya existe un especialista registrado con la Colegiatura: ${this.form.cmp}`);
+      this.isSaving = false;
+      return;
     }
 
     const request$ = this.editingId

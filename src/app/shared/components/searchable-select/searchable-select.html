@@ -3,7 +3,7 @@
 
     <div class="relative z-40">
         <div class="relative">
-            <input type="text" [ngModel]="searchText()" (ngModelChange)="onSearchChange($event)"
+            <input type="text" [value]="searchText()" (input)="onSearchChange($event)"
                 (focus)="openDropdown()" [placeholder]="placeholder" [disabled]="disabledState()"
                 class="block w-full rounded-xl border-border-main py-2.5 pl-3 pr-10 text-sm bg-white shadow-sm disabled:bg-muted/30 disabled:text-text-muted transition-all"
                 [ngClass]="{'py-2': displayMode === 'compact', 'py-2.5': displayMode === 'default'}">

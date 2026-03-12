@@ -15,6 +15,8 @@ export class ButtonComponent {
     @Input() loading: boolean = false;
     @Input() fullWidth: boolean = false;
 
+    @Input() className: string = '';
+
     @Output() onClick = new EventEmitter<MouseEvent>();
 
     get buttonClasses(): string {
@@ -41,6 +43,7 @@ export class ButtonComponent {
       ${sizeClasses[this.size]} 
       ${variantClasses[this.variant]} 
       ${this.fullWidth ? 'w-full' : ''}
+      ${this.className}
     `.trim();
     }
 

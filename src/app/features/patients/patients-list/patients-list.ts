@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, computed, signal, OnInit, OnDestroy, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +26,18 @@ export class PatientsListComponent implements OnInit {
   private router = inject(Router);
   private doctorService = inject(DoctorsService);
   private specialtyService = inject(SpecialtiesService);
+  @ViewChild('filterContainer') filterContainer!: ElementRef;
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.showColumnFilter() && this.filterContainer && !this.filterContainer.nativeElement.contains(event.target)) {
+      this.showColumnFilter.set(false);
+    }
+  }
+
+  toggleColumnFilter(event: Event) {
+    this.showColumnFilter.set(!this.showColumnFilter());
+  }
 
 
   readonly icons = { Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns, X, SquarePen };
@@ -43,7 +55,7 @@ export class PatientsListComponent implements OnInit {
   }
 
   // Column Visibility State
-  showColumnFilter = false;
+  showColumnFilter = signal(false);
   columns = {
     name: true,
     dni: true,
@@ -60,15 +72,46 @@ export class PatientsListComponent implements OnInit {
   // Expanded Row State (Now Modal)
   isHistoryModalOpen = false;
   selectedHistoryPatient: Patient | null = null;
-  patientHistory: Consultation[] = [];
+  patientHistory = signal<Consultation[]>([]);
+  isHistoryLoading = signal(false);
 
 
   // Modal
   isModalOpen = false;
   isSaving = false;
-  form: any = { fullName: '', dni: '', email: '', phone: '', age: 18, gender: 'M' };
+  form: any = { 
+    fullName: '', 
+    docType: 'DNI',
+    dni: '', 
+    email: '', 
+    countryCode: '51',
+    phone: '', 
+    age: 18, 
+    gender: 'M' 
+  };
 
   emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  showGenderDropdown = signal(false);
+  showDocTypeDropdown = signal(false);
+
+  toggleGenderDropdown() {
+    this.showGenderDropdown.set(!this.showGenderDropdown());
+  }
+
+  toggleDocTypeDropdown() {
+    this.showDocTypeDropdown.set(!this.showDocTypeDropdown());
+  }
+
+  selectDocType(type: 'DNI' | 'CE') {
+    this.form.docType = type;
+    this.form.dni = ''; // Clear ID when switching type
+    this.showDocTypeDropdown.set(false);
+  }
+
+  selectGender(gender: 'M' | 'F') {
+    this.form.gender = gender;
+    this.showGenderDropdown.set(false);
+  }
 
   // Computed state for local filtering and pagination
   filteredPatients = computed(() => {
@@ -98,12 +141,36 @@ export class PatientsListComponent implements OnInit {
     this.currentPage.set(1);
   }
 
+  onNameInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Solo permitir letras y espacios
+    const val = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+    if (input.value !== val) input.value = val;
+    this.form.fullName = val;
+  }
+
   onDniInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, ''); // Solo números
-    if (val.length > 8) val = val.substring(0, 8); // Máximo 8 dígitos
+    let val = input.value;
+    
+    if (this.form.docType === 'DNI') {
+      val = val.replace(/\D/g, ''); // Solo números para DNI
+      if (val.length > 8) val = val.substring(0, 8);
+    } else {
+      val = val.replace(/[^a-zA-Z0-9]/g, '').toUpperCase(); // Alfanumérico para CE
+      if (val.length > 12) val = val.substring(0, 12);
+    }
+    
     if (input.value !== val) input.value = val;
     this.form.dni = val;
+  }
+
+  onCountryCodeInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, ''); // Solo números
+    if (val.length > 4) val = val.substring(0, 4); // Max 4 dígitos (+51, +1234, etc)
+    if (input.value !== val) input.value = val;
+    this.form.countryCode = val;
   }
 
   onPhoneInput(event: Event) {
@@ -117,7 +184,8 @@ export class PatientsListComponent implements OnInit {
   get isFormValid() {
     return this.form.fullName?.trim() &&
       this.form.phone?.trim()?.length >= 7 &&
-      this.form.dni?.trim()?.length === 8 &&
+      this.form.countryCode?.trim()?.length >= 1 &&
+      (this.form.docType === 'DNI' ? this.form.dni?.trim()?.length === 8 : this.form.dni?.trim()?.length >= 4) &&
       this.form.age > 0 &&
       this.form.gender &&
       (!this.form.email || this.emailRegex.test(this.form.email));
@@ -130,21 +198,34 @@ export class PatientsListComponent implements OnInit {
   openHistoryModal(patient: Patient) {
     this.selectedHistoryPatient = patient;
     this.isHistoryModalOpen = true;
-    this.patientHistory = []; // clear previous
+    this.patientHistory.set([]);
+    this.isHistoryLoading.set(true);
+    
+    console.log('Fetching history for patient:', patient.patientId);
+    
     this.service.getPatientHistory(patient.patientId).subscribe({
-      next: (data) => { this.patientHistory = data; },
-      error: () => { this.patientHistory = []; }
+      next: (data) => { 
+        console.log('History received:', data);
+        this.patientHistory.set(data || []); 
+        this.isHistoryLoading.set(false);
+      },
+      error: (err) => { 
+        console.error('Error loading history', err);
+        alert('Error al cargar historial: ' + (err.error?.message || err.message));
+        this.patientHistory.set([]); 
+        this.isHistoryLoading.set(false);
+      }
     });
   }
 
   closeHistoryModal() {
     this.isHistoryModalOpen = false;
     this.selectedHistoryPatient = null;
-    this.patientHistory = [];
+    this.patientHistory.set([]);
   }
 
   getDoctorName(id: string) {
-    return this.doctorService.doctors().find(d => d.id === id)?.fullName || 'Desconocido';
+    return this.doctorService.doctors().find(d => d.doctorId === id || d.id === id)?.fullName || 'Desconocido';
   }
 
   getSpecialtyName(id: string) {
@@ -158,7 +239,16 @@ export class PatientsListComponent implements OnInit {
 
 
   openModal() {
-    this.form = { fullName: '', dni: '', email: '', phone: '', age: 18, gender: 'M' };
+    this.form = { 
+      fullName: '', 
+      docType: 'DNI',
+      dni: '', 
+      email: '', 
+      countryCode: '51',
+      phone: '', 
+      age: 18, 
+      gender: 'M' 
+    };
     this.isModalOpen = true;
   }
 

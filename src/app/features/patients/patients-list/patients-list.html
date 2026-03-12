@@ -23,21 +23,51 @@
 
         <div class="flex items-center gap-2">
             <!-- Column Visibility Toggle -->
-            <div class="relative">
-                <app-button variant="ghost" size="sm" (onClick)="showColumnFilter = !showColumnFilter" class="hover:bg-muted border border-border-main !rounded-xl !px-4">
-                    <lucide-icon [img]="icons.Columns" class="w-4 h-4 mr-2 text-text-muted"></lucide-icon>
-                    <span class="text-[13px] font-medium text-text-muted">Columnas</span>
+            <div class="relative" #filterContainer>
+                <app-button variant="ghost" (onClick)="toggleColumnFilter($event)" 
+                    class="h-11 px-5 bg-white border border-border-soft hover:bg-gray-50 text-text-main shadow-sm !rounded-xl flex items-center gap-2 transition-all">
+                    <lucide-icon [img]="icons.Columns" class="w-4 h-4 text-accent"></lucide-icon>
+                    <span class="text-sm font-bold text-text-main">Columnas</span>
                 </app-button>
 
-                <div *ngIf="showColumnFilter"
-                    class="absolute left-0 sm:left-auto sm:right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-white shadow-xl border border-border-soft ring-0 animate-in fade-in zoom-in duration-200">
-                    <div class="py-2 px-1">
-                        <label *ngFor="let col of columns | keyvalue"
-                            class="flex items-center px-4 py-2 text-[10px] font-bold text-text-main hover:bg-muted/50 rounded-lg cursor-pointer transition-colors tracking-wide">
-                            <input type="checkbox" [checked]="col.value" (change)="toggleColumn($any(col.key))"
-                                class="mr-3 h-3.5 w-3.5 rounded border-border-main text-accent focus:ring-accent">
-                            {{ col.key === 'name' ? 'Paciente' : col.key === 'lastVisit' ? 'Última Visita' : col.key }}
-                        </label>
+                <div *ngIf="showColumnFilter()"
+                    class="absolute left-0 sm:left-auto sm:right-0 z-50 mt-2 w-56 origin-top-right rounded-2xl bg-white shadow-2xl border border-border-soft ring-0 animate-in fade-in zoom-in duration-200">
+                    <div class="p-2">
+                        <div class="px-3 py-2 border-b border-gray-50 mb-1">
+                            <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider">Mostrar Columnas</span>
+                        </div>
+                        <div class="space-y-0.5">
+                            <label class="flex items-center px-3 py-2.5 text-[13px] font-semibold text-text-main hover:bg-gray-50 rounded-xl cursor-pointer transition-colors">
+                                <input type="checkbox" [checked]="columns.name" (change)="toggleColumn('name')"
+                                    class="mr-3 h-4 w-4 rounded-md border-gray-300 text-accent focus:ring-accent/20">
+                                Paciente
+                            </label>
+                            <label class="flex items-center px-3 py-2.5 text-[13px] font-semibold text-text-main hover:bg-gray-50 rounded-xl cursor-pointer transition-colors">
+                                <input type="checkbox" [checked]="columns.dni" (change)="toggleColumn('dni')"
+                                    class="mr-3 h-4 w-4 rounded-md border-gray-300 text-accent focus:ring-accent/20">
+                                Documento
+                            </label>
+                            <label class="flex items-center px-3 py-2.5 text-[13px] font-semibold text-text-main hover:bg-gray-50 rounded-xl cursor-pointer transition-colors">
+                                <input type="checkbox" [checked]="columns.phone" (change)="toggleColumn('phone')"
+                                    class="mr-3 h-4 w-4 rounded-md border-gray-300 text-accent focus:ring-accent/20">
+                                Celular
+                            </label>
+                            <label class="flex items-center px-3 py-2.5 text-[13px] font-semibold text-text-main hover:bg-gray-50 rounded-xl cursor-pointer transition-colors">
+                                <input type="checkbox" [checked]="columns.age" (change)="toggleColumn('age')"
+                                    class="mr-3 h-4 w-4 rounded-md border-gray-300 text-accent focus:ring-accent/20">
+                                Edad
+                            </label>
+                            <label class="flex items-center px-3 py-2.5 text-[13px] font-semibold text-text-main hover:bg-gray-50 rounded-xl cursor-pointer transition-colors">
+                                <input type="checkbox" [checked]="columns.gender" (change)="toggleColumn('gender')"
+                                    class="mr-3 h-4 w-4 rounded-md border-gray-300 text-accent focus:ring-accent/20">
+                                Género
+                            </label>
+                            <label class="flex items-center px-3 py-2.5 text-[13px] font-semibold text-text-main hover:bg-gray-50 rounded-xl cursor-pointer transition-colors">
+                                <input type="checkbox" [checked]="columns.actions" (change)="toggleColumn('actions')"
+                                    class="mr-3 h-4 w-4 rounded-md border-gray-300 text-accent focus:ring-accent/20">
+                                Acciones
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -141,59 +171,112 @@
     <app-card variant="elevated" [noPadding]="true"
         class="relative w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200">
         <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-border-soft flex items-center justify-between bg-gray-50/50">
+        <div class="relative px-8 pt-6 pb-6 border-b border-gray-100 bg-white rounded-t-3xl">
             <div>
-                <h3 class="text-base font-bold text-text-main">Registrar paciente</h3>
-                <p class="text-[10px] text-text-light font-bold tracking-widest mt-0.5">Información Personal
-                </p>
+                <h3 class="text-[20px] font-semibold text-text-main leading-tight">Registrar paciente</h3>
+                <p class="text-[14px] text-text-muted font-normal mt-1">Información Personal</p>
             </div>
-            <app-button variant="ghost" size="sm" (onClick)="closeModal()" class="!p-2 !rounded-xl">
-                <lucide-icon [img]="icons.X" class="w-4 h-4"></lucide-icon>
-            </app-button>
+            <button (click)="closeModal()" class="absolute top-6 right-6 p-2 rounded-xl text-text-light hover:text-text-main hover:bg-gray-50 transition-all outline-none">
+                <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
+            </button>
         </div>
 
         <!-- Modal Content Scrollable -->
-        <div class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+        <div class="p-8 pt-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
             <div class="space-y-6">
                 <!-- Basic Info Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                     <div class="sm:col-span-2">
-                        <label>Nombres Completos</label>
-                        <input [(ngModel)]="form.fullName" type="text" placeholder="Ej. Juan Pérez"
-                            [disabled]="!!form.patientId" class="w-full">
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nombres Completos <span class="text-red-500">*</span></label>
+                        <input [ngModel]="form.fullName" (input)="onNameInput($event)" type="text" placeholder="Ej. Juan Pérez"
+                            [disabled]="!!form.patientId" 
+                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
+                    </div>
+
+                    <div class="relative">
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Documento <span class="text-red-500">*</span></label>
+                         <!-- Custom Select Trigger for DocType -->
+                         <div (click)="!form.patientId && toggleDocTypeDropdown()" 
+                              [class.cursor-pointer]="!form.patientId"
+                              [class.bg-gray-50]="form.patientId"
+                              class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
+                            
+                            <span class="text-[14px] font-semibold text-text-main">{{ form.docType }}</span>
+                            <lucide-icon [img]="icons.ChevronDown" class="w-4 h-4 text-text-light"></lucide-icon>
+                        </div>
+
+                        <div *ngIf="showDocTypeDropdown()" 
+                             class="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-xl border border-border-soft overflow-hidden animate-in fade-in zoom-in duration-100">
+                            <div (click)="selectDocType('DNI')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">
+                                DNI
+                            </div>
+                            <div (click)="selectDocType('CE')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">
+                                CE
+                            </div>
+                        </div>
                     </div>
 
                     <div>
-                        <label>Dni</label>
-                        <input [ngModel]="form.dni" (input)="onDniInput($event)" type="text" placeholder="8 dígitos"
-                            [disabled]="!!form.patientId" class="w-full">
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">{{ form.docType }} <span class="text-red-500">*</span></label>
+                        <input [ngModel]="form.dni" (input)="onDniInput($event)" type="text" [placeholder]="form.docType === 'DNI' ? '8 dígitos' : 'CE / Pasaporte'"
+                            [disabled]="!!form.patientId" 
+                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
+                    </div>
+
+                    <div class="sm:col-span-2 grid grid-cols-4 gap-3">
+                        <div class="col-span-1">
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">País</label>
+                            <div class="relative flex items-center">
+                                <span class="absolute left-3 text-[14px] text-gray-400 font-medium">+</span>
+                                <input [ngModel]="form.countryCode" (input)="onCountryCodeInput($event)" type="text"
+                                    class="w-full h-10 pl-6 pr-2 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none">
+                            </div>
+                        </div>
+                        <div class="col-span-3">
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Celular <span class="text-red-500">*</span></label>
+                            <input [ngModel]="form.phone" (input)="onPhoneInput($event)" type="text" placeholder="987654321"
+                                class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
+                        </div>
                     </div>
 
                     <div>
-                        <label>Teléfono</label>
-                        <input [ngModel]="form.phone" (input)="onPhoneInput($event)" type="text" placeholder="987654321"
-                            class="w-full">
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Edad <span class="text-red-500">*</span></label>
+                        <input [(ngModel)]="form.age" type="number" [disabled]="!!form.patientId" 
+                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
                     </div>
 
-                    <div>
-                        <label>Edad</label>
-                        <input [(ngModel)]="form.age" type="number" [disabled]="!!form.patientId" class="w-full">
-                    </div>
+                    <div class="relative">
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Género <span class="text-red-500">*</span></label>
+                        
+                        <!-- Simplified Native-like Select -->
+                        <div (click)="!form.patientId && toggleGenderDropdown()" 
+                             [class.cursor-pointer]="!form.patientId"
+                             [class.bg-gray-50]="form.patientId"
+                             class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
+                            
+                            <span class="text-[14px] font-medium text-text-main">{{ form.gender === 'M' ? 'Masculino' : 'Femenino' }}</span>
+                            <lucide-icon *ngIf="!form.patientId" [img]="icons.ChevronDown" class="w-4 h-4 text-text-light"></lucide-icon>
+                        </div>
 
-                    <div>
-                        <label>Género</label>
-                        <select [(ngModel)]="form.gender" [disabled]="!!form.patientId" class="w-full">
-                            <option value="M">Masculino</option>
-                            <option value="F">Femenino</option>
-                        </select>
+                        <!-- Simplified Dropdown -->
+                        <div *ngIf="showGenderDropdown()" 
+                             class="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-xl border border-border-soft overflow-hidden animate-in fade-in zoom-in duration-100">
+                            <div (click)="selectGender('M')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">
+                                Masculino
+                            </div>
+                            <div (click)="selectGender('F')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">
+                                Femenino
+                            </div>
+                        </div>
                     </div>
 
                     <div class="sm:col-span-2">
-                        <label>Correo Electrónico</label>
-                        <input [(ngModel)]="form.email" type="email" placeholder="usuario@correo.com" class="w-full"
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Correo Electrónico <span class="text-gray-400 font-normal ml-0.5">(Opcional)</span></label>
+                        <input [(ngModel)]="form.email" type="email" placeholder="usuario@correo.com" 
+                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light"
                             [class.border-red-500]="form.email && !emailRegex.test(form.email)">
                         <p *ngIf="form.email && !emailRegex.test(form.email)"
-                            class="text-[10px] text-danger font-bold mt-1">
+                            class="text-[12px] text-danger font-medium mt-1.5">
                             Formato inválido (Ej: usuario@correo.com)
                         </p>
                     </div>
@@ -202,11 +285,15 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="px-6 py-4 border-t border-border-soft bg-gray-50/50 flex items-center justify-end gap-3">
-            <app-button variant="ghost" (onClick)="closeModal()">
+        <div class="px-8 py-5 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end gap-4">
+            <app-button variant="ghost" (onClick)="closeModal()" 
+                className="!text-[14px] font-semibold"
+                class="!px-6 !h-11 !bg-white border border-gray-300 text-gray-700 hover:!bg-gray-50 !rounded-xl transition-all">
                 Cancelar
             </app-button>
-            <app-button variant="accent" (onClick)="save()" [disabled]="isSaving || !isFormValid" class="min-w-[140px]">
+            <app-button variant="accent" (onClick)="save()" [disabled]="isSaving || !isFormValid" 
+                className="!text-[14px] font-semibold"
+                class="!px-8 !h-11 bg-accent hover:bg-accent-hover text-white !rounded-xl shadow-sm transition-all min-w-[140px]">
                 {{ isSaving ? 'Guardando...' : (form.patientId ? 'Guardar Cambios' : 'Registrar') }}
             </app-button>
         </div>
@@ -262,8 +349,14 @@
                     <h4 class="text-[16px] font-semibold text-text-main">Visitas Registradas</h4>
                 </div>
 
+                <!-- Loading State -->
+                <div *ngIf="isHistoryLoading()" class="flex flex-col items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mb-4"></div>
+                    <p class="text-sm text-text-muted">Cargando historial...</p>
+                </div>
+
                 <!-- Empty State (Administrative) -->
-                <div *ngIf="patientHistory.length === 0"
+                <div *ngIf="!isHistoryLoading() && patientHistory().length === 0"
                     class="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200 animate-fade-in">
                     <div class="w-14 h-14 bg-gray-50/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
                         <lucide-icon [img]="icons.Calendar" class="h-7 w-7 text-gray-300" [strokeWidth]="1.5"></lucide-icon>
@@ -275,18 +368,19 @@
                 </div>
 
                 <!-- History Table -->
-                <div *ngIf="patientHistory.length > 0" class="rounded-2xl border border-border-soft overflow-hidden shadow-sm">
+                <div *ngIf="!isHistoryLoading() && patientHistory().length > 0" class="rounded-2xl border border-border-soft overflow-hidden shadow-sm">
                     <table class="min-w-full divide-y divide-border-soft">
                         <thead class="bg-gray-50/80">
                             <tr class="table-v2-header !bg-transparent">
                                 <th class="py-4 pl-6 pr-3 text-left">Fecha</th>
                                 <th class="px-3 py-4 text-left">Especialidad</th>
                                 <th class="px-3 py-4 text-left">Especialista</th>
+                                <th class="px-3 py-4 text-left">Estado</th>
                                 <th class="px-3 py-4 text-left pr-6">Diagnóstico / Motivo</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border-soft bg-white">
-                            <tr *ngFor="let record of patientHistory" class="hover:bg-gray-50/50 transition-colors">
+                            <tr *ngFor="let record of patientHistory()" class="hover:bg-gray-50/50 transition-colors">
                                 <td class="whitespace-nowrap py-4 pl-6 pr-3 text-[13px] font-bold text-text-main">
                                     {{ record.appointmentDate }}
                                 </td>
@@ -295,6 +389,17 @@
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-4 text-[13px] font-medium text-text-muted">
                                     {{ getDoctorName(record.doctorId) }}
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4">
+                                    <span [ngClass]="{
+                                        'bg-green-50 text-green-700 border-green-100': record.status === 'ATENDIDA',
+                                        'bg-blue-50 text-blue-700 border-blue-100': record.status === 'PROGRAMADA' || record.status === 'CONFIRMADA',
+                                        'bg-red-50 text-red-700 border-red-100': record.status === 'CANCELADA' || record.status === 'PERDIDA',
+                                        'bg-orange-50 text-orange-700 border-orange-100': record.status === 'EN ESPERA' || record.status === 'EN ATENCION',
+                                        'bg-gray-50 text-gray-600 border-gray-100': !['ATENDIDA', 'PROGRAMADA', 'CONFIRMADA', 'CANCELADA', 'PERDIDA', 'EN ESPERA', 'EN ATENCION'].includes(record.status)
+                                    }" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border whitespace-nowrap">
+                                        {{ record.status }}
+                                    </span>
                                 </td>
                                 <td class="px-3 py-4 text-[13px] text-text-main leading-relaxed min-w-[240px] pr-6">
                                     <p class="line-clamp-2" [title]="record.diagnosis || record.notes">{{ record.diagnosis || record.notes }}</p>
@@ -306,12 +411,6 @@
             </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div class="px-8 py-4 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end">
-            <app-button variant="ghost" (onClick)="closeHistoryModal()" 
-                class="!px-6 !py-2.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 !rounded-xl shadow-sm transition-all font-medium">
-                Cerrar
-            </app-button>
-        </div>
+
     </app-card>
 </div>

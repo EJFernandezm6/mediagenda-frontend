@@ -15,8 +15,9 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
         <lucide-icon [img]="icons.Search" class="h-4 w-4 text-text-light"></lucide-icon>
       </div>
       <input 
-        [ngModel]="currentValue()" 
-        (ngModelChange)="onInputChange($event)"
+        #searchInput
+        [value]="currentValue()" 
+        (input)="onInputChange($event)"
         type="text" 
         class="pl-11 w-full"
         [placeholder]="placeholder()">
@@ -54,9 +55,18 @@ export class SearchInputComponent {
     });
   }
 
-  onInputChange(value: string) {
-    this.currentValue.set(value);
-    this.searchSubject.next(value);
+  onInputChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    // Solo permitir letras, números y espacios
+    const sanitized = value.replace(/[^a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚ]/g, '');
+    
+    if (value !== sanitized) {
+      input.value = sanitized;
+    }
+    
+    this.currentValue.set(sanitized);
+    this.searchSubject.next(sanitized);
   }
 
   clear() {

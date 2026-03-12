@@ -39,14 +39,13 @@ export class SpecialtiesListComponent implements OnInit {
 
   // Local Pagination & Search State
   searchTerm = signal('');
-  statusFilter = signal('ALL');
+  statusFilter = signal('ACTIVE');
   currentPage = signal(1);
   itemsPerPage = 6;
 
   statusOptions = signal<SelectOption[]>([
-    { id: 'ALL', label: 'Todos los estados' },
-    { id: 'ACTIVE', label: 'Solo Activas' },
-    { id: 'INACTIVE', label: 'Solo Inactivas' }
+    { id: 'ACTIVE', label: 'Especialidades Activas' },
+    { id: 'INACTIVE', label: 'Especialidades Inactivas' }
   ]);
 
   // Simple Modal State
@@ -90,6 +89,13 @@ export class SpecialtiesListComponent implements OnInit {
 
   onPageChange(page: number) {
     this.currentPage.set(page);
+  }
+
+  onNameInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const val = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+    if (input.value !== val) input.value = val;
+    this.form.name = val;
   }
 
   onSearch(value: string) {
