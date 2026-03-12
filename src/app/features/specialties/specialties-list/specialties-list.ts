@@ -2,17 +2,29 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpecialtiesService, Specialty } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
-import { LucideAngularModule, Plus, Search, Pencil, Trash2, Activity, Power, X } from 'lucide-angular';
+import { LucideAngularModule, Plus, Search, Pencil, SquarePen, Trash2, Activity, Power, X } from 'lucide-angular';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
+import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
+import { PageHeaderComponent } from '../../../shared/components/ui/page-header/page-header.component';
+import { SearchInputComponent } from '../../../shared/components/ui/search-input/search-input.component';
 
 @Component({
   selector: 'app-specialties-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent, ButtonComponent, BadgeComponent, CardComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    LucideAngularModule, 
+    PaginationComponent, 
+    ButtonComponent, 
+    CardComponent, 
+    SearchableSelectComponent,
+    PageHeaderComponent,
+    SearchInputComponent
+  ],
   templateUrl: './specialties-list.html',
   styleUrl: './specialties-list.css'
 })
@@ -21,14 +33,21 @@ export class SpecialtiesListComponent implements OnInit {
   private confirmService = inject(ConfirmModalService);
 
   // Icons
-  readonly icons = { Plus, Search, Pencil, Trash2, Activity, Power, X };
+  readonly icons = { Plus, Search, Pencil, SquarePen, Trash2, Activity, Power, X };
 
   specialties = this.service.specialties;
 
   // Local Pagination & Search State
   searchTerm = signal('');
+  statusFilter = signal('ALL');
   currentPage = signal(1);
   itemsPerPage = 6;
+
+  statusOptions = signal<SelectOption[]>([
+    { id: 'ALL', label: 'Todos los estados' },
+    { id: 'ACTIVE', label: 'Solo Activas' },
+    { id: 'INACTIVE', label: 'Solo Inactivas' }
+  ]);
 
   // Simple Modal State
   isModalOpen = false;
@@ -38,9 +57,19 @@ export class SpecialtiesListComponent implements OnInit {
   // Computed state for local filtering and pagination
   filteredSpecialties = computed(() => {
     const term = this.searchTerm().toLowerCase();
-    if (!term) return this.specialties();
+    const status = this.statusFilter();
+    let specs = this.specialties();
 
-    return this.specialties().filter(s =>
+    // Filter by status
+    if (status === 'ACTIVE') {
+      specs = specs.filter(s => s.active !== false);
+    } else if (status === 'INACTIVE') {
+      specs = specs.filter(s => s.active === false);
+    }
+
+    if (!term) return specs;
+
+    return specs.filter(s =>
       s.name.toLowerCase().includes(term) ||
       (s.description && s.description.toLowerCase().includes(term))
     );
@@ -63,14 +92,9 @@ export class SpecialtiesListComponent implements OnInit {
     this.currentPage.set(page);
   }
 
-  onSearchChange() {
+  onSearch(value: string) {
+    this.searchTerm.set(value);
     this.currentPage.set(1);
-  }
-
-  onSearchInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.searchTerm.set(input.value);
-    this.onSearchChange();
   }
 
   openModal(specialty?: Specialty) {

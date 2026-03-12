@@ -1,148 +1,137 @@
-<div class="sm:flex sm:items-center justify-between mb-8">
-    <div class="sm:flex-auto">
-        <h1 class="text-xl font-bold text-text-main">Pacientes</h1>
-        <p class="mt-1 text-sm text-text-muted">Directorio de pacientes y gestión de historias clínicas.</p>
+<div class="h-[calc(100vh-8rem)] flex flex-col overflow-hidden">
+    <!-- Header with primary CTA relocated -->
+    <div class="shrink-0 mb-4">
+        <app-page-header 
+            title="Pacientes" 
+            subtitle="Directorio de pacientes y gestión de historias clínicas."
+            buttonText="Nuevo Paciente"
+            [buttonIcon]="icons.Plus"
+            [largeButton]="true"
+            (actionClick)="openModal()">
+        </app-page-header>
     </div>
-    <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-        <app-button (onClick)="openModal()" variant="accent">
-            <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
-            Nuevo paciente
-        </app-button>
-    </div>
-</div>
 
-<div class="mt-8 flow-root">
-    <!-- Controls Bar -->
-    <app-card variant="flat" [noPadding]="true" class="mb-6">
-        <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <!-- Search Bar -->
-            <div class="relative max-w-sm w-full">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <lucide-icon [img]="icons.Search" class="h-4 w-4 text-text-light"></lucide-icon>
-                </div>
-                <input [value]="searchTerm()" (input)="onSearchInput($event)" type="text" class="pl-11 w-full"
-                    placeholder="Buscar por DNI o nombre...">
-            </div>
+    <!-- Compact Action Bar (No Card wrapper, thin padding) -->
+    <div class="shrink-0 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="relative w-full sm:max-w-md">
+            <app-search-input 
+                placeholder="Buscar por DNI o nombre..." 
+                [initialValue]="searchTerm()"
+                (search)="searchTerm.set($event); currentPage.set(1)">
+            </app-search-input>
+        </div>
 
-            <div class="flex items-center gap-4">
-                <!-- Pagination -->
-                <app-pagination [currentPage]="currentPage()" [totalItems]="totalItems" [pageSize]="itemsPerPage"
-                    (pageChange)="onPageChange($event)">
-                </app-pagination>
+        <div class="flex items-center gap-2">
+            <!-- Column Visibility Toggle -->
+            <div class="relative">
+                <app-button variant="ghost" size="sm" (onClick)="showColumnFilter = !showColumnFilter" class="hover:bg-muted border border-border-main !rounded-xl !px-4">
+                    <lucide-icon [img]="icons.Columns" class="w-4 h-4 mr-2 text-text-muted"></lucide-icon>
+                    <span class="text-[13px] font-medium text-text-muted">Columnas</span>
+                </app-button>
 
-                <!-- Column Visibility Toggle -->
-                <div class="relative">
-                    <app-button variant="outline" size="sm" (onClick)="showColumnFilter = !showColumnFilter">
-                        <lucide-icon [img]="icons.Columns" class="w-4 h-4 mr-2"></lucide-icon>
-                        Columnas
-                    </app-button>
-
-                    <!-- Dropdown Menu -->
-                    <div *ngIf="showColumnFilter"
-                        class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-white shadow-xl border border-border-soft ring-0 animate-in fade-in zoom-in duration-200">
-                        <div class="py-2 px-1">
-                            <label *ngFor="let col of columns | keyvalue"
-                                class="flex items-center px-4 py-2 text-xs font-bold text-text-main hover:bg-muted/50 rounded-lg cursor-pointer transition-colors uppercase tracking-wider">
-                                <input type="checkbox" [checked]="col.value" (change)="toggleColumn($any(col.key))"
-                                    class="mr-3 h-4 w-4 rounded border-border-main text-accent focus:ring-accent">
-                                {{ col.key === 'name' ? 'Paciente' : col.key === 'lastVisit' ? 'Última Visita' : col.key
-                                }}
-                            </label>
-                        </div>
+                <div *ngIf="showColumnFilter"
+                    class="absolute left-0 sm:left-auto sm:right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-white shadow-xl border border-border-soft ring-0 animate-in fade-in zoom-in duration-200">
+                    <div class="py-2 px-1">
+                        <label *ngFor="let col of columns | keyvalue"
+                            class="flex items-center px-4 py-2 text-[10px] font-bold text-text-main hover:bg-muted/50 rounded-lg cursor-pointer transition-colors tracking-wide">
+                            <input type="checkbox" [checked]="col.value" (change)="toggleColumn($any(col.key))"
+                                class="mr-3 h-3.5 w-3.5 rounded border-border-main text-accent focus:ring-accent">
+                            {{ col.key === 'name' ? 'Paciente' : col.key === 'lastVisit' ? 'Última Visita' : col.key }}
+                        </label>
                     </div>
                 </div>
             </div>
         </div>
-    </app-card>
+        <!-- Right side spacer -->
+        <div class="flex-1"></div>
+    </div>
 
     <!-- Table -->
-    <!-- Table Card -->
-    <app-card variant="elevated" [noPadding]="true">
-        <div class="overflow-x-auto custom-scrollbar">
-            <table class="min-w-full divide-y divide-border-soft">
-                <thead class="bg-muted/30">
-                    <tr>
-                        <th *ngIf="columns.name" scope="col"
-                            class="py-4 pl-6 pr-3 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                            Paciente</th>
-                        <th *ngIf="columns.email" scope="col"
-                            class="px-3 py-4 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                            Email</th>
-                        <th *ngIf="columns.dni" scope="col"
-                            class="px-3 py-4 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                            DNI</th>
-                        <th *ngIf="columns.phone" scope="col"
-                            class="px-3 py-4 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                            Teléfono</th>
-                        <th *ngIf="columns.age" scope="col"
-                            class="px-3 py-4 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                            Edad</th>
-                        <th *ngIf="columns.gender" scope="col"
-                            class="px-3 py-4 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                            Género</th>
-                        <th *ngIf="columns.lastVisit" scope="col"
-                            class="px-3 py-4 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                            Última visita</th>
-                        <th *ngIf="columns.actions" scope="col" class="relative py-4 pl-3 pr-6">
-                            <span class="sr-only">Acciones</span>
-                        </th>
+    <!-- Table Area -->
+    <div class="bg-surface rounded-3xl shadow-md border border-border-soft flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 overflow-x-auto relative">
+            <table class="table-v2 w-full">
+                <thead class="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm border-b border-border-soft shadow-sm">
+                    <tr class="table-v2-header">
+                        <th *ngIf="columns.name" class="pl-8 bg-transparent">Paciente</th>
+                        <th *ngIf="columns.dni" class="bg-transparent">Documento</th>
+                        <th *ngIf="columns.phone" class="bg-transparent">Teléfono</th>
+                        <th *ngIf="columns.age" class="text-center bg-transparent">Edad</th>
+                        <th *ngIf="columns.gender" class="text-center bg-transparent">Género</th>
+                        <th *ngIf="columns.actions" class="pr-8 text-right bg-transparent">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border-soft">
-                    <tr *ngFor="let patient of patientsList" class="hover:bg-muted/30 transition-colors">
-                        <td *ngIf="columns.name" class="whitespace-nowrap py-3 pl-6 pr-3">
-                            <div class="flex items-center">
-                                <div class="h-9 w-9 flex-shrink-0">
-                                    <div
-                                        class="h-9 w-9 rounded-2xl bg-primary flex items-center justify-center text-white text-xs font-bold ring-4 ring-muted">
-                                        {{ patient.fullName.substring(0, 2).toUpperCase() }}
-                                    </div>
+                    <tr *ngFor="let patient of patientsList" class="table-v2-row group">
+                        <td *ngIf="columns.name" class="pl-8">
+                            <div class="flex items-center gap-4">
+                                <div class="avatar-table shrink-0 h-11 w-11 shadow-sm border-2 border-white">
+                                    {{ patient.fullName.substring(0, 2).toUpperCase() }}
                                 </div>
-                                <div class="ml-3">
-                                    <div class="text-sm font-bold text-text-main">{{ patient.fullName }}</div>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="cell-primary text-base truncate max-w-[200px]" [title]="patient.fullName">{{ patient.fullName }}</span>
+                                    <span class="text-[13px] text-text-muted font-normal truncate max-w-[200px]">{{ patient.email || '---' }}</span>
                                 </div>
                             </div>
                         </td>
-                        <td *ngIf="columns.email" class="whitespace-nowrap px-3 py-3 text-sm text-text-muted">
-                            {{ patient.email || '---' }}
-                        </td>
-                        <td *ngIf="columns.dni" class="whitespace-nowrap px-3 py-3 text-sm font-bold text-text-main">
+                        <td *ngIf="columns.dni" class="text-[13px] font-normal text-text-muted">
                             {{ patient.dni }}
                         </td>
-                        <td *ngIf="columns.phone" class="whitespace-nowrap px-3 py-3 text-sm text-text-muted">
+                        <td *ngIf="columns.phone" class="text-[13px] font-normal text-text-muted">
                             {{ patient.phone }}
                         </td>
-                        <td *ngIf="columns.age" class="whitespace-nowrap px-3 py-3 text-sm">
-                            <app-badge variant="neutral">{{ patient.age }} años</app-badge>
+                        <td *ngIf="columns.age" class="text-center">
+                            <span class="text-[13px] font-medium text-text-muted">
+                                {{ patient.age }} años
+                            </span>
                         </td>
-                        <td *ngIf="columns.gender" class="whitespace-nowrap px-3 py-3 text-sm">
-                            <app-badge [variant]="patient.gender === 'M' ? 'primary' : 'primary'">
-                                {{ patient.gender === 'M' ? 'Masc' : 'Fem' }}
-                            </app-badge>
+                        <td *ngIf="columns.gender" class="text-center">
+                            <span [class]="patient.gender === 'M' ? 'bg-accent-soft text-accent' : 'bg-pink-50 text-pink-600'"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                                {{ patient.gender === 'M' ? 'Masculino' : 'Femenino' }}
+                            </span>
                         </td>
-                        <td *ngIf="columns.lastVisit"
-                            class="whitespace-nowrap px-3 py-3 text-sm font-medium text-text-muted italic">
-                            {{ patient.lastVisit || 'Sin visitas' }}
+                        <td *ngIf="columns.actions" class="pr-8 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button class="action-btn text-[#9CA3AF] hover:text-accent transition-colors" (click)="editPatient(patient)" title="Editar">
+                                    <lucide-icon [img]="icons.SquarePen" [strokeWidth]="1.5" class="w-4.5 h-4.5"></lucide-icon>
+                                </button>
+                                <button class="action-btn text-[#9CA3AF] hover:text-accent transition-colors" (click)="openHistoryModal(patient)" title="Historial">
+                                    <lucide-icon [img]="icons.FileText" [strokeWidth]="1.5" class="w-4.5 h-4.5"></lucide-icon>
+                                </button>
+                            </div>
                         </td>
-                        <td *ngIf="columns.actions" class="whitespace-nowrap py-3 pl-3 pr-6 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <app-button variant="ghost" size="sm" (onClick)="editPatient(patient)"
-                                    class="!p-2 !rounded-xl">
-                                    <lucide-icon [img]="icons.Pencil"
-                                        class="w-4 h-4 text-text-muted hover:text-accent"></lucide-icon>
-                                </app-button>
-                                <app-button variant="ghost" size="sm" (onClick)="openHistoryModal(patient)"
-                                    class="!p-2 !rounded-xl">
-                                    <lucide-icon [img]="icons.FileText"
-                                        class="w-4 h-4 text-text-muted hover:text-success"></lucide-icon>
-                                </app-button>
+                    </tr>
+
+                    <!-- Empty State -->
+                    <tr *ngIf="patientsList.length === 0">
+                        <td colspan="8" class="py-24">
+                            <div class="flex flex-col items-center justify-center text-center px-4 animate-fade-in">
+                                <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4 border border-border-soft">
+                                    <lucide-icon [img]="icons.Search" class="h-8 w-8 text-text-light" [strokeWidth]="1.5"></lucide-icon>
+                                </div>
+                                <h3 class="text-lg font-bold text-text-main">No se encontraron pacientes</h3>
+                                <p class="text-sm text-text-muted mt-1 max-w-xs mx-auto">
+                                    Intenta ajustar los criterios de búsqueda para obtener resultados.
+                                </p>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-    </app-card>
+
+        <!-- Pagination Footer -->
+        <div class="shrink-0 border-t border-border-soft bg-white rounded-b-3xl">
+            <app-pagination 
+                [currentPage]="currentPage()" 
+                [totalItems]="totalItems" 
+                [pageSize]="itemsPerPage"
+                itemLabel="pacientes"
+                (pageChange)="onPageChange($event)">
+            </app-pagination>
+        </div>
+    </div>
 </div>
 
 <!-- Simple Add Modal -->
@@ -155,7 +144,7 @@
         <div class="px-6 py-4 border-b border-border-soft flex items-center justify-between bg-gray-50/50">
             <div>
                 <h3 class="text-base font-bold text-text-main">Registrar paciente</h3>
-                <p class="text-[10px] text-text-light font-bold uppercase tracking-widest mt-0.5">Información Personal
+                <p class="text-[10px] text-text-light font-bold tracking-widest mt-0.5">Información Personal
                 </p>
             </div>
             <app-button variant="ghost" size="sm" (onClick)="closeModal()" class="!p-2 !rounded-xl">
@@ -175,7 +164,7 @@
                     </div>
 
                     <div>
-                        <label>DNI</label>
+                        <label>Dni</label>
                         <input [ngModel]="form.dni" (input)="onDniInput($event)" type="text" placeholder="8 dígitos"
                             [disabled]="!!form.patientId" class="w-full">
                     </div>
@@ -224,86 +213,91 @@
     </app-card>
 </div>
 
-<!-- History Modal -->
+<!-- History Modal (Admin Visit Log) -->
 <div *ngIf="isHistoryModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm transition-opacity" (click)="closeHistoryModal()"></div>
 
     <app-card variant="elevated" [noPadding]="true"
-        class="relative w-full max-w-5xl shadow-2xl animate-in fade-in zoom-in duration-200">
+        class="relative w-full max-w-5xl shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl">
         <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-border-soft flex items-center justify-between bg-gray-50/50">
+        <div class="px-8 py-6 border-b border-gray-200 flex items-center justify-between bg-white rounded-t-3xl">
             <div>
-                <h3 class="text-base font-bold text-text-main flex items-center gap-2">
-                    <lucide-icon [img]="icons.FileText" class="w-5 h-5 text-accent"></lucide-icon>
-                    Historial Clínico
+                <h3 class="text-xl font-semibold text-text-main flex items-center gap-3">
+                    <div class="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                        <lucide-icon [img]="icons.Calendar" class="w-6 h-6 text-text-muted"></lucide-icon>
+                    </div>
+                    Registro de Visitas
                 </h3>
-                <p class="text-[10px] text-text-light font-bold uppercase tracking-widest mt-0.5">Consultas y
-                    Diagnósticos</p>
+                <p class="text-sm text-text-muted mt-1 font-medium">Historial de atenciones y citas del paciente</p>
             </div>
-            <app-button variant="ghost" size="sm" (onClick)="closeHistoryModal()" class="!p-2 !rounded-xl">
-                <lucide-icon [img]="icons.X" class="w-4 h-4"></lucide-icon>
+            <app-button variant="ghost" size="sm" (onClick)="closeHistoryModal()" class="!p-2.5 !rounded-xl border border-transparent hover:border-border-soft">
+                <lucide-icon [img]="icons.X" class="w-5 h-5 text-text-light"></lucide-icon>
             </app-button>
         </div>
 
         <!-- Modal Content -->
-        <div class="p-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+        <div class="p-8 max-h-[75vh] overflow-y-auto custom-scrollbar">
             <div *ngIf="selectedHistoryPatient">
-                <!-- Patient Summary Card -->
-                <div
-                    class="mb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 bg-muted/30 p-5 rounded-2xl border border-border-soft">
-                    <div *ngFor="let item of [
-                        {l: 'Paciente', v: selectedHistoryPatient.fullName},
-                        {l: 'DNI', v: selectedHistoryPatient.dni},
-                        {l: 'Correo', v: selectedHistoryPatient.email || '---'},
-                        {l: 'Teléfono', v: selectedHistoryPatient.phone},
-                        {l: 'Edad', v: selectedHistoryPatient.age + ' años'},
-                        {l: 'Género', v: selectedHistoryPatient.gender === 'M' ? 'Masculino' : 'Femenino'}
-                    ]">
-                        <p class="text-[9px] font-black text-text-light uppercase tracking-widest mb-1">{{ item.l }}</p>
-                        <p class="text-xs font-bold text-text-main truncate" [title]="item.v">{{ item.v }}</p>
+                <!-- Patient Summary Card (Administrative Style) -->
+                <div class="mb-8 bg-gray-50/50 py-5 px-6 rounded-2xl border border-gray-100/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-8">
+                    <div>
+                        <p class="text-[12px] text-gray-500 font-medium mb-0.5">Paciente</p>
+                        <p class="text-[14px] text-text-main font-semibold">{{ selectedHistoryPatient.fullName }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[12px] text-gray-500 font-medium mb-0.5">DNI</p>
+                        <p class="text-[14px] text-text-main font-semibold">{{ selectedHistoryPatient.dni }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[12px] text-gray-500 font-medium mb-0.5">Correo Electrónico</p>
+                        <p class="text-[14px] text-text-main font-semibold truncate" [title]="selectedHistoryPatient.email">{{ selectedHistoryPatient.email || '---' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[12px] text-gray-500 font-medium mb-0.5">Teléfono</p>
+                        <p class="text-[14px] text-text-main font-semibold">{{ selectedHistoryPatient.phone }}</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3 mb-4">
-                    <div class="h-6 w-1 bg-accent rounded-full"></div>
-                    <h4 class="text-sm font-bold text-text-main">Consultas Anteriores</h4>
+                    <h4 class="text-[16px] font-semibold text-text-main">Visitas Registradas</h4>
                 </div>
 
+                <!-- Empty State (Administrative) -->
                 <div *ngIf="patientHistory.length === 0"
-                    class="text-center py-16 bg-muted/20 rounded-2xl border border-dashed border-border-main">
-                    <lucide-icon [img]="icons.Activity" class="mx-auto h-12 w-12 text-border-main mb-4"></lucide-icon>
-                    <p class="text-xs font-bold text-text-light uppercase tracking-widest">No hay consultas registradas
+                    class="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200 animate-fade-in">
+                    <div class="w-14 h-14 bg-gray-50/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+                        <lucide-icon [img]="icons.Calendar" class="h-7 w-7 text-gray-300" [strokeWidth]="1.5"></lucide-icon>
+                    </div>
+                    <h3 class="text-base font-medium text-gray-600">No hay visitas registradas</h3>
+                    <p class="text-sm text-gray-400 mt-1 max-w-xs mx-auto">
+                        Las citas pasadas y futuras de este paciente aparecerán aquí.
                     </p>
                 </div>
 
-                <div *ngIf="patientHistory.length > 0" class="rounded-xl border border-border-soft overflow-hidden">
+                <!-- History Table -->
+                <div *ngIf="patientHistory.length > 0" class="rounded-2xl border border-border-soft overflow-hidden shadow-sm">
                     <table class="min-w-full divide-y divide-border-soft">
-                        <thead class="bg-muted/30">
-                            <tr>
-                                <th
-                                    class="py-3 pl-4 pr-3 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                                    Fecha</th>
-                                <th
-                                    class="px-3 py-3 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                                    Especialidad</th>
-                                <th
-                                    class="px-3 py-3 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                                    Doctor</th>
-                                <th
-                                    class="px-3 py-3 text-left text-[10px] font-black text-text-light uppercase tracking-widest">
-                                    Diagnóstico</th>
+                        <thead class="bg-gray-50/80">
+                            <tr class="table-v2-header !bg-transparent">
+                                <th class="py-4 pl-6 pr-3 text-left">Fecha</th>
+                                <th class="px-3 py-4 text-left">Especialidad</th>
+                                <th class="px-3 py-4 text-left">Especialista</th>
+                                <th class="px-3 py-4 text-left pr-6">Diagnóstico / Motivo</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-border-soft">
-                            <tr *ngFor="let record of patientHistory" class="hover:bg-muted/10 transition-colors">
-                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-xs font-bold text-text-main">{{
-                                    record.appointmentDate }}</td>
-                                <td class="whitespace-nowrap px-3 py-4 text-xs font-medium text-text-muted">{{
-                                    getSpecialtyName(record.specialtyId) }}</td>
-                                <td class="whitespace-nowrap px-3 py-4 text-xs font-medium text-text-muted">{{
-                                    getDoctorName(record.doctorId) }}</td>
-                                <td class="px-3 py-4 text-xs text-text-main leading-relaxed min-w-[240px]">
-                                    <p class="line-clamp-2" [title]="record.diagnosis">{{ record.diagnosis }}</p>
+                        <tbody class="divide-y divide-border-soft bg-white">
+                            <tr *ngFor="let record of patientHistory" class="hover:bg-gray-50/50 transition-colors">
+                                <td class="whitespace-nowrap py-4 pl-6 pr-3 text-[13px] font-bold text-text-main">
+                                    {{ record.appointmentDate }}
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-[13px] font-medium text-text-muted">
+                                    {{ getSpecialtyName(record.specialtyId) }}
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-[13px] font-medium text-text-muted">
+                                    {{ getDoctorName(record.doctorId) }}
+                                </td>
+                                <td class="px-3 py-4 text-[13px] text-text-main leading-relaxed min-w-[240px] pr-6">
+                                    <p class="line-clamp-2" [title]="record.diagnosis || record.notes">{{ record.diagnosis || record.notes }}</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -313,9 +307,10 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="px-6 py-4 border-t border-border-soft bg-gray-50/50 flex items-center justify-end">
-            <app-button variant="outline" (onClick)="closeHistoryModal()">
-                Cerrar Historial
+        <div class="px-8 py-4 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end">
+            <app-button variant="ghost" (onClick)="closeHistoryModal()" 
+                class="!px-6 !py-2.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 !rounded-xl shadow-sm transition-all font-medium">
+                Cerrar
             </app-button>
         </div>
     </app-card>

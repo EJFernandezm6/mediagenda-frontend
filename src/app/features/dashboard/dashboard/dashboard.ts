@@ -125,7 +125,7 @@ export class DashboardComponent implements OnInit {
     return [{ name: label, series: items.map(i => ({ name: this.s(i.period), value: i.count })) }];
   }
 
-  loadAll() {
+    loadAll() {
     const f = this.fromDate, t = this.toDate;
     this.svc.paymentStatus(f, t).subscribe(d => this.paymentStatusData.set(this.toLabelChart(d)));
     this.svc.specialtyDemand(f, t).subscribe(d => this.specialtyDemandData.set(d.map(i => ({ name: this.s(i.specialtyName), value: i.count }))));
@@ -139,35 +139,17 @@ export class DashboardComponent implements OnInit {
     this.svc.topDoctors(f, t).subscribe(d => this.topDoctorsData.set(d));
     this.svc.appointmentStatuses(f, t).subscribe(d => {
       this.appointmentStatusesData.set(this.toLabelChart(d));
-      this.calculateSummaryKpis(d);
+    });
+    this.svc.getKpis(f, t).subscribe(k => {
+      this.totalAppointments.set(k.total);
+      this.attendedAppointments.set(k.attended);
+      this.activeAppointments.set(k.active);
+      this.cancelledAppointments.set(k.cancelled);
     });
     this.loadPatientEvolution();
     this.loadAppointmentEvolution();
   }
 
-  private calculateSummaryKpis(items: any[]) {
-    let total = 0;
-    let attended = 0;
-    let active = 0;
-    let cancelled = 0;
-
-    items.forEach(item => {
-      const count = item.count;
-      total += count;
-      if (item.label === 'ATENDIDA') {
-        attended += count;
-      } else if (['PROGRAMADA', 'CONFIRMADA', 'EN ESPERA', 'EN ATENCION', 'EN_PROCESO_RESERVA'].includes(item.label)) {
-        active += count;
-      } else if (['CANCELADA', 'PERDIDA'].includes(item.label)) {
-        cancelled += count;
-      }
-    });
-
-    this.totalAppointments.set(total);
-    this.attendedAppointments.set(attended);
-    this.activeAppointments.set(active);
-    this.cancelledAppointments.set(cancelled);
-  }
 
   loadPatientEvolution() {
     this.svc.patientEvolution(this.fromDate, this.toDate, this.patientGranularity)

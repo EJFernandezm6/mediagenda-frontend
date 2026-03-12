@@ -18,7 +18,7 @@ export class ButtonComponent {
     @Output() onClick = new EventEmitter<MouseEvent>();
 
     get buttonClasses(): string {
-        const baseClasses = 'inline-flex items-center justify-center font-bold rounded-xl transition-all uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed';
+        const baseClasses = 'inline-flex items-center justify-center font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed';
 
         const sizeClasses = {
             sm: 'px-3 py-2 text-[10px]',
@@ -27,8 +27,8 @@ export class ButtonComponent {
         };
 
         const variantClasses = {
-            primary: 'bg-primary text-white hover:bg-primary-hover shadow-md',
-            accent: 'bg-accent text-white hover:bg-accent-hover shadow-accent',
+            primary: 'bg-primary text-white hover:bg-primary-hover shadow-sm',
+            accent: 'bg-accent text-white hover:bg-accent-hover shadow-sm',
             success: 'bg-success text-white hover:bg-success-hover shadow-lg shadow-success/10',
             danger: 'bg-danger text-white hover:bg-danger-hover shadow-lg shadow-danger/10',
             warning: 'bg-warning text-white hover:bg-warning-hover shadow-lg shadow-warning/10',

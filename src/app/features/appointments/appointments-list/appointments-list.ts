@@ -1,11 +1,16 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppointmentsService, Appointment } from '../../../core/services/appointments';
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { PatientsService } from '../../../core/services/patients';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Search, Filter, Calendar, User, FileText, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-angular';
+import { LucideAngularModule, Search, Filter, Calendar, User, CheckCircle, Clock, AlertCircle, FileSpreadsheet, Plus, X, Columns, SquarePen, FileText } from 'lucide-angular';
+import { DashboardAppService } from '../../dashboard/dashboard-app.service';
+import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
+import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
+import { PageHeaderComponent } from '../../../shared/components/ui/page-header/page-header.component';
 
 function toISODate(d: Date): string {
   const pad = (n: number) => n < 10 ? '0' + n : n;
@@ -15,7 +20,7 @@ function toISODate(d: Date): string {
 @Component({
   selector: 'app-appointments-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DatePickerComponent, SearchableSelectComponent, PaginationComponent, PageHeaderComponent],
   templateUrl: './appointments-list.html',
   styleUrl: './appointments-list.css',
 })
@@ -24,11 +29,13 @@ export class AppointmentsList implements OnInit {
   private doctorsService = inject(DoctorsService);
   private specialtiesService = inject(SpecialtiesService);
   private patientsService = inject(PatientsService);
+  private dashboardService = inject(DashboardAppService);
 
   // Icons
   readonly icons = {
-    Search, Filter, Calendar, User, FileText, CheckCircle, Clock, XCircle, AlertCircle
+    Search, Filter, Calendar, User, CheckCircle, Clock, AlertCircle, FileSpreadsheet, Plus, X, Columns, SquarePen, FileText
   };
+
 
   // Base Data
   allAppointments = this.appointmentsService.appointments;
@@ -40,19 +47,47 @@ export class AppointmentsList implements OnInit {
   dateFrom = signal<string>(toISODate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
   dateTo = signal<string>(toISODate(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)));
 
+  // Local Pagination & Search State
+  currentPage = signal(1);
+  itemsPerPage = 4;
+  totalItems = 0;
+
   selectedStatus = signal<string[]>([]);
-  selectedDoctorId = signal<string>('');
-  selectedSpecialtyId = signal<string>('');
-  searchPatient = signal<string>('');
+  selectedDoctorId = signal<string | number>('');
+  selectedSpecialtyId = signal<string | number>('');
+  searchPatient = signal<string | number>('');
+
+  // Options for custom selects
+  patientOptions = computed<SelectOption[]>(() => 
+    this.patients().map(p => ({ id: p.patientId || p.id, label: p.fullName }))
+  );
+
+  doctorOptions = computed<SelectOption[]>(() => 
+    this.availableDoctors().map(d => ({ id: d.id || d.doctorId || (d as any).userId, label: d.fullName }))
+  );
+
+  statusOptions = computed<SelectOption[]>(() => 
+    this.appointmentStatuses.map(s => ({ id: s, label: s }))
+  );
 
   // Dropdown options
   readonly appointmentStatuses = [
     'PROGRAMADA', 'CONFIRMADA', 'EN ESPERA', 'EN ATENCION', 'ATENDIDA', 'PERDIDA', 'CANCELADA'
   ];
+  constructor() {
+    effect(() => {
+      // Trigger update when dates or the service's refreshTrigger change
+      const from = this.dateFrom();
+      const to = this.dateTo();
+      const trigger = this.appointmentsService.refreshTrigger();
+      
+      untracked(() => {
+        this.refreshData();
+      });
+    });
+  }
 
-  // Initialization
   ngOnInit() {
-    this.refreshData();
     // Load dropdown base data if needed
     if (this.availableDoctors().length === 0) {
       this.doctorsService.getDoctors();
@@ -65,7 +100,8 @@ export class AppointmentsList implements OnInit {
   }
 
   refreshData() {
-    this.appointmentsService.refreshAppointmentsByRange(this.dateFrom(), this.dateTo());
+    const from = this.dateFrom(), to = this.dateTo();
+    this.appointmentsService.refreshAppointmentsByRange(from, to);
   }
 
   // Computed Filtered Data
@@ -87,22 +123,34 @@ export class AppointmentsList implements OnInit {
       list = list.filter(a => a.specialtyId === specFilter);
     }
 
-    const searchStr = this.searchPatient().toLowerCase();
+    const searchStr = this.searchPatient().toString().toLowerCase();
     if (searchStr) {
       list = list.filter(a => {
         const pName = this.getPatientName(a.patientId).toLowerCase();
-        return a.patientId.toLowerCase().includes(searchStr) || pName.includes(searchStr);
+        const pId = a.patientId.toString().toLowerCase();
+        return pId.includes(searchStr) || pName.includes(searchStr);
       });
     }
 
-    return list.sort((a, b) => new Date(b.appointmentDate + 'T' + b.startTime).getTime() - new Date(a.appointmentDate + 'T' + a.startTime).getTime());
+    const sorted = list.sort((a, b) => new Date(b.appointmentDate + 'T' + b.startTime).getTime() - new Date(a.appointmentDate + 'T' + a.startTime).getTime());
+    
+    // Update total items for pagination
+    this.totalItems = sorted.length;
+
+    // Apply pagination
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
+    return sorted.slice(startIndex, startIndex + this.itemsPerPage);
   });
 
-  // KPIs
-  totalAppointments = computed(() => this.filteredAppointments().length);
-  totalAtendidas = computed(() => this.filteredAppointments().filter(a => a.status === 'ATENDIDA').length);
-  totalProgramadas = computed(() => this.filteredAppointments().filter(a => ['PROGRAMADA', 'CONFIRMADA', 'EN ESPERA', 'EN ATENCION'].includes(a.status || '')).length);
-  totalCanceladas = computed(() => this.filteredAppointments().filter(a => ['CANCELADA', 'PERDIDA'].includes(a.status || '')).length);
+  onPageChange(page: number) {
+    this.currentPage.set(page);
+  }
+
+  exportExcel() {
+    console.log('Exportando a Excel...');
+    // Lógica futura de exportación
+  }
+
 
   getDoctorName(id: string) {
     return this.availableDoctors().find(d => d.id === id || d.doctorId === id || (d as any).userId === id)?.fullName || id;
@@ -116,17 +164,27 @@ export class AppointmentsList implements OnInit {
     return this.patients().find(p => p.patientId === id || (p as any).id === id)?.fullName || id;
   }
 
-  // Status mapping helper
+  getPatientDni(id: string) {
+    return this.patients().find(p => p.patientId === id || (p as any).id === id)?.dni || '---';
+  }
+
+  // Status mapping helper - Modernized for Flat Pills
   getStatusColorClass(status: string | undefined): string {
-    switch (status) {
-      case 'ATENDIDA': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'PROGRAMADA': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'CONFIRMADA': return 'bg-green-100 text-green-800 border-green-200';
-      case 'EN ESPERA': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-      case 'EN ATENCION': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'PERDIDA': return 'bg-red-100 text-red-800 border-red-200';
-      case 'CANCELADA': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+    const s = (status || '').toUpperCase();
+    switch (s) {
+      case 'ATENDIDA': return 'bg-success-soft text-success-hover border-transparent';
+      case 'PROGRAMADA': return 'bg-blue-50 text-blue-700 border-transparent';
+      case 'CONFIRMADA': return 'bg-emerald-50 text-emerald-700 border-transparent';
+      case 'EN ESPERA': return 'bg-indigo-50 text-indigo-700 border-transparent';
+      case 'EN ATENCION': return 'bg-purple-50 text-purple-700 border-transparent';
+      case 'PERDIDA': return 'bg-danger-soft text-danger-hover border-transparent';
+      case 'CANCELADA': return 'bg-muted text-text-muted border-transparent';
+      default: return 'bg-muted text-text-light border-transparent';
     }
+  }
+
+  formatStatus(status: string | undefined): string {
+    if (!status) return 'Agendada';
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   }
 }

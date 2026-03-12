@@ -3,19 +3,31 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
-import { LucideAngularModule, Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power } from 'lucide-angular';
+import { LucideAngularModule, Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
+import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
+import { PageHeaderComponent } from '../../../shared/components/ui/page-header/page-header.component';
+import { SearchInputComponent } from '../../../shared/components/ui/search-input/search-input.component';
 
 @Component({
   selector: 'app-doctors-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule, RouterLink, PaginationComponent, ButtonComponent, BadgeComponent, CardComponent],
+  imports: [
+    CommonModule, 
+    LucideAngularModule, 
+    FormsModule, 
+    PaginationComponent, 
+    ButtonComponent, 
+    CardComponent, 
+    SearchableSelectComponent,
+    PageHeaderComponent,
+    SearchInputComponent
+  ],
   templateUrl: './doctors-list.html',
   styleUrl: './doctors-list.css'
 })
@@ -26,29 +38,25 @@ export class DoctorsListComponent implements OnInit {
   doctors = this.service.doctors;
 
   // Icons
-  readonly icons = { Plus, Pencil, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power };
+  readonly icons = { Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power };
 
   // Local Pagination & Search State
   searchTerm = signal('');
-  showInactive = signal(false);
+  statusFilter = signal('');
   currentPage = signal(1);
-  itemsPerPage = 9;
+  itemsPerPage = 5;
 
-  private searchSubject = new Subject<string>();
-  private searchSubscription?: Subscription;
+  statusOptions = signal<SelectOption[]>([
+    { id: 'ACTIVE', label: 'Solo Activos' },
+    { id: 'INACTIVE', label: 'Solo Inactivos' }
+  ]);
 
   ngOnInit() {
-    this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(value => {
-      this.searchTerm.set(value);
-      this.currentPage.set(1);
-    });
+    // Logic handled by components and signals
   }
 
   ngOnDestroy() {
-    this.searchSubscription?.unsubscribe();
+    // Subscriptions handled by components
   }
 
   // Modal State
@@ -63,11 +71,14 @@ export class DoctorsListComponent implements OnInit {
   // Computed state for local filtering and pagination
   filteredDoctors = computed(() => {
     const term = this.searchTerm().toLowerCase();
-    const showAll = this.showInactive();
+    const status = this.statusFilter();
     let docs = this.doctors();
 
-    if (!showAll) {
-      docs = docs.filter(d => d.active !== false); // Default active unless explicitly false
+    // Filter by status
+    if (status === 'ACTIVE') {
+      docs = docs.filter(d => d.active !== false);
+    } else if (status === 'INACTIVE') {
+      docs = docs.filter(d => d.active === false);
     }
 
     if (!term) return docs;
@@ -93,13 +104,9 @@ export class DoctorsListComponent implements OnInit {
     this.currentPage.set(page);
   }
 
-  onSearchChange() {
+  onSearch(value: string) {
+    this.searchTerm.set(value);
     this.currentPage.set(1);
-  }
-
-  onSearchInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.searchSubject.next(input.value);
   }
 
   onDocumentTypeChange() {
@@ -138,11 +145,6 @@ export class DoctorsListComponent implements OnInit {
     this.form.cmp = val;
   }
 
-  toggleInactiveFilter() {
-    this.showInactive.set(!this.showInactive());
-    this.currentPage.set(1);
-  }
-
   private loadDoctors() {
     this.service.refreshDoctors();
   }
@@ -165,7 +167,7 @@ export class DoctorsListComponent implements OnInit {
     const fields = [];
     if (!doctor.fullName?.trim()) fields.push('Nombre');
     if (!doctor.phone?.trim()) fields.push('Teléfono');
-    if (!doctor.cmp?.trim()) fields.push('CMP');
+    if (!doctor.cmp?.trim()) fields.push('Colegiatura');
     if (!doctor.dni?.trim()) fields.push('Doc. Identidad');
     if (!doctor.email?.trim()) fields.push('Email');
     if (doctor.email && !this.emailRegex.test(doctor.email)) fields.push('Email Inválido');
@@ -211,9 +213,9 @@ export class DoctorsListComponent implements OnInit {
         console.error('Error saving doctor:', error);
         this.isSaving = false;
         if (error.status === 409 || error.status === 400) {
-          alert(error.error?.message || 'Ya existe un especialista registrado con este Documento, CMP o Correo electrónico.');
+          alert(error.error?.message || 'Ya existe un especialista registrado con este Documento, Colegiatura o Correo electrónico.');
         } else if (error.status === 500) {
-          alert('Error del servidor: Es posible que los datos ya estén registrados en otro especialista (Ej: CMP o Documento duplicado).');
+          alert('Error del servidor: Es posible que los datos ya estén registrados en otro especialista (Ej: Colegiatura o Documento duplicado).');
         } else {
           alert('Ocurrió un error al guardar el médico. Por favor intente nuevamente.');
         }
@@ -251,4 +253,21 @@ export class DoctorsListComponent implements OnInit {
     }
   }
 
+  async deleteDoctor(id: string) {
+    const confirmed = await this.confirmService.confirm({
+      title: 'Eliminar Especialista',
+      message: '¿Estás seguro de que deseas eliminar este especialista? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+
+    if (confirmed) {
+      this.service.deleteDoctor(id).subscribe({
+        next: () => {
+          // Success handled via tapping refreshDoctors in service
+        },
+        error: (err) => alert('No se pudo eliminar el especialista. Es posible que tenga citas asociadas.')
+      });
+    }
+  }
 }

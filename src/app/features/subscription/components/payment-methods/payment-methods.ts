@@ -53,7 +53,7 @@ import { ConfirmModalService } from '../../../../core/services/confirm.service';
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Número de tarjeta</label>
             <input type="text" [ngModel]="form.cardNumber" (ngModelChange)="formatCardNumber($event)" name="cardNumber" maxlength="19" placeholder="0000-0000-0000-0000"
-              class="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 tracking-widest">
+              class="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
           </div>
 
           <!-- Vencimiento -->
@@ -121,7 +121,7 @@ import { ConfirmModalService } from '../../../../core/services/confirm.service';
         <ul class="divide-y divide-gray-100">
           <li *ngFor="let method of paymentMethods()" class="py-4 flex items-center justify-between">
             <div class="flex items-center gap-4">
-              <div class="h-10 w-24 flex-shrink-0 px-2 bg-gray-100 rounded flex items-center justify-center text-gray-500 font-bold text-[10px] uppercase border border-gray-200">
+              <div class="h-10 w-24 flex-shrink-0 px-2 bg-gray-100 rounded flex items-center justify-center text-gray-500 font-bold text-[10px]  border border-gray-200">
                 {{ method.provider || method.type }}
               </div>
               <div>

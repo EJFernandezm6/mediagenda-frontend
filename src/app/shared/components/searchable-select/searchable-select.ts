@@ -1,4 +1,4 @@
-import { Component, computed, signal, input, output, Input } from '@angular/core';
+import { Component, computed, signal, input, output, Input, HostListener, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Search, X } from 'lucide-angular';
@@ -15,16 +15,18 @@ export interface SelectOption {
     imports: [CommonModule, FormsModule, LucideAngularModule],
     templateUrl: './searchable-select.html',
     styles: [`
-    .dropdown-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 30;
-        background: transparent;
-    }
   `]
 })
 export class SearchableSelectComponent {
     private static activeSelect: SearchableSelectComponent | null = null;
+    private elementRef = inject(ElementRef);
+
+    @HostListener('document:click', ['$event'])
+    onDocumentClick(event: MouseEvent) {
+        if (!this.elementRef.nativeElement.contains(event.target)) {
+            this.isOpen.set(false);
+        }
+    }
     // Inputs (Using older @Input syntax for broad compatibility with forms, though input() is nice)
     // We will use standard model binding compatible approach
 

@@ -32,6 +32,7 @@ export class AppointmentsService {
 
   appointments = signal<Appointment[]>([]);
   pendingAppointments = signal<Appointment[]>([]);
+  refreshTrigger = signal<number>(0);
 
   private normalizeTime(t: string): string {
     return t && t.length > 5 ? t.substring(0, 5) : t;
@@ -112,6 +113,7 @@ export class AppointmentsService {
         list.map(a => a.appointmentId === id ? { ...a, status } : a)
       );
       this.fetchPendingAppointments(); // Refresh pending
+      this.refreshTrigger.update(v => v + 1);
     });
   }
 
@@ -122,6 +124,7 @@ export class AppointmentsService {
         list.map(a => a.appointmentId === id ? { ...a, paymentStatus, paymentMethod: paymentMethod as any } : a)
       );
       this.fetchPendingAppointments();
+      this.refreshTrigger.update(v => v + 1);
     });
   }
 

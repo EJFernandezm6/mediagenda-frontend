@@ -59,11 +59,19 @@ export class MainLayoutComponent {
     settings: this.icons.Settings
   };
 
+  private readonly labelOverride: Record<string, string> = {
+    roles_permissions: 'Gestión de Usuarios',
+    shifts: 'Turnos y Horarios',
+    assignments: 'Asignación de Especialidades',
+    subscription: 'Planes y Suscripción',
+    settings: 'Configuración Global'
+  };
+
   navItems = computed(() => {
     const items = [...(this.currentUser()?.features ?? [])]
       .sort((a, b) => a.order - b.order)
       .map(f => ({
-        label: f.name,
+        label: this.labelOverride[f.featureKey] ?? f.name,
         icon: this.featureIconMap[f.featureKey] ?? this.icons.LayoutDashboard,
         route: f.path
       }));
@@ -72,13 +80,13 @@ export class MainLayoutComponent {
     const appointmentsIndex = items.findIndex(i => i.route === '/app/appointments');
     if (appointmentsIndex !== -1) {
       items.splice(appointmentsIndex + 1, 0, {
-        label: 'Lista de Citas',
+        label: 'Reporte de Citas',
         icon: this.icons.ClipboardList,
         route: '/app/appointments-list'
       });
     } else {
       items.push({
-        label: 'Lista de Citas',
+        label: 'Reporte de Citas',
         icon: this.icons.ClipboardList,
         route: '/app/appointments-list'
       });

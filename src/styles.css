@@ -66,7 +66,7 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-accent: 0 10px 15px -3px rgba(79, 70, 229, 0.15);
+  --shadow-accent: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Same as shadow-sm to eliminate purple glow */
 }
 
 html,
@@ -75,7 +75,7 @@ body {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Roboto', sans-serif;
   background-color: var(--bg-app);
   color: var(--text-main);
   font-size: 14px;
@@ -90,20 +90,22 @@ body {
 input,
 textarea,
 select {
-  background-color: color-mix(in srgb, var(--bg-muted), transparent 70%);
-  @apply border border-solid rounded-xl px-4 py-3 transition-all outline-none text-text-main placeholder:text-text-light;
+  background-color: var(--bg-surface);
+  @apply border border-solid rounded-xl px-4 py-3 transition-all duration-200 outline-none text-text-main placeholder:text-text-light;
   border-color: var(--border-main);
 }
 
 input:focus,
 textarea:focus,
-select:focus {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color), transparent 90%);
-  @apply border-accent bg-white;
+select:focus,
+.focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color), transparent 85%);
+  @apply bg-white;
 }
 
 label {
-  @apply block text-[10px] font-bold text-text-light uppercase tracking-[0.1em] mb-1.5;
+  @apply block text-[10px] font-bold text-text-light mb-1.5;
 }
 
 /* Scrollbar Premium */
@@ -154,4 +156,82 @@ label {
 
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* ──────────────────────────────────────────
+ * Data Table V2 - Master Component Styles
+ * ────────────────────────────────────────── */
+.table-v2 {
+  @apply w-full text-left border-separate border-spacing-0;
+}
+
+.table-v2-header th {
+  @apply px-6 py-4 text-[13px] font-semibold text-text-muted border-b border-border-soft tracking-normal normal-case;
+  /* Title Case / Sentence Case is handled via HTML content, CSS ensures no uppercase override */
+}
+
+.table-v2-row td {
+  @apply px-6 py-5 text-sm text-text-muted border-b border-border-soft transition-colors;
+}
+
+.table-v2-row:hover td {
+  background-color: color-mix(in srgb, var(--accent-color), transparent 97%);
+}
+
+.table-v2-row:last-child td {
+  border-bottom: none;
+}
+
+/* Primary Cell - Highest Contrast */
+.cell-primary {
+  @apply font-semibold text-text-main;
+}
+
+/* Secondary Cell - Soft Greys */
+.cell-secondary {
+  @apply font-normal text-text-light;
+}
+
+/* Avatar Table Integration */
+.avatar-table {
+  @apply h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold ring-2 ring-white shadow-sm overflow-hidden bg-primary text-white;
+}
+
+/* Status Badges V2 (Pills with Dots) */
+.badge-v2 {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold border;
+}
+
+.badge-v2-dot {
+  @apply w-1.5 h-1.5 rounded-full mr-2;
+}
+
+/* States */
+.badge-v2-active { @apply bg-success-soft text-success-hover; border-color: color-mix(in srgb, var(--success-color), transparent 80%); }
+.badge-v2-active .badge-v2-dot { @apply bg-success; }
+
+.badge-v2-inactive { @apply bg-muted text-text-light border-border-main; }
+.badge-v2-inactive .badge-v2-dot { @apply bg-text-light; }
+
+.badge-v2-pending { @apply bg-warning-soft text-warning-hover; border-color: color-mix(in srgb, var(--warning-color), transparent 80%); }
+.badge-v2-pending .badge-v2-dot { @apply bg-warning; }
+
+/* Action Buttons V2 */
+.action-btn {
+  @apply p-2 rounded-xl text-text-light hover:text-accent hover:bg-accent-soft transition-all duration-200 outline-none;
+}
+
+.action-btn-danger {
+  @apply hover:text-danger hover:bg-danger-soft;
+}
+
+/* ──────────────────────────────────────────
+ * Module Sincronization Utilities
+ * ────────────────────────────────────────── */
+.search-input-tight input {
+  @apply !py-0 h-[38px] !rounded-full border-border-main text-[13px] shadow-none !bg-white;
+}
+
+.search-input-tight .absolute .lucide-icon {
+  @apply h-4 w-4;
 }

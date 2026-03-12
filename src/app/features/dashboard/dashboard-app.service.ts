@@ -82,4 +82,15 @@ export class DashboardAppService {
     appointmentStatuses(from: string, to: string): Observable<LabelCountItem[]> {
         return this.http.get<LabelCountItem[]>(`${this.base}/appointment-statuses`, { params: this.range(from, to) });
     }
+
+    getKpis(from: string, to: string): Observable<KpiSummary> {
+        return this.http.get<KpiSummary>(`${this.base}/kpis`, { params: this.range(from, to) });
+    }
+}
+
+export interface KpiSummary {
+    total: number;
+    attended: number;
+    active: number;
+    cancelled: number;
 }

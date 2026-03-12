@@ -28,7 +28,7 @@
                 class="flex items-center gap-3 overflow-hidden transition-all duration-300">
                 <lucide-icon [img]="icons.Stethoscope" class="w-8 h-8 text-primary flex-shrink-0"></lucide-icon>
                 <div class="transition-all duration-300 ease-in-out overflow-hidden w-full opacity-100">
-                    <h1 class="text-xl font-bold text-white tracking-tight whitespace-nowrap">MediAgenda</h1>
+                    <h1 class="text-xl font-bold text-white whitespace-nowrap">MediAgenda</h1>
                 </div>
             </div>
 
@@ -44,7 +44,7 @@
             <a *ngFor="let item of navItems()" [routerLink]="item.route" (click)="isMobileMenuOpen = false"
                 [title]="isSidebarCollapsed ? item.label : ''"
                 routerLinkActive="bg-accent/10 text-white border-l-4 border-accent"
-                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-gray-400 rounded-lg hover:bg-white/5 hover:text-gray-200 transition-colors group whitespace-nowrap border-l-4 border-transparent"
+                class="flex items-center gap-3 px-3 py-3 text-sm font-bold text-gray-400 rounded-lg hover:bg-white/5 hover:text-gray-200 transition-colors group whitespace-nowrap border-l-4 border-transparent"
                 [class.justify-center]="isSidebarCollapsed">
                 <lucide-icon [img]="item.icon"
                     class="w-5 h-5 group-[.active]:text-white group-hover:text-white transition-colors flex-shrink-0"></lucide-icon>
@@ -54,7 +54,7 @@
 
         <div class="p-3 border-t border-white/10">
             <a (click)="onLogout()"
-                class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-red-400 rounded-lg hover:bg-white/5 transition-colors whitespace-nowrap cursor-pointer"
+                class="flex items-center gap-3 px-3 py-3 text-sm font-bold text-red-400 rounded-lg hover:bg-white/5 transition-colors whitespace-nowrap cursor-pointer"
                 [class.justify-center]="isSidebarCollapsed" [title]="isSidebarCollapsed ? 'Cerrar Sesión' : ''">
                 <lucide-icon [img]="icons.LogOut" class="w-5 h-5 flex-shrink-0"></lucide-icon>
                 <span *ngIf="!isSidebarCollapsed">Cerrar Sesión</span>
@@ -71,7 +71,7 @@
                         class="h-10 w-10 text-gray-400"></lucide-icon>
                 </div>
                 <div class="flex-1 min-w-0" *ngIf="!isSidebarCollapsed">
-                    <p class="text-sm font-medium text-white truncate">
+                    <p class="text-sm font-bold text-white truncate">
                         {{ currentUser()?.fullName || 'Usuario' }}
                     </p>
                     <p class="text-xs text-gray-400 truncate">
@@ -93,7 +93,7 @@
 
             <!-- Welcome / Clinic Info -->
             <div class="flex items-center gap-2">
-                <span class="text-xl font-bold text-gray-800 uppercase tracking-wide">{{ clinicSettings().clinicName
+                <span class="text-xl font-bold text-gray-800">{{ clinicSettings().clinicName
                     }}</span>
             </div>
 
@@ -115,7 +115,7 @@
                     class="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in-up origin-top-right ring-1 ring-black/5">
                     <div
                         class="p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center">
-                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Validaciones</h3>
+                        <h3 class="text-xs font-bold text-gray-500">Validaciones</h3>
                         <span
                             class="text-[10px] bg-primary text-primary px-2 py-0.5 rounded-full font-bold border border-primary">
                             {{ pendingAppointments().length }} Pendientes
@@ -128,7 +128,7 @@
                             <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3">
                                 <lucide-icon [img]="icons.CheckCircle" class="w-6 h-6 text-gray-300"></lucide-icon>
                             </div>
-                            <p class="text-sm font-medium">Todo al día</p>
+                            <p class="text-sm font-bold">Todo al día</p>
                             <p class="text-xs mt-1">No hay pagos pendientes de validar.</p>
                         </div>
 
@@ -154,7 +154,7 @@
                                     <h4
                                         class="text-sm font-bold text-gray-900 truncate pr-2 group-hover:text-primary transition-colors">
                                         {{ app.patientName || 'Paciente' }}</h4>
-                                    <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">{{
+                                    <span class="text-[10px] font-bold text-gray-400 whitespace-nowrap">{{
                                         app.appointmentDate }}</span>
                                 </div>
                                 <p class="text-xs text-gray-500 mb-2">Pago pendiente <span

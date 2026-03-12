@@ -14,7 +14,7 @@ import { SubscriptionPlan, SubscriptionService } from '../../services/subscripti
       [class.border-gray-200]="!isCurrent"
       [class.hover:border-blue-300]="!isCurrent">
 
-      <div *ngIf="isCurrent" class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wide rounded-full shadow-sm">
+      <div *ngIf="isCurrent" class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-sm">
         Plan Actual
       </div>
 
@@ -22,8 +22,8 @@ import { SubscriptionPlan, SubscriptionService } from '../../services/subscripti
       <p class="text-sm text-gray-500 mt-1 min-h-[2.5rem]">{{ plan.description }}</p>
 
       <div class="mt-4 flex items-baseline text-gray-900">
-        <span class="text-3xl font-bold tracking-tight">{{ displayPrice() }}</span>
-        <span class="ml-1 text-sm font-semibold text-gray-500">/{{ plan.periodUnit === 'MONTHLY' ? 'mes' : 'año' }}</span>
+        <span class="text-3xl font-bold">{{ displayPrice() }}</span>
+        <span class="ml-1 text-sm font-bold text-gray-500">/{{ plan.periodUnit === 'MONTHLY' ? 'mes' : 'año' }}</span>
       </div>
 
       <div *ngIf="upgradeAmount !== null" class="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">

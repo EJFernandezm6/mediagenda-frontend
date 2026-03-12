@@ -1,79 +1,108 @@
-<div class="sm:flex sm:items-center justify-between mb-8">
-    <div class="sm:flex-auto">
-        <h1 class="text-xl font-bold text-text-main">Especialidades</h1>
-        <p class="mt-1 text-sm text-text-muted">Lista de especialidades médicas disponibles en la clínica.</p>
-    </div>
-    <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-        <app-button (onClick)="openModal()" variant="accent">
-            <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
-            Nueva especialidad
-        </app-button>
-    </div>
-</div>
+<app-page-header 
+    title="Especialidades" 
+    subtitle="Lista de especialidades médicas disponibles en la clínica."
+    (actionClick)="openModal()">
+</app-page-header>
 
-<div class="mt-6 flow-root">
-    <app-card variant="flat" [noPadding]="true" class="mb-6">
-        <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <!-- Search Bar -->
-            <div class="relative max-w-sm w-full">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <lucide-icon [img]="icons.Search" class="h-4 w-4 text-text-light"></lucide-icon>
+<div class="mt-4 flow-root">
+    <app-card variant="flat" [noPadding]="true" class="mb-4">
+        <div class="p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row items-center gap-3 flex-1">
+                <div class="relative max-w-sm w-full">
+                    <app-search-input 
+                        placeholder="Buscar especialidad..." 
+                        (search)="onSearch($event)">
+                    </app-search-input>
                 </div>
-                <input [value]="searchTerm()" (input)="onSearchInput($event)" type="text" class="pl-11 w-full"
-                    placeholder="Buscar especialidad...">
+
+                <div class="w-full sm:w-56">
+                    <app-searchable-select 
+                        [options]="statusOptions()" 
+                        [value]="statusFilter()"
+                        (valueChange)="statusFilter.set($event.toString()); currentPage.set(1)"
+                        placeholder="Estado">
+                    </app-searchable-select>
+                </div>
             </div>
 
-            <!-- Pagination -->
-            <app-pagination [currentPage]="currentPage()" [totalItems]="totalItems" [pageSize]="itemsPerPage"
-                (pageChange)="onPageChange($event)">
-            </app-pagination>
+            <div class="flex items-center gap-4">
+                <div class="scale-90 origin-right">
+                    <app-pagination [currentPage]="currentPage()" [totalItems]="totalItems" [pageSize]="itemsPerPage"
+                        (pageChange)="onPageChange($event)">
+                    </app-pagination>
+                </div>
+                <app-button (onClick)="openModal()" variant="accent" size="md" class="shadow-accent px-6 font-bold w-full sm:w-auto">
+                    <lucide-icon [img]="icons.Plus" class="w-5 h-5 mr-2"></lucide-icon>
+                    Nueva Especialidad
+                </app-button>
+            </div>
         </div>
     </app-card>
 
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <app-card *ngFor="let specialty of specialtiesList" variant="elevated" [noPadding]="true" class="group">
-            <div class="p-6">
-                <div class="flex items-start">
-                    <div [class]="specialty.active ? 'bg-accent-soft text-accent' : 'bg-muted text-text-light'"
-                        class="p-3 rounded-2xl mr-4 flex-shrink-0 transition-colors">
-                        <lucide-icon [img]="icons.Activity" class="w-6 h-6"></lucide-icon>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <h3
-                            class="text-base font-bold text-text-main truncate group-hover:text-accent transition-colors">
-                            {{ specialty.name }}
-                        </h3>
-                        <div class="mt-1 mb-3">
-                            <app-badge [variant]="specialty.active ? 'success' : 'neutral'" [dot]="true">
-                                {{ specialty.active ? 'Activo' : 'Inactivo' }}
-                            </app-badge>
-                        </div>
-                        <p class="text-xs text-text-muted line-clamp-2 leading-relaxed" [title]="specialty.description">
-                            {{ specialty.description || 'Sin descripción detallada' }}
-                        </p>
-                    </div>
-                </div>
-            </div>
+    <!-- Specialties List Table -->
+    <app-card variant="elevated" [noPadding]="true" class="overflow-hidden">
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="table-v2">
+                <thead>
+                    <tr class="table-v2-header">
+                        <th class="pl-8">Especialidad</th>
+                        <th>Descripción</th>
+                        <th class="text-center">Estado</th>
+                        <th class="pr-8 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-soft">
+                    <tr *ngFor="let specialty of specialtiesList" class="table-v2-row group">
+                        <!-- Name & Icon -->
+                        <td class="pl-8">
+                            <div class="flex items-center gap-4">
+                                <div [class]="specialty.active ? 'bg-accent-soft text-accent ring-2 ring-accent/10' : 'bg-muted text-text-light'"
+                                     class="p-2.5 rounded-2xl flex-shrink-0 transition-all group-hover:scale-110 shadow-sm border border-border-soft">
+                                    <lucide-icon [img]="icons.Activity" class="w-4.5 h-4.5"></lucide-icon>
+                                </div>
+                                <span class="cell-primary text-base">
+                                    {{ specialty.name }}
+                                </span>
+                            </div>
+                        </td>
 
-            <!-- Footer Actions -->
-            <div class="px-6 py-4 bg-muted/30 border-t border-border-soft flex items-center justify-between">
-                <app-button variant="ghost" size="sm" (onClick)="toggleActive(specialty)" class="!p-2 !rounded-xl">
-                    <lucide-icon [img]="icons.Power"
-                        [class]="specialty.active ? 'w-4 h-4 text-success' : 'w-4 h-4 text-danger'"></lucide-icon>
-                </app-button>
+                        <!-- Description -->
+                        <td>
+                            <p class="text-sm text-text-muted font-normal line-clamp-1 max-w-md" [title]="specialty.description">
+                                {{ specialty.description || 'Sin descripción' }}
+                            </p>
+                        </td>
 
-                <div class="flex items-center gap-2">
-                    <app-button variant="outline" size="sm" (onClick)="openModal(specialty)">
-                        Editar
-                    </app-button>
-                    <app-button variant="ghost" size="sm" (onClick)="delete(specialty.specialtyId)"
-                        class="!text-danger hover:!bg-danger-soft/10">
-                        <lucide-icon [img]="icons.Trash2" class="w-4 h-4"></lucide-icon>
-                    </app-button>
-                </div>
-            </div>
-        </app-card>
-    </div>
+                        <!-- Status -->
+                        <td class="text-center">
+                            <span [class]="specialty.active ? 'badge-v2-active' : 'badge-v2-inactive'" class="badge-v2">
+                                <span class="badge-v2-dot"></span>
+                                {{ specialty.active ? 'Activa' : 'Inactiva' }}
+                            </span>
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="pr-8 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button class="action-btn" (click)="toggleActive(specialty)" title="Alternar estado">
+                                    <lucide-icon [img]="icons.Power" [strokeWidth]="1.5"
+                                        [class]="specialty.active ? 'w-4.5 h-4.5 text-success' : 'w-4.5 h-4.5 text-danger'"></lucide-icon>
+                                </button>
+
+                                <button class="action-btn" (click)="openModal(specialty)" title="Editar">
+                                    <lucide-icon [img]="icons.SquarePen" [strokeWidth]="1.5" class="w-4.5 h-4.5"></lucide-icon>
+                                </button>
+                                
+                                <button class="action-btn action-btn-danger" (click)="delete(specialty.specialtyId)" title="Eliminar">
+                                    <lucide-icon [img]="icons.Trash2" [strokeWidth]="1.5" class="w-4.5 h-4.5"></lucide-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </app-card>
 </div>
 
 <!-- Specialty Modal -->
@@ -87,7 +116,7 @@
             <div>
                 <h3 class="text-base font-bold text-text-main">{{ editingId ? 'Editar especialidad' : 'Nueva
                     especialidad' }}</h3>
-                <p class="text-[10px] text-text-light font-bold uppercase tracking-widest mt-0.5">Configuración de
+                <p class="text-[10px] text-text-light font-bold mt-0.5">Configuración de
                     Servicios</p>
             </div>
             <app-button variant="ghost" size="sm" (onClick)="closeModal()" class="!p-2 !rounded-xl">
@@ -117,7 +146,7 @@
                             class="w-3 h-3 text-white"></lucide-icon>
                     </div>
                     <div>
-                        <p class="text-xs font-bold text-text-main uppercase tracking-wider">Especialidad Activa</p>
+                        <p class="text-xs font-bold text-text-main">Especialidad Activa</p>
                         <p class="text-[10px] text-text-light font-medium">Define si estará disponible para citas</p>
                     </div>
                 </div>

@@ -2,9 +2,9 @@
 
   <!-- Header + Date Filter -->
   <div class="flex flex-wrap items-start justify-between gap-4">
-    <div>
-      <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
-      <p class="text-sm text-gray-500">Análisis y métricas de tu clínica</p>
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <p class="mt-2 text-sm text-gray-700">Resumen general del estado de la clínica.</p>
     </div>
     <div class="flex flex-wrap items-center gap-3 bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm">
       <div class="flex items-center gap-2">
@@ -36,7 +36,7 @@
           <lucide-icon [img]="icons.CalendarCheck" class="w-6 h-6 text-indigo-600"></lucide-icon>
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-400">Total Citas</p>
+          <p class="text-sm font-bold text-gray-400">Total Citas</p>
           <h4 class="text-2xl font-bold text-gray-900">{{ totalAppointments() }}</h4>
         </div>
       </div>
@@ -84,17 +84,17 @@
     <!-- Crecimiento de Pacientes -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
+        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
           <lucide-icon [img]="icons.TrendingUp" class="w-4 h-4 text-indigo-500"></lucide-icon>
           Crecimiento de Pacientes
         </h3>
         <div class="flex bg-gray-100 rounded-lg p-1 gap-1">
           <button (click)="setPatientGranularity('MONTH')"
             [class]="patientGranularity === 'MONTH' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-3 py-1 rounded-md text-xs font-medium transition-all">Mes</button>
+            class="px-3 py-1 rounded-md text-xs font-bold transition-all">Mes</button>
           <button (click)="setPatientGranularity('WEEK')"
             [class]="patientGranularity === 'WEEK' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-3 py-1 rounded-md text-xs font-medium transition-all">Semana</button>
+            class="px-3 py-1 rounded-md text-xs font-medium">Semana</button>
         </div>
       </div>
       <div *ngIf="patientEvolutionData().length > 0; else emptyPatientEvol" style="height: 280px">
@@ -113,7 +113,7 @@
     <!-- Tendencia de Citas Atendidas -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
+        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
           <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-emerald-500"></lucide-icon>
           Tendencia de Citas Atendidas
         </h3>
@@ -220,7 +220,7 @@
     <!-- Perfil Etario -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
+        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
           <lucide-icon [img]="icons.Users" class="w-4 h-4 text-blue-500"></lucide-icon>
           Perfil Etario de Pacientes
         </h3>
@@ -270,7 +270,7 @@
     <!-- Promedio de Citas por Franja Horaria -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
+        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
           <lucide-icon [img]="icons.Clock" class="w-4 h-4 text-violet-500"></lucide-icon>
           Citas por Franja Horaria
         </h3>
@@ -350,9 +350,9 @@
         <table class="min-w-full" *ngIf="topDoctorsData().length > 0; else emptyDoctors">
           <thead>
             <tr class="border-b border-gray-100">
-              <th class="text-left py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wide">#</th>
-              <th class="text-left py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Médico</th>
-              <th class="text-right py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Citas</th>
+              <th class="text-left py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">#</th>
+              <th class="text-left py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">Médico</th>
+              <th class="text-right py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">Citas</th>
             </tr>
           </thead>
           <tbody>
@@ -390,9 +390,9 @@
         <table class="min-w-full" *ngIf="frequentPatientsData().length > 0; else emptyPatients">
           <thead>
             <tr class="border-b border-gray-100">
-              <th class="text-left py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wide">#</th>
-              <th class="text-left py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Paciente</th>
-              <th class="text-right py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Visitas</th>
+              <th class="text-left py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">#</th>
+              <th class="text-left py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">Paciente</th>
+              <th class="text-right py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">Visitas</th>
             </tr>
           </thead>
           <tbody>

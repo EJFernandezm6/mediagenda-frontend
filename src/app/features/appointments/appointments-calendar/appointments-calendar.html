@@ -5,7 +5,7 @@
         <!-- Top Row: Title & Actions -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-bold text-gray-900">Agenda de citas</h1>
+            <h1 class="text-xl font-bold text-gray-900">Agenda de Citas</h1>
                 <p class="text-sm text-gray-500">Gestiona los turnos y citas médicas globales.</p>
             </div>
 
@@ -49,7 +49,7 @@
             class="flex flex-col xl:flex-row items-center justify-between gap-4 mb-4 bg-white p-2.5 rounded-2xl border border-gray-200 shadow-sm">
 
             <!-- Left: Legend -->
-            <div class="flex items-center gap-4 text-[10px] font-bold text-gray-400 px-3 uppercase tracking-widest">
+            <div class="flex items-center gap-4 text-[10px] font-bold text-gray-400 px-3 tracking-widest">
                 <div class="flex items-center gap-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-success"></div> Pagada
                 </div>
@@ -74,7 +74,7 @@
                             {{ weekDays()[0].dayNum }} {{ weekDays()[0].monthName }} - {{ weekDays()[6].dayNum }} {{
                             weekDays()[6].monthName }}
                         </span>
-                        <span class="block text-[9px] font-bold text-text-light uppercase tracking-widest">
+                        <span class="block text-[9px] font-bold text-text-light tracking-widest">
                             {{ weekDays()[0].date.getFullYear() }}
                         </span>
                     </ng-container>
@@ -133,7 +133,7 @@
 
                 <!-- Time Label Header -->
                 <div
-                    class="p-4 text-xs font-semibold text-gray-400 uppercase tracking-wider text-center border-r border-gray-200 w-20 flex items-center justify-center">
+                    class="p-4 text-xs font-semibold text-gray-400 tracking-wider text-center border-r border-gray-200 w-20 flex items-center justify-center">
                     Hora
                 </div>
 
@@ -141,10 +141,10 @@
                 <ng-container *ngIf="viewMode() === 'week'">
                     <div *ngFor="let day of weekDays()"
                         class="p-4 text-center border-r border-gray-200 last:border-r-0">
-                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">{{ day.dayName }}</p>
+                        <p class="text-xs font-semibold text-gray-500 mb-1">{{ day.dayName }}</p>
                         <div class="flex flex-col items-center leading-none">
                             <span class="text-lg font-bold text-gray-900">{{ day.dayNum }}</span>
-                            <span class="text-[10px] font-bold text-gray-400 uppercase mt-0.5">{{ day.monthName
+                            <span class="text-[10px] font-bold text-gray-400 mt-0.5">{{ day.monthName
                                 }}</span>
                         </div>
                     </div>
@@ -153,7 +153,7 @@
                 <!-- Day View Header -->
                 <ng-container *ngIf="viewMode() === 'day'">
                     <div class="p-4 text-center">
-                        <p class="text-xs font-semibold text-gray-500 uppercase">{{ currentDateStr() }}</p>
+                        <p class="text-xs font-semibold text-gray-500 ">{{ currentDateStr() }}</p>
                     </div>
                 </ng-container>
             </div>
@@ -429,13 +429,13 @@
                     <!-- Left Column: Form Details -->
                     <div class="space-y-5 relative z-50">
                         <div>
-                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">Detalles</h3>
+                            <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-2">Detalles</h3>
                             <p class="text-xs text-gray-500">Completa la información requerida</p>
                         </div>
 
                         <!-- Specialty -->
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
                                 Especialidad <span class="text-red-500">*</span>
                             </label>
                             <app-searchable-select [options]="modalSpecialtyOptions()" [value]="modalSpecialtyId()"
@@ -446,7 +446,7 @@
 
                         <!-- Doctor -->
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
                                 Médico <span class="text-red-500">*</span>
                             </label>
                             <app-searchable-select [options]="modalDoctorOptions()" [value]="modalDoctorId()"
@@ -457,7 +457,7 @@
 
                         <!-- Modality -->
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
                                 Modalidad <span class="text-red-500">*</span>
                             </label>
                             <div class="grid grid-cols-2 gap-3">
@@ -489,7 +489,7 @@
                         <!-- Date -->
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide">
+                                <label class="block text-xs font-bold text-gray-600 tracking-wide">
                                     Fecha <span class="text-red-500">*</span>
                                 </label>
                             </div>
@@ -501,7 +501,7 @@
 
                         <!-- Patient -->
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
                                 Paciente <span class="text-red-500">*</span>
                             </label>
                             <app-searchable-select [options]="modalPatientOptions" [value]="modalPatientId()"
@@ -514,7 +514,7 @@
                     <!-- Right Column: Time Slots -->
                     <div
                         class="bg-gradient-to-br from-gray-50 to-gray-200 rounded-2xl p-6 border-2 border-gray-100 flex flex-col h-full min-h-[300px]">
-                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 text-center">
+                        <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-2 text-center">
                             Horarios disponibles
                         </h3>
 
@@ -543,7 +543,7 @@
 
                 <!-- Payment Method & Notes -->
                 <div class="mt-8 pt-6 border-t border-gray-100">
-                    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">Información Adicional</h3>
+                    <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-4">Información Adicional</h3>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                         <button type="button" (click)="modalPaymentMethod.set('CASH')"
@@ -569,7 +569,7 @@
                     </div>
 
                     <div *ngIf="['YAPE', 'PLIN'].includes(modalPaymentMethod())" class="mb-6 animate-fade-in">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                        <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
                             Comprobante de Pago (URL)
                         </label>
                         <input type="text" [ngModel]="modalPaymentProof()"
@@ -578,7 +578,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Notas</label>
+                        <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">Notas</label>
                         <textarea [ngModel]="modalNotes()" (ngModelChange)="modalNotes.set($event)"
                             placeholder="Observaciones..." rows="2"
                             class="w-full rounded-xl border-2 border-gray-200 py-2 px-4 text-sm focus:border-primary outline-none resize-none"></textarea>
@@ -619,7 +619,7 @@
                 class="bg-white px-6 py-4 shrink-0 flex items-center justify-between border-b border-gray-100 z-20 rounded-t-3xl">
                 <div>
                     <h2 class="text-lg font-bold text-gray-900 leading-tight">Detalles de la cita</h2>
-                    <p class="text-gray-400 text-[10px] font-semibold uppercase tracking-wider mt-0.5">Información
+                    <p class="text-gray-400 text-[10px] font-semibold tracking-wider mt-0.5">Información
                         completa
                     </p>
                 </div>
@@ -646,7 +646,7 @@
                                 getPatientName(selectedAppointment.patientId) }}</h3>
                             <div class="flex items-center gap-2 mt-1">
                                 <span
-                                    class="bg-blue-900/40 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-widest border border-blue-800/50">Paciente</span>
+                                    class="bg-blue-900/40 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-md tracking-widest border border-blue-800/50">Paciente</span>
                             </div>
                         </div>
                     </div>
@@ -660,7 +660,7 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Médico</label>
+                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Médico</label>
                                 <p class="text-sm font-bold text-gray-800">{{
                                     getDoctorName(selectedAppointment.doctorId) }}</p>
                             </div>
@@ -673,7 +673,7 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Especialidad</label>
+                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Especialidad</label>
                                 <p class="text-sm font-bold text-gray-800">{{
                                     getSpecialtyName(selectedAppointment.specialtyId) }}</p>
                             </div>
@@ -686,7 +686,7 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Fecha
+                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Fecha
                                     y Modalidad</label>
                                 <div class="flex items-center gap-2">
                                     <p class="text-sm font-bold text-gray-800 capitalize">{{
@@ -709,7 +709,7 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Horario</label>
+                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Horario</label>
                                 <p class="text-sm font-bold text-gray-800">
                                     {{ formatTime12Hour(selectedAppointment.startTime) }} - {{
                                     formatTime12Hour(selectedAppointment.endTime) }}
@@ -724,7 +724,7 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Estado</label>
+                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Estado</label>
                                 <div class="mt-1">
                                     <app-badge [variant]="getAppointmentStatusVariant(selectedAppointment)"
                                         [dot]="true">
@@ -741,7 +741,7 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Método
+                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Método
                                     de Pago</label>
                                 <p class="text-sm font-bold text-gray-800">{{
                                     getPaymentMethodLabel(selectedAppointment.paymentMethod) }}</p>
@@ -770,7 +770,7 @@
                     <div *ngIf="selectedAppointment.notes"
                         class="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 mx-1">
                         <label
-                            class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Observaciones</label>
+                            class="block text-[10px] font-bold text-gray-400 tracking-widest mb-1">Observaciones</label>
                         <p class="text-xs text-gray-600 italic leading-relaxed">"{{ selectedAppointment.notes }}"
                         </p>
                     </div>
@@ -787,7 +787,7 @@
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fecha
+                                <label class="block text-[10px] font-bold text-gray-400 tracking-widest">Fecha
                                     Seleccionada</label>
                                 <span *ngIf="!modalDoctorId()"
                                     class="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
@@ -803,7 +803,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Especialidad</label>
+                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-2">Especialidad</label>
                                 <div
                                     class="w-full py-3 px-4 bg-gray-50 rounded-xl text-gray-600 text-sm font-bold border border-gray-100">
                                     {{ getSpecialtyName(modalSpecialtyId()) }}
@@ -811,7 +811,7 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Médico</label>
+                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-2">Médico</label>
                                 <app-searchable-select [options]="modalDoctorOptions()" [value]="modalDoctorId()"
                                     (valueChange)="modalDoctorId.set($event.toString()); modalTime.set('')"
                                     placeholder="Seleccionar médico" displayMode="default">
@@ -821,7 +821,7 @@
 
                         <div>
                             <label
-                                class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Horario
+                                class="block text-[10px] font-bold text-gray-400 tracking-widest mb-3">Horario
                                 Disponible</label>
 
                             <!-- Available Slots Grid -->

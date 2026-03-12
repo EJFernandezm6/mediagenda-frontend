@@ -12,7 +12,7 @@ export class BadgeComponent {
     @Input() dot: boolean = false;
 
     get badgeClasses(): string {
-        const baseClasses = 'inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border transition-colors uppercase tracking-widest';
+        const baseClasses = 'inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold border transition-colors';
 
         const variantClasses = {
             primary: 'bg-accent-soft text-accent border-accent/20',

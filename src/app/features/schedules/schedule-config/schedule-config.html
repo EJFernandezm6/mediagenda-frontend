@@ -1,7 +1,7 @@
 <div class="px-4 py-6 sm:px-6 lg:px-8 bg-gray-50 min-h-screen">
     <!-- Title Section -->
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Gestión de Turnos y Horarios</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Turnos y Horarios</h1>
         <p class="mt-2 text-sm text-gray-500">Define los días y horas de atención por especialista y especialidad.</p>
     </div>
 
@@ -150,22 +150,22 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th scope="col"
-                                    class="w-[30%] px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200">
+                                    class="w-[30%] px-6 py-3.5 text-left text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
                                     Especialista</th>
                                 <th scope="col"
-                                    class="w-[20%] px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200">
+                                    class="w-[20%] px-6 py-3.5 text-left text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
                                     Fecha</th>
                                 <th scope="col"
-                                    class="w-[15%] px-6 py-3.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200">
+                                    class="w-[15%] px-6 py-3.5 text-center text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
                                     Rango Horario</th>
                                 <th scope="col"
-                                    class="w-[10%] px-6 py-3.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200">
+                                    class="w-[10%] px-6 py-3.5 text-center text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
                                     Modalidad</th>
                                 <th scope="col"
-                                    class="w-[15%] px-6 py-3.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200">
+                                    class="w-[15%] px-6 py-3.5 text-center text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
                                     Duración</th>
                                 <th scope="col"
-                                    class="w-[10%] px-6 py-3.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200">
+                                    class="w-[10%] px-6 py-3.5 text-center text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
                                     Acciones</th>
                             </tr>
                         </thead>
@@ -218,9 +218,9 @@
                                 </td>
                                 <td class="px-6 py-5 whitespace-nowrap text-center">
                                     <span
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold border capitalize"
-                                        [ngClass]="(schedule.modality || schedule.schedule_type || '').toUpperCase() === 'PRESENCIAL' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'">
-                                        {{ (schedule.modality || schedule.schedule_type || 'Desconocido') | lowercase }}
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold border"
+                                        [ngClass]="(schedule.modality || schedule.schedule_type || '').toLowerCase() === 'presencial' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'">
+                                        {{ (schedule.modality || schedule.schedule_type || 'Desconocido') | titlecase }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-5 whitespace-nowrap text-center">

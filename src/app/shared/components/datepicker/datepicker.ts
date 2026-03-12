@@ -34,6 +34,8 @@ export class DatePickerComponent implements OnInit {
     // Inputs
     @Input() placeholder: string = 'Seleccionar fecha...';
 
+    @Input() allowPastDates: boolean = false;
+
     // We handle disabled through a setter
     disabledState = signal(false);
     @Input('disabled')
@@ -122,7 +124,7 @@ export class DatePickerComponent implements OnInit {
                 if (this._enabledDates != null) {
                     isEnabled = isCurrentMonth && this._enabledDates.includes(isoDate);
                 } else {
-                    isEnabled = isCurrentMonth && isoDate >= todayIso;
+                    isEnabled = isCurrentMonth && (this.allowPastDates || isoDate >= todayIso);
                 }
 
                 week.push({

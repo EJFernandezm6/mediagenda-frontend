@@ -14,7 +14,7 @@
                         <lucide-icon [img]="Icons.AlertTriangle" class="h-6 w-6 text-red-600"></lucide-icon>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                        <h3 class="text-lg font-semibold leading-6 text-gray-900" id="modal-title">
+                        <h3 class="text-lg font-bold leading-6 text-gray-900" id="modal-title">
                             {{ data()?.title || '¿Estás seguro?' }}
                         </h3>
                         <div class="mt-2">
@@ -27,11 +27,11 @@
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-3">
                 <button (click)="confirm()" type="button"
-                    class="inline-flex w-full justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto transition-all">
+                    class="inline-flex w-full justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-red-500 sm:w-auto transition-all">
                     {{ data()?.confirmText || 'Aceptar' }}
                 </button>
                 <button *ngIf="data()?.showCancel !== false" (click)="cancel()" type="button"
-                    class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-all">
+                    class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-all">
                     {{ data()?.cancelText || 'Cancelar' }}
                 </button>
             </div>

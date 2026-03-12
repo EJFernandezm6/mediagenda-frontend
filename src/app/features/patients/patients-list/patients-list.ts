@@ -7,16 +7,17 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PatientsService, Patient, Consultation } from '../../../core/services/patients';
 import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
-import { LucideAngularModule, Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns, X } from 'lucide-angular';
+import { LucideAngularModule, Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns, X, SquarePen } from 'lucide-angular';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
+import { PageHeaderComponent } from '../../../shared/components/ui/page-header/page-header.component';
+import { SearchInputComponent } from '../../../shared/components/ui/search-input/search-input.component';
 
 @Component({
   selector: 'app-patients-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent, ButtonComponent, BadgeComponent, CardComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent, ButtonComponent, CardComponent, PageHeaderComponent, SearchInputComponent],
   templateUrl: './patients-list.html',
   styleUrl: './patients-list.css'
 })
@@ -27,7 +28,7 @@ export class PatientsListComponent implements OnInit {
   private specialtyService = inject(SpecialtiesService);
 
 
-  readonly icons = { Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns, X };
+  readonly icons = { Plus, Search, FileText, User, Pencil, ChevronDown, ChevronUp, Stethoscope, Activity, Calendar, ArrowRight, Eye, Columns, X, SquarePen };
 
 
   patients = this.service.patients;
@@ -35,7 +36,7 @@ export class PatientsListComponent implements OnInit {
   // Local Pagination & Search State
   searchTerm = signal('');
   currentPage = signal(1);
-  itemsPerPage = 8;
+  itemsPerPage = 6;
 
   ngOnInit() {
     // Relying on service entirely for first load via effect
@@ -45,12 +46,10 @@ export class PatientsListComponent implements OnInit {
   showColumnFilter = false;
   columns = {
     name: true,
-    email: true,
     dni: true,
     phone: true,
     age: true,
     gender: true,
-    lastVisit: true,
     actions: true
   };
 
@@ -97,12 +96,6 @@ export class PatientsListComponent implements OnInit {
 
   onSearchChange() {
     this.currentPage.set(1);
-  }
-
-  onSearchInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.searchTerm.set(input.value);
-    this.onSearchChange();
   }
 
   onDniInput(event: Event) {
