@@ -1,14 +1,17 @@
 <div class="relative w-full" [class.z-50]="isOpen()">
     <!-- Clickable Input Fake -->
     <div (click)="openDropdown()"
-        class="flex items-center justify-between w-full px-4 py-3 border-2 rounded-xl transition-all cursor-pointer bg-white"
-        [ngClass]="disabledState() ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
+        class="flex items-center justify-between w-full px-2 py-2 transition-all cursor-pointer bg-white"
+        [ngClass]="[
+            disabledState() ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'hover:bg-gray-50',
+            borderless ? 'border-none' : 'border-2 border-gray-200 rounded-xl hover:border-gray-300'
+        ]">
 
-        <span [ngClass]="currentValue() ? 'text-gray-900 font-medium text-sm' : 'text-gray-400 text-sm'">
+        <span [ngClass]="currentValue() ? 'text-gray-900 font-bold text-xs' : 'text-gray-400 text-xs'">
             {{ currentValue() || placeholder }}
         </span>
 
-        <lucide-icon [img]="icons.Calendar" class="w-5 h-5 text-gray-400"></lucide-icon>
+        <lucide-icon [img]="icons.Calendar" class="w-4 h-4 text-gray-400"></lucide-icon>
     </div>
 
     <!-- Dropdown Backdrop (Invisible overlay to detect clicks outside) -->
@@ -16,7 +19,8 @@
 
     <!-- Dropdown Panel -->
     <div *ngIf="isOpen()"
-        class="absolute z-40 mt-2 bg-white border border-gray-100 rounded-xl shadow-float overflow-hidden w-72 origin-top animate-dropdown"
+        class="absolute z-[9999] mt-2 bg-white border border-gray-100 rounded-xl shadow-float overflow-hidden w-72 origin-top animate-dropdown"
+        [ngClass]="position === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'"
         style="animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
 
         <!-- Header Controls -->

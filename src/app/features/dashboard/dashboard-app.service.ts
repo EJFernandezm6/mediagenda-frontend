@@ -3,94 +3,132 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 
-export interface LabelCountItem { label: string; count: number; }
-export interface SpecialtyDemandItem { specialtyId: string; specialtyName: string; count: number; }
-export interface AgeRangeItem { ageRange: string; count: number; avgAge: number; }
-export interface HourRangeItem { hourRange: string; avgCount: number; }
+export interface ChartItem { name: string; value: any; }
+export interface MultiChartItem { name: string; series: ChartItem[]; }
+
 export interface FrequentPatientItem { patientId: string; patientName: string; count: number; }
-export interface RevenueBySpecialtyItem { specialtyId: string; specialtyName: string; revenue: number; }
 export interface TopDoctorItem { doctorId: string; doctorName: string; count: number; }
-export interface EvolutionItem { period: string; count: number; }
 
 export type Granularity = 'MONTH' | 'WEEK';
+
+export interface DashboardFilter {
+    from: string;
+    to: string;
+    doctorId?: string | null;
+    specialtyId?: string | null;
+}
+
+export interface KpiSummary {
+    total: number;
+    attendedCount: number;
+    attendedDetails: ChartItem[];
+    activeCount: number;
+    activeDetails: ChartItem[];
+    cancelledCount: number;
+    cancelledDetails: ChartItem[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class DashboardAppService {
     private http = inject(HttpClient);
     private base = `${environment.apiUrl}/dashboard`;
 
-    private range(from: string, to: string): HttpParams {
-        return new HttpParams().set('from', from).set('to', to);
+    private buildParams(filter: DashboardFilter): HttpParams {
+        let params = new HttpParams().set('from', filter.from).set('to', filter.to);
+        if (filter.doctorId) params = params.set('doctorId', filter.doctorId);
+        if (filter.specialtyId) params = params.set('specialtyId', filter.specialtyId);
+        return params;
     }
 
-    paymentStatus(from: string, to: string): Observable<LabelCountItem[]> {
-        return this.http.get<LabelCountItem[]>(`${this.base}/payment-status`, { params: this.range(from, to) });
+    paymentStatus(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/payment-status`, { params: this.buildParams(f) });
     }
 
-    specialtyDemand(from: string, to: string): Observable<SpecialtyDemandItem[]> {
-        return this.http.get<SpecialtyDemandItem[]>(`${this.base}/specialty-demand`, { params: this.range(from, to) });
+    specialtyDemand(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/specialty-demand`, { params: this.buildParams(f) });
     }
 
-    patientsByGender(from: string, to: string): Observable<LabelCountItem[]> {
-        return this.http.get<LabelCountItem[]>(`${this.base}/patients-by-gender`, { params: this.range(from, to) });
+    patientsByGender(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/patients-by-gender`, { params: this.buildParams(f) });
     }
 
-    patientsByAge(from: string, to: string, cutoffs: number[]): Observable<AgeRangeItem[]> {
-        let params = this.range(from, to);
+    patientsByAge(f: DashboardFilter, cutoffs: number[]): Observable<ChartItem[]> {
+        let params = this.buildParams(f);
         cutoffs.forEach(c => params = params.append('cutoffs', c.toString()));
-        return this.http.get<AgeRangeItem[]>(`${this.base}/patients-by-age`, { params });
+        return this.http.get<ChartItem[]>(`${this.base}/patients-by-age`, { params });
     }
 
-    busiestDays(from: string, to: string): Observable<LabelCountItem[]> {
-        return this.http.get<LabelCountItem[]>(`${this.base}/busiest-days`, { params: this.range(from, to) });
+    busiestDays(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/busiest-days`, { params: this.buildParams(f) });
     }
 
-    appointmentsByHour(from: string, to: string, rangeWidthHours: number): Observable<HourRangeItem[]> {
-        return this.http.get<HourRangeItem[]>(`${this.base}/appointments-by-hour`, {
-            params: this.range(from, to).set('rangeWidthHours', rangeWidthHours.toString())
+    appointmentsByHour(f: DashboardFilter, rangeWidthHours: number): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/appointments-by-hour`, {
+            params: this.buildParams(f).set('rangeWidthHours', rangeWidthHours.toString())
         });
     }
 
-    paymentMethods(from: string, to: string): Observable<LabelCountItem[]> {
-        return this.http.get<LabelCountItem[]>(`${this.base}/payment-methods`, { params: this.range(from, to) });
+    paymentMethods(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/payment-methods`, { params: this.buildParams(f) });
     }
 
-    frequentPatients(from: string, to: string): Observable<FrequentPatientItem[]> {
-        return this.http.get<FrequentPatientItem[]>(`${this.base}/frequent-patients`, { params: this.range(from, to) });
+    frequentPatients(f: DashboardFilter): Observable<FrequentPatientItem[]> {
+        return this.http.get<FrequentPatientItem[]>(`${this.base}/frequent-patients`, { params: this.buildParams(f) });
     }
 
-    revenueBySpecialty(from: string, to: string): Observable<RevenueBySpecialtyItem[]> {
-        return this.http.get<RevenueBySpecialtyItem[]>(`${this.base}/revenue-by-specialty`, { params: this.range(from, to) });
+    revenueBySpecialty(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/revenue-by-specialty`, { params: this.buildParams(f) });
     }
 
-    topDoctors(from: string, to: string): Observable<TopDoctorItem[]> {
-        return this.http.get<TopDoctorItem[]>(`${this.base}/top-doctors`, { params: this.range(from, to) });
+    topDoctors(f: DashboardFilter): Observable<TopDoctorItem[]> {
+        return this.http.get<TopDoctorItem[]>(`${this.base}/top-doctors`, { params: this.buildParams(f) });
     }
 
-    patientEvolution(from: string, to: string, granularity: Granularity): Observable<EvolutionItem[]> {
-        return this.http.get<EvolutionItem[]>(`${this.base}/patient-evolution`, {
-            params: this.range(from, to).set('granularity', granularity)
+    patientEvolution(f: DashboardFilter, granularity: Granularity): Observable<MultiChartItem[]> {
+        return this.http.get<MultiChartItem[]>(`${this.base}/patient-evolution`, {
+            params: this.buildParams(f).set('granularity', granularity)
         });
     }
 
-    appointmentEvolution(from: string, to: string, granularity: Granularity): Observable<EvolutionItem[]> {
-        return this.http.get<EvolutionItem[]>(`${this.base}/appointment-evolution`, {
-            params: this.range(from, to).set('granularity', granularity)
+    appointmentEvolution(f: DashboardFilter, granularity: Granularity): Observable<MultiChartItem[]> {
+        return this.http.get<MultiChartItem[]>(`${this.base}/appointment-evolution`, {
+            params: this.buildParams(f).set('granularity', granularity)
         });
     }
 
-    appointmentStatuses(from: string, to: string): Observable<LabelCountItem[]> {
-        return this.http.get<LabelCountItem[]>(`${this.base}/appointment-statuses`, { params: this.range(from, to) });
+    appointmentStatuses(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/appointment-statuses`, { params: this.buildParams(f) });
     }
 
-    getKpis(from: string, to: string): Observable<KpiSummary> {
-        return this.http.get<KpiSummary>(`${this.base}/kpis`, { params: this.range(from, to) });
+    getKpis(f: DashboardFilter): Observable<KpiSummary> {
+        return this.http.get<KpiSummary>(`${this.base}/kpis`, { params: this.buildParams(f) });
     }
-}
 
-export interface KpiSummary {
-    total: number;
-    attended: number;
-    active: number;
-    cancelled: number;
+    specialtyPerformance(f: DashboardFilter): Observable<MultiChartItem[]> {
+        return this.http.get<MultiChartItem[]>(`${this.base}/specialty-performance`, { params: this.buildParams(f) });
+    }
+
+    patientRetention(f: DashboardFilter): Observable<MultiChartItem[]> {
+        return this.http.get<MultiChartItem[]>(`${this.base}/patient-retention`, { params: this.buildParams(f) });
+    }
+
+    monthlyProjection(f: DashboardFilter): Observable<MultiChartItem[]> {
+        return this.http.get<MultiChartItem[]>(`${this.base}/monthly-projection`, { params: this.buildParams(f) });
+    }
+
+    cancellationReasons(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/cancellation-reasons`, { params: this.buildParams(f) });
+    }
+
+    peakTimes(f: DashboardFilter): Observable<MultiChartItem[]> {
+        return this.http.get<MultiChartItem[]>(`${this.base}/peak-times`, { params: this.buildParams(f) });
+    }
+
+    doctorOccupation(f: DashboardFilter): Observable<ChartItem[]> {
+        return this.http.get<ChartItem[]>(`${this.base}/doctor-occupation`, { params: this.buildParams(f) });
+    }
+
+    getFirstAppointmentDate(): Observable<string> {
+        return this.http.get<string>(`${this.base}/first-appointment-date`);
+    }
 }

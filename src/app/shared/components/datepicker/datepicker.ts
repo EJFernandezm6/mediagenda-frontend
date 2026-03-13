@@ -33,10 +33,9 @@ export class DatePickerComponent implements OnInit {
 
     // Inputs
     @Input() placeholder: string = 'Seleccionar fecha...';
-
     @Input() allowPastDates: boolean = false;
-
-    // We handle disabled through a setter
+    @Input() borderless: boolean = false;
+    @Input() position: 'left' | 'right' = 'left';
     disabledState = signal(false);
     @Input('disabled')
     set disabled(value: boolean) {

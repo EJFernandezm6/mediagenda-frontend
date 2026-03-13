@@ -1,425 +1,298 @@
-<div class="space-y-6 animate-fade-in">
+<div class="p-4 md:p-8 min-h-screen bg-[#f8fafc] space-y-8 animate-fade-in relative">
 
-  <!-- Header + Date Filter -->
-  <div class="flex flex-wrap items-start justify-between gap-4">
-    <div class="sm:flex-auto">
-      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p class="mt-2 text-sm text-gray-700">Resumen general del estado de la clínica.</p>
+  <!-- ── HEADER ESTRATÉGICO ─────────────────────────────────── -->
+  <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-[100]">
+    <div class="space-y-1">
+      <h1 class="text-4xl md:text-5xl font-black tracking-tight text-gray-950 uppercase italic leading-tight py-2">
+        Dashboard <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 px-1">Estratégico</span>
+      </h1>
+      <p class="text-gray-500 font-medium text-sm flex items-center gap-2">
+        <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-indigo-500"></lucide-icon>
+        Monitoreo de KPI y Rentabilidad en Tiempo Real
+      </p>
     </div>
-    <div class="flex flex-wrap items-center gap-3 bg-white px-4 py-3 rounded-2xl border border-gray-100 shadow-sm">
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-medium text-gray-500">Desde</span>
-        <div class="w-36">
-          <app-datepicker [value]="fromDate" (valueChange)="fromDate = $event" placeholder="Fecha inicial">
-          </app-datepicker>
+
+    <div class="flex items-center gap-3 bg-white/60 p-1.5 rounded-3xl border border-white/50 shadow-sm backdrop-blur-2xl relative z-50">
+      <div class="flex items-center gap-3 px-4 py-2 bg-white rounded-2xl shadow-inner border border-gray-100 min-w-[340px] relative">
+        <lucide-icon [img]="icons.CalendarCheck" class="w-4 h-4 text-gray-400"></lucide-icon>
+        <div class="flex items-center gap-2">
+          <app-datepicker class="w-28" [value]="fromDate" (valueChange)="fromDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true"></app-datepicker>
+          <span class="text-gray-300 text-xs font-bold">—</span>
+          <!-- Dynamic alignment for the second picker to prevent it from going off-screen -->
+          <app-datepicker class="w-28" [value]="toDate" (valueChange)="toDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true" position="right"></app-datepicker>
         </div>
       </div>
-      <span class="text-gray-300">—</span>
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-medium text-gray-500">Hasta</span>
-        <div class="w-36">
-          <app-datepicker [value]="toDate" (valueChange)="toDate = $event" placeholder="Fecha final">
-          </app-datepicker>
-        </div>
-      </div>
-      <button (click)="applyFilter()"
-        class="bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
-        Aplicar
-      </button>
+    </div>
+  </header>
+
+  <!-- ── LOADING OVERLAY ── -->
+  <div *ngIf="isLoading$ | async" class="absolute inset-0 z-50 flex items-center justify-center bg-gray-50/20 backdrop-blur-[2px]">
+    <div class="flex flex-col items-center gap-3 bg-white p-6 rounded-[2.5rem] shadow-2xl border border-white/50">
+      <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <span class="text-xs font-black uppercase text-gray-400 tracking-widest">Sincronizando...</span>
     </div>
   </div>
-  <!-- Summary KPIs -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-      <div class="flex items-center gap-4">
-        <div class="p-3 bg-indigo-50 rounded-xl">
-          <lucide-icon [img]="icons.CalendarCheck" class="w-6 h-6 text-indigo-600"></lucide-icon>
+
+  <!-- ── BLOQUE 1: KPIs DE RENDIMIENTO ──────────────────────── -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-0" *ngIf="kpiSummary$ | async; let kpi">
+    
+    <!-- Citas Totales -->
+    <div class="group bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-default overflow-hidden relative">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50/50 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+      <div class="relative z-10 flex flex-col gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:rotate-12 transition-transform">
+          <lucide-icon [img]="icons.TrendingUp" class="w-6 h-6"></lucide-icon>
         </div>
         <div>
-          <p class="text-sm font-bold text-gray-400">Total Citas</p>
-          <h4 class="text-2xl font-bold text-gray-900">{{ totalAppointments() }}</h4>
+          <p class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 mb-1">Citas Totales</p>
+          <h2 class="text-4xl font-black text-gray-900 leading-none">{{ kpi.total }}</h2>
         </div>
       </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-      <div class="flex items-center gap-4">
-        <div class="p-3 bg-emerald-50 rounded-xl">
-          <lucide-icon [img]="icons.CheckCircle" class="w-6 h-6 text-emerald-600"></lucide-icon>
+    <!-- Tasa de Asistencia -->
+    <div class="group bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-default overflow-hidden relative">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50/50 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+      <div class="relative z-10 flex flex-col gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:rotate-12 transition-transform">
+          <lucide-icon [img]="icons.CheckCircle" class="w-6 h-6"></lucide-icon>
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-400">Atendidas</p>
-          <h4 class="text-2xl font-bold text-gray-900">{{ attendedAppointments() }}</h4>
+          <p class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 mb-1">Atendidas</p>
+          <h2 class="text-4xl font-black text-gray-900 leading-none">{{ kpi.attendedCount }}</h2>
+          <span class="text-[0.6rem] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full mt-2 inline-block">
+             {{ kpi.total > 0 ? (kpi.attendedCount / kpi.total * 100).toFixed(1) : 0 }}% Efectividad
+          </span>
         </div>
       </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-      <div class="flex items-center gap-4">
-        <div class="p-3 bg-blue-50 rounded-xl">
-          <lucide-icon [img]="icons.Clock" class="w-6 h-6 text-blue-600"></lucide-icon>
+    <!-- Ingresos Proyectados -->
+    <div class="group bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-default overflow-hidden relative">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-50/50 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+      <div class="relative z-10 flex flex-col gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:rotate-12 transition-transform">
+          <lucide-icon [img]="icons.CreditCard" class="w-6 h-6"></lucide-icon>
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-400">Vigentes</p>
-          <h4 class="text-2xl font-bold text-gray-900">{{ activeAppointments() }}</h4>
+          <p class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 mb-1">Activas</p>
+          <h2 class="text-4xl font-black text-gray-900 leading-none">{{ kpi.activeCount }}</h2>
         </div>
       </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-      <div class="flex items-center gap-4">
-        <div class="p-3 bg-rose-50 rounded-xl">
-          <lucide-icon [img]="icons.XCircle" class="w-6 h-6 text-rose-600"></lucide-icon>
+    <!-- Tasa de Cancelación -->
+    <div class="group bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-default overflow-hidden relative">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-50/50 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+      <div class="relative z-10 flex flex-col gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 group-hover:rotate-12 transition-transform">
+          <lucide-icon [img]="icons.XCircle" class="w-6 h-6"></lucide-icon>
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-400">Canceladas/Perdidas</p>
-          <h4 class="text-2xl font-bold text-gray-900">{{ cancelledAppointments() }}</h4>
+          <p class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 mb-1">Canceladas</p>
+          <h2 class="text-4xl font-black text-gray-900 leading-none">{{ kpi.cancelledCount }}</h2>
+          <span class="text-[0.6rem] font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full mt-2 inline-block">
+            {{ kpi.total > 0 ? (kpi.cancelledCount / kpi.total * 100).toFixed(1) : 0 }}% Pérdida
+          </span>
         </div>
       </div>
     </div>
   </div>
-  <!-- ── SECCIÓN 1: Evolución temporal ────────────────────────────────── -->
+
+  <!-- ── BLOQUE 2: MEZCLA DE INGRESOS Y DEMANDA ───────────────────── -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Distribución de Ingresos por Pago -->
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col group">
+      <h3 class="text-base font-black text-gray-900 mb-6 flex items-center gap-2">
+        <lucide-icon [img]="icons.CreditCard" class="w-4 h-4 text-indigo-500"></lucide-icon>
+        Mix de Pagos
+      </h3>
+      <div class="flex-1" style="height: 300px">
+        <ngx-charts-pie-chart
+          [scheme]="semanticScheme"
+          [results]="(paymentStatusData$ | async) || []"
+          [doughnut]="true"
+          [legend]="false"
+          [arcWidth]="0.25"
+          [animations]="true">
+        </ngx-charts-pie-chart>
+      </div>
+    </div>
+
+    <!-- Demanda por Especialidad -->
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 lg:col-span-2 group">
+      <h3 class="text-base font-black text-gray-900 mb-6 flex items-center gap-2">
+        <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-emerald-500"></lucide-icon>
+        Demanda x Especialidad
+      </h3>
+      <div style="height: 300px">
+        <ngx-charts-bar-horizontal
+          [scheme]="semanticScheme"
+          [results]="(specialtyDemandData$ | async) || []"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showXAxisLabel]="false"
+          [animations]="true"
+          [barPadding]="12"
+          [roundDomains]="true">
+        </ngx-charts-bar-horizontal>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECCIÓN RENTABILIDAD AVANZADA ───────────────────────────── -->
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-    <!-- Crecimiento de Pacientes -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
+    <!-- Eficiencia por Especialidad (Stacked/Multi) -->
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 group">
+      <div class="flex items-center justify-between mb-8">
+        <h3 class="text-base font-black text-gray-900 flex items-center gap-2 uppercase">
           <lucide-icon [img]="icons.TrendingUp" class="w-4 h-4 text-indigo-500"></lucide-icon>
-          Crecimiento de Pacientes
+          Efectividad por Rama
         </h3>
-        <div class="flex bg-gray-100 rounded-lg p-1 gap-1">
-          <button (click)="setPatientGranularity('MONTH')"
-            [class]="patientGranularity === 'MONTH' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-3 py-1 rounded-md text-xs font-bold transition-all">Mes</button>
-          <button (click)="setPatientGranularity('WEEK')"
-            [class]="patientGranularity === 'WEEK' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-3 py-1 rounded-md text-xs font-medium">Semana</button>
-        </div>
       </div>
-      <div *ngIf="patientEvolutionData().length > 0; else emptyPatientEvol" style="height: 280px">
-        <ngx-charts-line-chart [scheme]="colorScheme" [results]="patientEvolutionData()" [xAxis]="true" [yAxis]="true"
-          [legend]="false" [showGridLines]="true" [showXAxisLabel]="false" [showYAxisLabel]="true"
-          [yAxisLabel]="'Pacientes'" [autoScale]="true" [timeline]="false">
+      <div style="height: 320px">
+        <ngx-charts-bar-vertical-normalized
+          [scheme]="semanticScheme"
+          [results]="(specialtyPerformanceData$ | async) || []"
+          [xAxis]="true"
+          [yAxis]="true"
+          [legend]="false"
+          [animations]="true"
+          [barPadding]="20">
+        </ngx-charts-bar-vertical-normalized>
+      </div>
+    </div>
+
+    <!-- Retención de Pacientes -->
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100">
+      <div class="flex items-center justify-between mb-8">
+        <h3 class="text-base font-black text-gray-900 flex items-center gap-2 uppercase">
+          <lucide-icon [img]="icons.Users" class="w-4 h-4 text-emerald-500"></lucide-icon>
+          Crecimiento y Retención
+        </h3>
+      </div>
+      <div style="height: 320px">
+        <ngx-charts-line-chart 
+          [scheme]="semanticScheme" 
+          [results]="(patientRetentionData$ | async) || []" 
+          [xAxis]="true"
+          [yAxis]="true" 
+          [legend]="false" 
+          [showGridLines]="false"
+          [curve]="curve"
+          [autoScale]="true"
+          [timeline]="true">
         </ngx-charts-line-chart>
       </div>
-      <ng-template #emptyPatientEvol>
-        <div class="flex items-center justify-center text-gray-400 text-sm" style="height: 280px">
-          Sin datos para el período seleccionado
-        </div>
-      </ng-template>
-    </div>
-
-    <!-- Tendencia de Citas Atendidas -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-          <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-emerald-500"></lucide-icon>
-          Tendencia de Citas Atendidas
-        </h3>
-        <div class="flex bg-gray-100 rounded-lg p-1 gap-1">
-          <button (click)="setAppointmentGranularity('MONTH')"
-            [class]="appointmentGranularity === 'MONTH' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-3 py-1 rounded-md text-xs font-medium transition-all">Mes</button>
-          <button (click)="setAppointmentGranularity('WEEK')"
-            [class]="appointmentGranularity === 'WEEK' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-3 py-1 rounded-md text-xs font-medium transition-all">Semana</button>
-        </div>
-      </div>
-      <div *ngIf="appointmentEvolutionData().length > 0; else emptyApptEvol" style="height: 280px">
-        <ngx-charts-line-chart [scheme]="colorScheme" [results]="appointmentEvolutionData()" [xAxis]="true"
-          [yAxis]="true" [legend]="false" [showGridLines]="true" [showXAxisLabel]="false" [showYAxisLabel]="true"
-          [yAxisLabel]="'Citas'" [autoScale]="true" [timeline]="false">
-        </ngx-charts-line-chart>
-      </div>
-      <ng-template #emptyApptEvol>
-        <div class="flex items-center justify-center text-gray-400 text-sm" style="height: 280px">
-          Sin datos para el período seleccionado
-        </div>
-      </ng-template>
     </div>
 
   </div>
 
-  <!-- ── SECCIÓN 2: Estado de pagos + Especialidades ───────────────────── -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- ── SECCIÓN ESTRATÉGICA 2: Proyecciones y Afluencia ───────────────────── -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-    <!-- Estado de Pagos -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.CreditCard" class="w-4 h-4 text-indigo-500"></lucide-icon>
-        Estado de Pagos de Citas
-      </h3>
-      <div class="flex items-center justify-center" style="height: 280px">
-        <ngx-charts-pie-chart *ngIf="paymentStatusData().length > 0; else emptyPayStatus" [scheme]="statusColors"
-          [results]="paymentStatusData()" [legend]="true" [legendTitle]="''" [labels]="true"
-          [labelFormatting]="pieValueFormat" [doughnut]="true">
-        </ngx-charts-pie-chart>
-        <ng-template #emptyPayStatus>
-          <p class="text-gray-400 text-sm">Sin datos para el período</p>
-        </ng-template>
-      </div>
-    </div>
-
-    <!-- Distribución de Estados de Citas -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-emerald-500"></lucide-icon>
-        Distribución de Estados de Citas
-      </h3>
-      <div class="flex items-center justify-center" style="height: 280px">
-        <ngx-charts-pie-chart *ngIf="appointmentStatusesData().length > 0; else emptyApptStatus"
-          [scheme]="appointmentStatusColors" [results]="appointmentStatusesData()" [legend]="true" [legendTitle]="''"
-          [labels]="true" [labelFormatting]="pieValueFormat" [doughnut]="true">
-        </ngx-charts-pie-chart>
-        <ng-template #emptyApptStatus>
-          <p class="text-gray-400 text-sm">Sin datos para el período</p>
-        </ng-template>
-      </div>
-    </div>
-
-    <!-- Citas por Especialidad -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-emerald-500"></lucide-icon>
-        Demanda por Especialidad
+    <!-- Proyección Mensual -->
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 uppercase">
+      <h3 class="text-base font-black text-gray-900 mb-6 flex items-center gap-2">
+        <lucide-icon [img]="icons.TrendingUp" class="w-4 h-4 text-indigo-500"></lucide-icon>
+        Proyección Mensual: Ingresos Esperados
       </h3>
       <div style="height: 280px">
-        <ngx-charts-bar-horizontal *ngIf="specialtyDemandData().length > 0; else emptySpecialty" [scheme]="colorScheme"
-          [results]="specialtyDemandData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="true"
-          [xAxisLabel]="'Citas'" [showDataLabel]="true">
-        </ngx-charts-bar-horizontal>
-        <ng-template #emptySpecialty>
-          <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
-        </ng-template>
+        <ngx-charts-area-chart
+          [scheme]="volumeScheme"
+          [results]="(monthlyProjectionData$ | async) || []"
+          [xAxis]="true"
+          [yAxis]="true"
+          [legend]="false"
+          [showGridLines]="false"
+          [curve]="curve"
+          [animations]="true">
+        </ngx-charts-area-chart>
       </div>
     </div>
 
-  </div>
-
-  <!-- ── SECCIÓN 3: Demografía ─────────────────────────────────────────── -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <!-- Distribución por Género -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.Users" class="w-4 h-4 text-pink-500"></lucide-icon>
-        Pacientes por Género
-      </h3>
-      <div class="flex items-center justify-center" style="height: 240px">
-        <ngx-charts-pie-chart *ngIf="genderData().length > 0; else emptyGender" [scheme]="genderColors"
-          [results]="genderData()" [legend]="true" [legendTitle]="''" [labels]="true" [labelFormatting]="pieValueFormat"
-          [doughnut]="false">
-        </ngx-charts-pie-chart>
-        <ng-template #emptyGender>
-          <p class="text-gray-400 text-sm">Sin datos para el período</p>
-        </ng-template>
-      </div>
-    </div>
-
-    <!-- Perfil Etario -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2">
-      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-          <lucide-icon [img]="icons.Users" class="w-4 h-4 text-blue-500"></lucide-icon>
-          Perfil Etario de Pacientes
-        </h3>
-        <div class="flex items-center gap-2">
-          <label class="text-xs text-gray-500 font-medium whitespace-nowrap">Puntos de corte (años)</label>
-          <input type="text" [(ngModel)]="cutoffsInput" placeholder="17,30,45,60"
-            class="border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-700 w-36 focus:outline-none focus:ring-2 focus:ring-primary/30" />
-          <button (click)="loadAgeChart()"
-            class="bg-primary text-white px-3 py-1 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity">
-            Aplicar
-          </button>
-        </div>
-      </div>
-      <div style="height: 240px">
-        <ngx-charts-bar-vertical *ngIf="ageData().length > 0; else emptyAge" [scheme]="colorScheme"
-          [results]="ageData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="true"
-          [xAxisLabel]="'Rango de Edad'" [showYAxisLabel]="true" [yAxisLabel]="'Pacientes'" [showDataLabel]="true">
-        </ngx-charts-bar-vertical>
-        <ng-template #emptyAge>
-          <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
-        </ng-template>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ── SECCIÓN 4: Operaciones ─────────────────────────────────────────── -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-    <!-- Afluencia por Día de la Semana -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.CalendarCheck" class="w-4 h-4 text-amber-500"></lucide-icon>
-        Afluencia por Día de la Semana
-      </h3>
-      <div style="height: 240px">
-        <ngx-charts-bar-vertical *ngIf="busiestDaysData().length > 0; else emptyDays" [scheme]="colorScheme"
-          [results]="busiestDaysData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="false"
-          [showYAxisLabel]="true" [yAxisLabel]="'Citas'" [showDataLabel]="true">
-        </ngx-charts-bar-vertical>
-        <ng-template #emptyDays>
-          <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
-        </ng-template>
-      </div>
-    </div>
-
-    <!-- Promedio de Citas por Franja Horaria -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-          <lucide-icon [img]="icons.Clock" class="w-4 h-4 text-violet-500"></lucide-icon>
-          Citas por Franja Horaria
-        </h3>
-        <div class="flex items-center gap-2">
-          <label class="text-xs text-gray-500 font-medium whitespace-nowrap">Ancho de franja (h)</label>
-          <input type="number" [(ngModel)]="rangeWidthHours" min="1" max="12" step="1"
-            class="border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-700 w-16 text-center focus:outline-none focus:ring-2 focus:ring-primary/30" />
-          <button (click)="loadHourChart()"
-            class="bg-primary text-white px-3 py-1 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity">
-            Aplicar
-          </button>
-        </div>
-      </div>
-      <div style="height: 240px">
-        <ngx-charts-bar-vertical *ngIf="hourData().length > 0; else emptyHour" [scheme]="colorScheme"
-          [results]="hourData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="true"
-          [xAxisLabel]="'Hora'" [showYAxisLabel]="true" [yAxisLabel]="'Prom. Citas'" [showDataLabel]="true"
-          [dataLabelFormatting]="roundFormat">
-        </ngx-charts-bar-vertical>
-        <ng-template #emptyHour>
-          <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
-        </ng-template>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ── SECCIÓN 5: Financiero ──────────────────────────────────────────── -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-    <!-- Rendimiento Financiero por Especialidad -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.DollarSign" class="w-4 h-4 text-emerald-500"></lucide-icon>
-        Ingresos por Especialidad
+    <!-- Mapa de Calor de Afluencia -->
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100">
+      <h3 class="text-base font-black text-gray-900 mb-6 flex items-center gap-2">
+        <lucide-icon [img]="icons.Clock" class="w-4 h-4 text-amber-500"></lucide-icon>
+        Mapa de Calor: Afluencia Operativa
       </h3>
       <div style="height: 280px">
-        <ngx-charts-bar-horizontal *ngIf="revenueData().length > 0; else emptyRevenue" [scheme]="colorScheme"
-          [results]="revenueData()" [xAxis]="true" [yAxis]="true" [legend]="false" [showXAxisLabel]="true"
-          [xAxisLabel]="currencySymbol()" [showDataLabel]="true">
-        </ngx-charts-bar-horizontal>
-        <ng-template #emptyRevenue>
-          <div class="h-full flex items-center justify-center text-gray-400 text-sm">Sin datos para el período</div>
-        </ng-template>
-      </div>
-    </div>
-
-    <!-- Medios de Pago Preferidos -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.CreditCard" class="w-4 h-4 text-blue-500"></lucide-icon>
-        Medios de Pago Preferidos
-      </h3>
-      <div class="flex items-center justify-center" style="height: 280px">
-        <ngx-charts-pie-chart *ngIf="paymentMethodsData().length > 0; else emptyMethods" [scheme]="colorScheme"
-          [results]="paymentMethodsData()" [legend]="true" [legendTitle]="''" [labels]="true"
-          [labelFormatting]="pieValueFormat" [doughnut]="true">
-        </ngx-charts-pie-chart>
-        <ng-template #emptyMethods>
-          <p class="text-gray-400 text-sm">Sin datos para el período</p>
-        </ng-template>
+        <ngx-charts-heat-map
+          [scheme]="volumeScheme"
+          [results]="(peakTimesData$ | async) || []"
+          [xAxis]="true"
+          [yAxis]="true"
+          [legend]="false"
+          [showXAxisLabel]="false"
+          [showYAxisLabel]="false">
+        </ngx-charts-heat-map>
       </div>
     </div>
 
   </div>
 
-  <!-- ── SECCIÓN 6: Rankings ────────────────────────────────────────────── -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-    <!-- Ranking de Médicos -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.TrendingUp" class="w-4 h-4 text-amber-500"></lucide-icon>
-        Médicos Más Solicitados
-      </h3>
-      <div class="overflow-y-auto" style="max-height: 288px">
-        <table class="min-w-full" *ngIf="topDoctorsData().length > 0; else emptyDoctors">
-          <thead>
-            <tr class="border-b border-gray-100">
-              <th class="text-left py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">#</th>
-              <th class="text-left py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">Médico</th>
-              <th class="text-right py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">Citas</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let doc of topDoctorsData(); let i = index"
-              class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-              <td class="py-3 px-3">
-                <span [class]="i < 3 ? 'text-amber-500 font-bold text-sm' : 'text-gray-400 text-sm'">
-                  {{ i + 1 }}
-                </span>
-              </td>
-              <td class="py-3 px-3 text-sm font-medium text-gray-900">{{ doc.doctorName }}</td>
-              <td class="py-3 px-3 text-right">
-                <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
-                  {{ doc.count }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <ng-template #emptyDoctors>
-          <div class="flex items-center justify-center py-12 text-gray-400 text-sm">
-            Sin datos para el período seleccionado
-          </div>
-        </ng-template>
+    <!-- Pacientes Evolución -->
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 group">
+      <div class="flex items-center justify-between mb-8">
+        <h3 class="text-base font-black text-gray-900 flex items-center gap-2 uppercase">
+          <lucide-icon [img]="icons.Users" class="w-4 h-4 text-emerald-500"></lucide-icon>
+          Volumen de Pacientes
+        </h3>
+        <div class="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
+          <button (click)="setPatientGranularity('WEEK')" 
+                  [class]="(patientGranularity$ | async) === 'WEEK' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-400'"
+                  class="px-4 py-1.5 text-[0.6rem] font-black uppercase rounded-lg transition-all">Semanas</button>
+          <button (click)="setPatientGranularity('MONTH')" 
+                  [class]="(patientGranularity$ | async) === 'MONTH' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-400'"
+                  class="px-4 py-1.5 text-[0.6rem] font-black uppercase rounded-lg transition-all">Meses</button>
+        </div>
+      </div>
+      <div style="height: 320px">
+        <ngx-charts-area-chart
+          [scheme]="volumeScheme"
+          [results]="(patientEvolutionData$ | async) || []"
+          [xAxis]="true"
+          [yAxis]="true"
+          [legend]="false"
+          [showGridLines]="false"
+          [curve]="curve">
+        </ngx-charts-area-chart>
       </div>
     </div>
 
-    <!-- Pacientes más Asiduos -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <lucide-icon [img]="icons.Users" class="w-4 h-4 text-indigo-500"></lucide-icon>
-        Pacientes más Asiduos
-      </h3>
-      <div class="overflow-y-auto" style="max-height: 288px">
-        <table class="min-w-full" *ngIf="frequentPatientsData().length > 0; else emptyPatients">
-          <thead>
-            <tr class="border-b border-gray-100">
-              <th class="text-left py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">#</th>
-              <th class="text-left py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">Paciente</th>
-              <th class="text-right py-2 px-3 text-xs font-bold text-gray-900 border-b border-gray-100">Visitas</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let p of frequentPatientsData(); let i = index"
-              class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-              <td class="py-3 px-3">
-                <span [class]="i < 3 ? 'text-amber-500 font-bold text-sm' : 'text-gray-400 text-sm'">
-                  {{ i + 1 }}
-                </span>
-              </td>
-              <td class="py-3 px-3 text-sm font-medium text-gray-900">{{ p.patientName }}</td>
-              <td class="py-3 px-3 text-right">
-                <span class="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
-                  {{ p.count }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <ng-template #emptyPatients>
-          <div class="flex items-center justify-center py-12 text-gray-400 text-sm">
-            Sin datos para el período seleccionado
-          </div>
-        </ng-template>
+    <!-- Citas Evolución -->
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 group">
+      <div class="flex items-center justify-between mb-8">
+        <h3 class="text-base font-black text-gray-900 flex items-center gap-2 uppercase">
+          <lucide-icon [img]="icons.CalendarCheck" class="w-4 h-4 text-violet-500"></lucide-icon>
+          Citas Programadas
+        </h3>
+        <div class="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
+          <button (click)="setAppointmentGranularity('WEEK')" 
+                  [class]="(appointmentGranularity$ | async) === 'WEEK' ? 'bg-white shadow-sm text-violet-600' : 'text-gray-400'"
+                  class="px-4 py-1.5 text-[0.6rem] font-black uppercase rounded-lg transition-all">Semanas</button>
+          <button (click)="setAppointmentGranularity('MONTH')" 
+                  [class]="(appointmentGranularity$ | async) === 'MONTH' ? 'bg-white shadow-sm text-violet-600' : 'text-gray-400'"
+                  class="px-4 py-1.5 text-[0.6rem] font-black uppercase rounded-lg transition-all">Meses</button>
+        </div>
+      </div>
+      <div style="height: 320px">
+        <ngx-charts-area-chart
+          [scheme]="volumeScheme"
+          [results]="(appointmentEvolutionData$ | async) || []"
+          [xAxis]="true"
+          [yAxis]="true"
+          [legend]="false"
+          [showGridLines]="false"
+          [curve]="curve">
+        </ngx-charts-area-chart>
       </div>
     </div>
-
   </div>
 
 </div>

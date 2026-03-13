@@ -1,0 +1,45 @@
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+:host ::ng-deep .ngx-charts {
+  font-family: 'Inter', sans-serif !important;
+}
+
+:host ::ng-deep .ngx-charts .gridline-path {
+  stroke: #f3f4f6 !important;
+}
+
+:host ::ng-deep .ngx-charts .axis-label {
+  font-weight: 800 !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  fill: #9ca3af !important;
+}
+
+:host ::ng-deep .ngx-charts .tick text {
+  font-weight: 600 !important;
+  fill: #6b7280 !important;
+}
+
+/* Custom tooltips for premium feel */
+:host ::ng-deep .ngx-charts .tooltip-anchor {
+  fill: #6366f1 !important;
+}
+
+/* Responsive containers */
+.chart-container {
+  width: 100%;
+  height: 100%;
+}

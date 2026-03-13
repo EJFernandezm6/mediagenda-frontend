@@ -110,7 +110,7 @@ export class AppointmentsList implements OnInit {
 
     const statusFilter = this.selectedStatus();
     if (statusFilter.length > 0) {
-      list = list.filter(a => statusFilter.includes(a.status || ''));
+      list = list.filter(a => statusFilter.includes((a.status || '').toUpperCase()));
     }
 
     const docFilter = this.selectedDoctorId();

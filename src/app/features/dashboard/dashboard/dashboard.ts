@@ -7,12 +7,15 @@ import {
   CalendarCheck, Clock, DollarSign,
   CheckCircle, XCircle, AlertCircle
 } from 'lucide-angular';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { NgxChartsModule, Color, ScaleType } from '@swimlane/ngx-charts';
+import * as shape from 'd3-shape';
 import {
-  DashboardAppService, FrequentPatientItem, TopDoctorItem, EvolutionItem, Granularity
+  DashboardAppService, ChartItem, MultiChartItem, FrequentPatientItem, TopDoctorItem, Granularity, DashboardFilter, KpiSummary
 } from '../dashboard-app.service';
 import { ConfigurationService } from '../../../core/services/configuration';
 import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
+import { BehaviorSubject, Observable, of, combineLatest } from 'rxjs';
+import { switchMap, map, catchError, shareReplay, tap, finalize, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -33,152 +36,122 @@ export class DashboardComponent implements OnInit {
     CheckCircle, XCircle, AlertCircle
   };
 
-  // Date range filter
-  fromDate = this.defaultFrom();
-  toDate = this.today();
+  // Reactive State Management
+  private filterSubject = new BehaviorSubject<DashboardFilter | null>(null);
+  filter$ = this.filterSubject.asObservable();
+  
+  isLoading$ = new BehaviorSubject<boolean>(true);
 
-  // Granularity toggles for evolution charts
-  patientGranularity: Granularity = 'MONTH';
-  appointmentGranularity: Granularity = 'MONTH';
+  // Data Streams (Public Observables for Async Pipe)
+  paymentStatusData$ = this.filter$.pipe(switchMap(f => f ? this.svc.paymentStatus(f) : of([])), shareReplay(1));
+  specialtyDemandData$ = this.filter$.pipe(switchMap(f => f ? this.svc.specialtyDemand(f) : of([])), shareReplay(1));
+  genderData$ = this.filter$.pipe(switchMap(f => f ? this.svc.patientsByGender(f) : of([])), shareReplay(1));
+  busiestDaysData$ = this.filter$.pipe(switchMap(f => f ? this.svc.busiestDays(f) : of([])), shareReplay(1));
+  paymentMethodsData$ = this.filter$.pipe(switchMap(f => f ? this.svc.paymentMethods(f) : of([])), shareReplay(1));
+  frequentPatientsData$ = this.filter$.pipe(switchMap(f => f ? this.svc.frequentPatients(f) : of([])), shareReplay(1));
+  revenueData$ = this.filter$.pipe(switchMap(f => f ? this.svc.revenueBySpecialty(f) : of([])), shareReplay(1));
+  topDoctorsData$ = this.filter$.pipe(switchMap(f => f ? this.svc.topDoctors(f) : of([])), shareReplay(1));
+  appointmentStatusesData$ = this.filter$.pipe(switchMap(f => f ? this.svc.appointmentStatuses(f) : of([])), shareReplay(1));
+  
+  // New Strategic Streams
+  specialtyPerformanceData$ = this.filter$.pipe(switchMap(f => f ? this.svc.specialtyPerformance(f) : of([])), shareReplay(1));
+  patientRetentionData$ = this.filter$.pipe(switchMap(f => f ? this.svc.patientRetention(f) : of([])), shareReplay(1));
+  monthlyProjectionData$ = this.filter$.pipe(switchMap(f => f ? this.svc.monthlyProjection(f) : of([])), shareReplay(1));
+  cancellationReasonsData$ = this.filter$.pipe(switchMap(f => f ? this.svc.cancellationReasons(f) : of([])), shareReplay(1));
+  peakTimesData$ = this.filter$.pipe(switchMap(f => f ? this.svc.peakTimes(f) : of([])), shareReplay(1));
+  doctorOccupationData$ = this.filter$.pipe(switchMap(f => f ? this.svc.doctorOccupation(f) : of([])), shareReplay(1));
 
-  // Perfil Etario: puntos de corte editables (ej: "17,30,45,60")
+  // KPI Summary Stream
+  kpiSummary$ = this.filter$.pipe(
+    tap(() => this.isLoading$.next(true)),
+    switchMap(f => f ? this.svc.getKpis(f).pipe(
+      finalize(() => this.isLoading$.next(false)),
+      catchError(() => of({ total: 0, attendedCount: 0, attendedDetails: [], activeCount: 0, activeDetails: [], cancelledCount: 0, cancelledDetails: [] } as KpiSummary))
+    ) : of(null)),
+    shareReplay(1)
+  );
+
+  // Evolution Streams with Granularity Support
+  patientGranularity$ = new BehaviorSubject<Granularity>('MONTH');
+  appointmentGranularity$ = new BehaviorSubject<Granularity>('MONTH');
+
+  patientEvolutionData$ = combineLatest([this.filter$, this.patientGranularity$]).pipe(
+    switchMap(([f, g]) => f ? this.svc.patientEvolution(f, g) : of([])),
+    shareReplay(1)
+  );
+
+  appointmentEvolutionData$ = combineLatest([this.filter$, this.appointmentGranularity$]).pipe(
+    switchMap(([f, g]) => f ? this.svc.appointmentEvolution(f, g) : of([])),
+    shareReplay(1)
+  );
+
+  // Configuration & Chart Constants
+  curve = shape.curveMonotoneX;
   cutoffsInput = '17,30,45,60';
-
-  // Citas por Franja Horaria: ancho de cada franja en horas (1–12)
   rangeWidthHours = 1;
 
-  // Color palettes
-  readonly colorScheme: any = {
-    domain: ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6']
-  };
-  readonly statusColors: any = { domain: ['#10B981', '#F59E0B', '#EF4444', '#6366F1'] };
-  readonly genderColors: any = { domain: ['#6366F1', '#EC4899', '#10B981'] };
-
-  // Appointment Status Colors map (Match with appointments-calendar/list view logic approximately)
-  readonly appointmentStatusColors: any = {
-    domain: [
-      '#D1D5DB', // DEFAULT
-      '#93C5FD', // PROGRAMADA -> blue-300
-      '#86EFAC', // CONFIRMADA -> green-300
-      '#A78BFA', // EN ATENCION -> purple-300
-      '#FCA5A5', // PERDIDA -> red-300
-      '#FDE047', // EN ESPERA -> yellow-300
-      '#6EE7B7', // ATENDIDA -> emerald-300
-      '#9CA3AF'  // CANCELADA -> gray-400
-    ]
+  // Semantic Color Palette
+  semanticScheme: Color = {
+    name: 'semantic',
+    selectable: true,
+    group: ScaleType.Ordinal,
+    domain: ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6', '#ec4899']
   };
 
-  // Chart data (ngx-charts format: {name, value}[])
-  paymentStatusData = signal<any[]>([]);
-  specialtyDemandData = signal<any[]>([]);
-  genderData = signal<any[]>([]);
-  ageData = signal<any[]>([]);
-  busiestDaysData = signal<any[]>([]);
-  hourData = signal<any[]>([]);
-  paymentMethodsData = signal<any[]>([]);
-  revenueData = signal<any[]>([]);
-  appointmentStatusesData = signal<any[]>([]);
+  volumeScheme: Color = {
+    name: 'volume',
+    selectable: true,
+    group: ScaleType.Linear,
+    domain: ['#e0e7ff', '#6366f1', '#4338ca']
+  };
 
-  // Line chart data: [{name, series: [{name, value}]}]
-  patientEvolutionData = signal<any[]>([]);
-  appointmentEvolutionData = signal<any[]>([]);
+  customColors = (name: string) => {
+    const map: Record<string, string> = {
+      'ATENDIDA': '#10b981',
+      'CONFIRMADA': '#6366f1',
+      'CANCELADA': '#ef4444',
+      'PENDIENTE': '#f59e0b',
+      'PAGADO': '#10b981',
+      'POR PAGAR': '#ef4444'
+    };
+    return map[name.toUpperCase()] || '#94a3b8';
+  };
 
-  // Summary KPIs
-  totalAppointments = signal<number>(0);
-  attendedAppointments = signal<number>(0);
-  activeAppointments = signal<number>(0);
-  cancelledAppointments = signal<number>(0);
+  // Local Filter State (for DatePicker binding)
+  fromDate = '';
+  toDate = '';
 
-  // Table data
-  frequentPatientsData = signal<FrequentPatientItem[]>([]);
-  topDoctorsData = signal<TopDoctorItem[]>([]);
+  ngOnInit() {
+    this.svc.getFirstAppointmentDate().pipe(
+      catchError(() => of(new Date().toISOString().split('T')[0]))
+    ).subscribe(firstDate => {
+      this.fromDate = firstDate;
+      this.toDate = this.today();
+      this.updateFilters();
+    });
+  }
 
-  ngOnInit() { this.loadAll(); }
+  updateFilters() {
+    this.filterSubject.next({
+      from: this.fromDate,
+      to: this.toDate,
+      doctorId: null, // Could be bound to a selector
+      specialtyId: null // Could be bound to a selector
+    });
+  }
 
-  private today(): string { return new Date().toISOString().split('T')[0]; }
-
-  private defaultFrom(): string {
+  private today(): string {
     const d = new Date();
-    d.setMonth(d.getMonth() - 3);
-    return d.toISOString().split('T')[0];
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
-  // Muestra el valor numérico en los labels de gráficos circulares
-  readonly pieValueFormat = (data: any): string => {
-    const v = typeof data === 'object' && data !== null ? (data.value ?? data.name) : data;
-    return String(v);
+  setPatientGranularity(g: Granularity) { this.patientGranularity$.next(g); }
+  setAppointmentGranularity(g: Granularity) { this.appointmentGranularity$.next(g); }
+
+  formatCurrency = (value: any): string => {
+    return `${this.currencySymbol()} ${Number(value).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
-
-  // Redondea al entero más cercano (para promedios con decimales)
-  readonly roundFormat = (value: number): string => String(Math.round(value));
-
-  private s(value: string | null | undefined, fallback = 'Sin especificar'): string {
-    return value ?? fallback;
-  }
-
-  private toLabelChart(items: { label: string; count: number }[]): any[] {
-    return items.map(i => ({ name: this.s(i.label), value: i.count }));
-  }
-
-  private toLine(items: EvolutionItem[], label: string): any[] {
-    if (!items.length) return [];
-    return [{ name: label, series: items.map(i => ({ name: this.s(i.period), value: i.count })) }];
-  }
-
-    loadAll() {
-    const f = this.fromDate, t = this.toDate;
-    this.svc.paymentStatus(f, t).subscribe(d => this.paymentStatusData.set(this.toLabelChart(d)));
-    this.svc.specialtyDemand(f, t).subscribe(d => this.specialtyDemandData.set(d.map(i => ({ name: this.s(i.specialtyName), value: i.count }))));
-    this.svc.patientsByGender(f, t).subscribe(d => this.genderData.set(this.toLabelChart(d)));
-    this.loadAgeChart();
-    this.svc.busiestDays(f, t).subscribe(d => this.busiestDaysData.set(this.toLabelChart(d)));
-    this.loadHourChart();
-    this.svc.paymentMethods(f, t).subscribe(d => this.paymentMethodsData.set(this.toLabelChart(d)));
-    this.svc.frequentPatients(f, t).subscribe(d => this.frequentPatientsData.set(d));
-    this.svc.revenueBySpecialty(f, t).subscribe(d => this.revenueData.set(d.map(i => ({ name: this.s(i.specialtyName), value: Number(i.revenue) }))));
-    this.svc.topDoctors(f, t).subscribe(d => this.topDoctorsData.set(d));
-    this.svc.appointmentStatuses(f, t).subscribe(d => {
-      this.appointmentStatusesData.set(this.toLabelChart(d));
-    });
-    this.svc.getKpis(f, t).subscribe(k => {
-      this.totalAppointments.set(k.total);
-      this.attendedAppointments.set(k.attended);
-      this.activeAppointments.set(k.active);
-      this.cancelledAppointments.set(k.cancelled);
-    });
-    this.loadPatientEvolution();
-    this.loadAppointmentEvolution();
-  }
-
-
-  loadPatientEvolution() {
-    this.svc.patientEvolution(this.fromDate, this.toDate, this.patientGranularity)
-      .subscribe(d => this.patientEvolutionData.set(this.toLine(d, 'Pacientes')));
-  }
-
-  loadAppointmentEvolution() {
-    this.svc.appointmentEvolution(this.fromDate, this.toDate, this.appointmentGranularity)
-      .subscribe(d => this.appointmentEvolutionData.set(this.toLine(d, 'Citas')));
-  }
-
-  setPatientGranularity(g: Granularity) { this.patientGranularity = g; this.loadPatientEvolution(); }
-  setAppointmentGranularity(g: Granularity) { this.appointmentGranularity = g; this.loadAppointmentEvolution(); }
-
-  loadAgeChart() {
-    const cutoffs = this.cutoffsInput
-      .split(',')
-      .map(v => parseInt(v.trim(), 10))
-      .filter(n => !isNaN(n) && n >= 1 && n <= 149);
-    if (!cutoffs.length) return;
-    this.svc.patientsByAge(this.fromDate, this.toDate, cutoffs)
-      .subscribe(d => this.ageData.set(d.map(i => ({ name: this.s(i.ageRange), value: i.count }))));
-  }
-
-  loadHourChart() {
-    const rw = Math.min(12, Math.max(1, Math.floor(this.rangeWidthHours)));
-    this.svc.appointmentsByHour(this.fromDate, this.toDate, rw)
-      .subscribe(d => this.hourData.set(d.map(i => ({ name: this.s(i.hourRange), value: i.avgCount }))));
-  }
-
-  applyFilter() { this.loadAll(); }
 }
