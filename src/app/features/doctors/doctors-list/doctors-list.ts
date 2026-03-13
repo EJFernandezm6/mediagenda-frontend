@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DoctorsService, Doctor } from '../../../core/services/doctors';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
-import { LucideAngularModule, Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power, X, ChevronDown, ChevronUp } from 'lucide-angular';
+import { LucideAngularModule, Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power, X, ChevronDown, ChevronUp, Eye, Phone, Stethoscope, Edit3, Trash, ChevronRight } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -11,6 +11,8 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
 import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
+import { SpecialtiesService } from '../../../core/services/specialties';
+import { DoctorSpecialtyService } from '../doctor-specialty/doctor-specialty.service';
 import { PageHeaderComponent } from '../../../shared/components/ui/page-header/page-header.component';
 import { SearchInputComponent } from '../../../shared/components/ui/search-input/search-input.component';
 
@@ -34,11 +36,13 @@ import { SearchInputComponent } from '../../../shared/components/ui/search-input
 export class DoctorsListComponent implements OnInit {
   private service = inject(DoctorsService);
   private confirmService = inject(ConfirmModalService);
+  private specialtyService = inject(SpecialtiesService);
+  private doctorSpecialtyService = inject(DoctorSpecialtyService);
 
   doctors = this.service.doctors;
 
   // Icons
-  readonly icons = { Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power, X, ChevronDown, ChevronUp };
+  readonly icons = { Plus, Pencil, SquarePen, Trash2, Search, Star, MessageCircle, Mail, FileBadge, MapPin, AlertCircle, Power, X, ChevronDown, ChevronUp, Phone, Stethoscope, Edit3, Trash, ChevronRight, Eye };
 
   // Local Pagination & Search State
   searchTerm = signal('');
@@ -255,11 +259,125 @@ export class DoctorsListComponent implements OnInit {
         photoUrl: 'https://ui-avatars.com/api/?background=random' 
       };
     }
+    this.showDocTypeDropdown.set(false);
+    this.showStatusDropdown.set(false);
     this.isModalOpen = true;
   }
 
   closeModal() {
     this.isModalOpen = false;
+    this.showDocTypeDropdown.set(false);
+    this.showStatusDropdown.set(false);
+  }
+
+  // Profile Slide-over State
+  isProfileOpen = signal(false);
+  selectedDoctorForProfile = signal<Doctor | null>(null);
+  assignedSpecialties = computed(() => {
+    const doctor = this.selectedDoctorForProfile();
+    if (!doctor) return [];
+    return this.doctorSpecialtyService.getSpecialtiesForDoctor(doctor.doctorId || doctor.id);
+  });
+
+  openProfilePanel(doctor: Doctor) {
+    this.selectedDoctorForProfile.set(doctor);
+    this.isProfileOpen.set(true);
+  }
+
+  closeProfilePanel() {
+    this.isProfileOpen.set(false);
+    setTimeout(() => this.selectedDoctorForProfile.set(null), 300);
+  }
+
+  // Assignment Modal/Form State
+  isAssignmentModalOpen = signal(false);
+  editingAssignmentId = signal<string | null>(null);
+  assignmentForm = {
+    specialtyId: '',
+    cost: 0,
+    durationMinutes: 15
+  };
+
+  availableSpecialties = computed(() => {
+    const assignedIds = this.assignedSpecialties().map(a => a.specialtyId);
+    return this.specialtyService.specialties().filter(s => !assignedIds.includes(s.specialtyId));
+  });
+
+  get availableSpecialtyOptions() {
+    return this.availableSpecialties().map(s => ({
+      id: s.specialtyId,
+      label: s.name
+    }));
+  }
+
+  openAssignmentModal(assoc?: any) {
+    if (assoc) {
+      this.editingAssignmentId.set(assoc.doctorSpecialtyId);
+      this.assignmentForm = {
+        specialtyId: assoc.specialtyId,
+        cost: assoc.cost,
+        durationMinutes: assoc.durationMinutes
+      };
+    } else {
+      this.editingAssignmentId.set(null);
+      this.assignmentForm = {
+        specialtyId: '',
+        cost: 0,
+        durationMinutes: 15
+      };
+    }
+    this.isAssignmentModalOpen.set(true);
+  }
+
+  closeAssignmentModal() {
+    this.isAssignmentModalOpen.set(false);
+  }
+
+  saveAssignment() {
+    const doctor = this.selectedDoctorForProfile();
+    if (!doctor) return;
+
+    if (this.editingAssignmentId()) {
+      this.doctorSpecialtyService.updateAssociation(this.editingAssignmentId()!, this.assignmentForm).subscribe({
+        next: () => this.closeAssignmentModal(),
+        error: () => alert('Error al actualizar la asignación.')
+      });
+    } else {
+      const payload = {
+        ...this.assignmentForm,
+        doctorId: doctor.doctorId || doctor.id
+      };
+      this.doctorSpecialtyService.addAssociation(doctor.doctorId || doctor.id, payload).subscribe({
+        next: () => this.closeAssignmentModal(),
+        error: () => alert('Error al crear la asignación.')
+      });
+    }
+  }
+
+  getSpecialtyName(id: string) {
+    return this.specialtyService.specialties().find(s => s.specialtyId === id)?.name || 'Especialidad';
+  }
+
+  toggleActiveInProfile() {
+    const doctor = this.selectedDoctorForProfile();
+    if (doctor) {
+      this.toggleActive(doctor);
+      // Update local reference to reflect change in profile
+      this.selectedDoctorForProfile.set({ ...doctor, active: !doctor.active });
+    }
+  }
+
+  async desasignarSpecialty(assocId: string) {
+    const confirmed = await this.confirmService.confirm({
+      title: 'Desasignar Especialidad',
+      message: '¿Estás seguro de que deseas desasignar esta especialidad del médico?',
+      confirmText: 'Desasignar',
+      cancelText: 'Cancelar'
+    });
+
+    if (confirmed) {
+      this.doctorSpecialtyService.removeAssociation(assocId).subscribe();
+    }
   }
 
   save() {
@@ -354,5 +472,9 @@ export class DoctorsListComponent implements OnInit {
         error: (err) => alert('No se pudo eliminar el especialista. Es posible que tenga citas asociadas.')
       });
     }
+  }
+
+  getSpecialtyCount(doctorId: string): number {
+    return this.doctorSpecialtyService.associations().filter(a => a.doctorId === doctorId).length;
   }
 }

@@ -11,17 +11,16 @@
         </app-page-header>
     </div>
 
-    <!-- Compact Action Bar (No Card wrapper, thin padding) -->
-    <div class="shrink-0 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div class="relative w-full sm:max-w-md">
-            <!-- Tighter inputs (managed in component styles or via utility overrides if needed. Default inputs were rounded-xl py-3. Let's make sure it looks compact but respects styles.css defaults) -->
+    <!-- Balanced Action Bar -->
+    <div class="shrink-0 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="relative w-full">
             <app-search-input 
                 placeholder="Buscar por nombre o colegiatura..." 
                 (search)="onSearch($event)">
             </app-search-input>
         </div>
 
-        <div class="w-full sm:w-48">
+        <div class="w-full">
             <app-searchable-select 
                 [options]="statusOptions()" 
                 [value]="statusFilter()"
@@ -29,8 +28,8 @@
                 placeholder="Estado">
             </app-searchable-select>
         </div>
-        <!-- Right side spacer -->
-        <div class="flex-1"></div>
+        
+        <div class="hidden md:block"></div>
     </div>
 
     <!-- Specialist List Table (Flex-1 strict wrapper) -->
@@ -41,11 +40,12 @@
                 <!-- Sticky Header -->
                 <thead class="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm border-b border-border-soft shadow-sm">
                     <tr class="table-v2-header">
-                        <th class="pl-8 bg-transparent">Especialista</th>
-                        <th class="text-center bg-transparent">Estado</th>
-                        <th class="text-center bg-transparent">Colegiatura</th>
-                        <th class="text-center bg-transparent">Documento de Identidad</th>
-                        <th class="pr-8 text-right bg-transparent">Acciones</th>
+                        <th class="pl-8 bg-transparent text-left text-[12px] font-medium text-gray-500">Especialista</th>
+                        <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Estado</th>
+                        <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Especialidades</th>
+                        <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Colegiatura</th>
+                        <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Documento de Identidad</th>
+                        <th class="pr-8 bg-transparent text-right text-[12px] font-medium text-gray-500">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border-soft">
@@ -61,7 +61,7 @@
                                     </span>
                                 </div>
                                 <div class="flex flex-col">
-                                    <span class="cell-primary text-base">{{ doctor.fullName }}</span>
+                                    <span class="cell-primary text-base font-semibold">{{ doctor.fullName }}</span>
                                     <div *ngIf="isMissingData(doctor)" class="flex items-center gap-1">
                                         <lucide-icon [img]="icons.AlertCircle" class="w-3 h-3 text-warning"></lucide-icon>
                                         <span class="text-[10px] text-warning-hover font-medium">Perfil Incompleto</span>
@@ -71,22 +71,29 @@
                         </td>
 
                         <!-- Status -->
-                        <td class="text-center">
+                        <td class="text-left">
                             <span [class]="doctor.active ? 'badge-v2-active' : 'badge-v2-inactive'" class="badge-v2">
                                 <span class="badge-v2-dot"></span>
                                 {{ doctor.active ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
 
+                        <!-- Assignments Count -->
+                        <td class="text-left">
+                            <span class="text-[13px] font-semibold px-2.5 py-1 bg-accent/5 text-accent rounded-lg border border-accent/10">
+                                {{ getSpecialtyCount(doctor.id) }} asignadas
+                            </span>
+                        </td>
+
                         <!-- Colegiatura -->
-                        <td class="text-center">
-                            <span class="text-sm font-medium text-text-muted">
+                        <td class="text-left">
+                            <span class="text-sm font-normal text-text-muted">
                                 {{ doctor.cmp || '---' }}
                             </span>
                         </td>
 
                         <!-- DNI -->
-                        <td class="text-center">
+                        <td class="text-left">
                             <span class="text-sm text-text-light font-normal">
                                 {{ doctor.dni || '---' }}
                             </span>
@@ -95,6 +102,10 @@
                         <!-- Actions -->
                         <td class="pr-8 text-right">
                             <div class="flex items-center justify-end gap-1">
+                                <button class="action-btn" (click)="openProfilePanel(doctor)" title="Ver Perfil">
+                                    <lucide-icon [img]="icons.Eye" class="w-4.5 h-4.5" [strokeWidth]="1.5"></lucide-icon>
+                                </button>
+
                                 <button class="action-btn" (click)="toggleActive(doctor)" title="Alternar estado">
                                     <lucide-icon [img]="icons.Power" class="w-4.5 h-4.5" [strokeWidth]="1.5"></lucide-icon>
                                 </button>
@@ -137,15 +148,15 @@
     </div>
 </div>
 
-<!-- Modal Overlay -->
+<!-- Modal Overlay (Edit/New) -->
 <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
 
     <app-card variant="elevated" [noPadding]="true"
-        class="relative w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl overflow-hidden border-none">
+        class="relative w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl overflow-visible border-none">
         
         <!-- Modal Header -->
-        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white">
+        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-3xl">
             <div>
                 <h3 class="text-xl font-bold text-text-main">
                     {{ editingId ? 'Editar' : 'Nuevo' }} Especialista
@@ -251,7 +262,6 @@
             </div>
         </div>
 
-
         <!-- Modal Footer -->
         <div class="px-8 py-5 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end gap-4">
             <app-button variant="ghost" (onClick)="closeModal()" 
@@ -263,6 +273,223 @@
                 className="!text-[14px] font-semibold"
                 class="!px-8 !h-11 bg-accent hover:bg-accent-hover text-white !rounded-xl shadow-sm transition-all min-w-[140px]">
                 {{ isSaving ? 'Guardando...' : (editingId ? 'Guardar Cambios' : 'Crear Especialista') }}
+            </app-button>
+        </div>
+    </app-card>
+</div>
+
+<!-- Specialist Profile Slide-over -->
+<div *ngIf="selectedDoctorForProfile()" 
+     class="fixed inset-0 z-[60] overflow-hidden" 
+     [class.pointer-events-none]="!isProfileOpen()">
+    
+    <!-- Backdrop with blur -->
+    <div (click)="closeProfilePanel()" 
+         class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+         [class.opacity-0]="!isProfileOpen()"
+         [class.opacity-100]="isProfileOpen()">
+    </div>
+
+    <!-- Slide Panel -->
+    <div class="absolute inset-y-0 right-0 max-w-2xl w-full bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-out"
+         [class.translate-x-full]="!isProfileOpen()"
+         [class.translate-x-0]="isProfileOpen()">
+        
+        <!-- Header Section -->
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10 transition-all">
+            <div class="flex items-center gap-4">
+                <!-- Avatar -->
+                <div class="h-14 w-14 rounded-2xl bg-accent flex items-center justify-center text-white text-xl font-bold overflow-hidden shadow-lg border-2 border-white shadow-accent/20">
+                    <img *ngIf="selectedDoctorForProfile()?.photoUrl && !selectedDoctorForProfile()?.photoUrl?.includes('ui-avatars')"
+                        [src]="selectedDoctorForProfile()?.photoUrl" class="h-full w-full object-cover">
+                    <span *ngIf="!selectedDoctorForProfile()?.photoUrl || selectedDoctorForProfile()?.photoUrl?.includes('ui-avatars')">
+                        {{ selectedDoctorForProfile()?.fullName?.substring(0, 2)?.toUpperCase() }}
+                    </span>
+                </div>
+                <!-- Name & Subtitle -->
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-[20px] font-semibold text-text-main leading-none">{{ selectedDoctorForProfile()?.fullName }}</h2>
+                        <span [class]="selectedDoctorForProfile()?.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'" 
+                              class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                            {{ selectedDoctorForProfile()?.active ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </div>
+                    <p class="text-[13px] text-text-muted font-normal mt-1.5 flex items-center gap-2">
+                        <span>DNI: {{ selectedDoctorForProfile()?.dni || '---' }}</span>
+                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                        <span>Colegiatura: {{ selectedDoctorForProfile()?.cmp || '---' }}</span>
+                    </p>
+                </div>
+            </div>
+            <!-- Close Button -->
+            <button (click)="closeProfilePanel()" class="p-2.5 rounded-xl text-text-light hover:text-text-main hover:bg-gray-100 transition-all outline-none">
+                <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div class="space-y-8">
+                <!-- Contact Info Card -->
+                <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <!-- Phone -->
+                        <div class="space-y-1">
+                            <label class="block text-[12px] font-medium text-text-muted capitalize">Teléfono</label>
+                            <div class="flex items-center gap-2">
+                                <lucide-icon [img]="icons.Phone" class="w-4 h-4 text-accent"></lucide-icon>
+                                <span class="text-[14px] font-medium text-text-main">{{ selectedDoctorForProfile()?.phone || 'No asignado' }}</span>
+                            </div>
+                        </div>
+                        <!-- Email -->
+                        <div class="space-y-1 sm:col-span-2">
+                            <label class="block text-[12px] font-medium text-text-muted capitalize">Correo Electrónico</label>
+                            <div class="flex items-center gap-2">
+                                <lucide-icon [img]="icons.Mail" class="w-4 h-4 text-accent"></lucide-icon>
+                                <span class="text-[14px] font-medium text-text-main truncate" [title]="selectedDoctorForProfile()?.email || 'No asignado'">
+                                    {{ selectedDoctorForProfile()?.email || 'No asignado' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assigned Specialties Section -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-[16px] font-semibold text-text-main">Especialidades Asignadas</h3>
+                        <app-button variant="ghost" size="sm" (onClick)="openAssignmentModal()" class="!px-3 !h-9 border border-border-soft hover:!bg-gray-50 !rounded-lg text-accent font-bold text-xs">
+                            <lucide-icon [img]="icons.Plus" class="w-3.5 h-3.5 mr-1.5"></lucide-icon>
+                            Asignar nueva
+                        </app-button>
+                    </div>
+
+                    <!-- Specialties Table -->
+                    <div *ngIf="assignedSpecialties().length > 0" class="border border-border-soft rounded-2xl overflow-hidden shadow-sm bg-white">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50/50">
+                                    <th class="px-5 py-3 text-[12px] font-medium text-text-muted tracking-wide">Especialidad</th>
+                                    <th class="px-5 py-3 text-[12px] font-medium text-text-muted tracking-wide text-center">Costo</th>
+                                    <th class="px-5 py-3 text-[12px] font-medium text-text-muted tracking-wide text-center">Duración</th>
+                                    <th class="px-5 py-3 text-[12px] font-medium text-text-muted tracking-wide text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-soft">
+                                <tr *ngFor="let assoc of assignedSpecialties()" class="hover:bg-gray-50/30 transition-colors group">
+                                    <td class="px-5 py-4">
+                                        <span class="text-[14px] font-medium text-text-main">{{ getSpecialtyName(assoc.specialtyId) }}</span>
+                                    </td>
+                                    <td class="px-5 py-4 text-center">
+                                        <span class="text-[14px] font-medium text-text-main">S/ {{ assoc.cost.toFixed(2) }}</span>
+                                    </td>
+                                    <td class="px-5 py-4 text-center">
+                                        <span class="text-[14px] text-text-muted font-normal">{{ assoc.durationMinutes }} min</span>
+                                    </td>
+                                    <td class="px-5 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                            <button class="action-btn p-2 hover:text-accent" (click)="openAssignmentModal(assoc)" title="Editar costo/tiempo">
+                                                <lucide-icon [img]="icons.Edit3" class="w-4 h-4"></lucide-icon>
+                                            </button>
+                                            <button (click)="desasignarSpecialty(assoc.doctorSpecialtyId!)" class="action-btn p-2 hover:text-danger" title="Desasignar">
+                                                <lucide-icon [img]="icons.Trash" class="w-4 h-4"></lucide-icon>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State for Specialties -->
+                    <div *ngIf="assignedSpecialties().length === 0" 
+                         class="border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center bg-gray-50/30">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100 mb-4">
+                                <lucide-icon [img]="icons.Stethoscope" class="w-8 h-8 text-gray-300"></lucide-icon>
+                            </div>
+                            <p class="text-[15px] font-medium text-text-muted">Este especialista no tiene especialidades asignadas</p>
+                            <app-button variant="accent" size="sm" (onClick)="openAssignmentModal()" class="mt-4 !rounded-xl !h-10 !px-6 shadow-lg shadow-accent/20">
+                                Asignar Especialidad
+                            </app-button>
+                           </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign/Edit Specialty Modal -->
+<div *ngIf="isAssignmentModalOpen()" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm transition-opacity" (click)="closeAssignmentModal()"></div>
+
+    <app-card variant="elevated" [noPadding]="true"
+        class="relative w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl overflow-visible border-none text-left">
+        
+        <!-- Modal Header -->
+        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-3xl">
+            <div>
+                <h3 class="text-xl font-bold text-text-main">
+                    {{ editingAssignmentId() ? 'Editar' : 'Nueva' }} Asignación
+                </h3>
+                <p class="text-xs text-text-light font-medium mt-1">Configurar especialidad y costos</p>
+            </div>
+            <button (click)="closeAssignmentModal()" class="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-light hover:text-text-main">
+                <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
+            </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-8 pt-4">
+            <div class="space-y-6">
+                <!-- Specialty Selection (Only for New) -->
+                <div *ngIf="!editingAssignmentId()">
+                    <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Seleccionar Especialidad <span class="text-red-500">*</span></label>
+                    <app-searchable-select 
+                        [options]="availableSpecialtyOptions" 
+                        [value]="assignmentForm.specialtyId"
+                        (valueChange)="assignmentForm.specialtyId = $event.toString()"
+                        placeholder="Buscar especialidad...">
+                    </app-searchable-select>
+                </div>
+
+                <!-- Info for Edit -->
+                <div *ngIf="editingAssignmentId() && getSpecialtyName(assignmentForm.specialtyId) as specialtyName" class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div class="h-10 w-10 rounded-lg bg-accent text-white flex items-center justify-center font-bold text-xs shrink-0">
+                         {{ specialtyName.substring(0, 2).toUpperCase() }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-text-main">{{ specialtyName }}</p>
+                    </div>
+                </div>
+
+                <!-- Cost & Duration Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Costo (S/) <span class="text-red-500">*</span></label>
+                        <input [(ngModel)]="assignmentForm.cost" type="number" placeholder="0.00"
+                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Duración (min) <span class="text-red-500">*</span></label>
+                        <input [(ngModel)]="assignmentForm.durationMinutes" type="number" placeholder="15"
+                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-8 py-5 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end gap-4">
+            <app-button variant="ghost" (onClick)="closeAssignmentModal()" 
+                className="!text-[14px] font-semibold"
+                class="!px-6 !h-11 !bg-white border border-gray-300 text-gray-700 hover:!bg-gray-50 !rounded-xl transition-all">
+                Cancelar
+            </app-button>
+            <app-button variant="accent" (onClick)="saveAssignment()" [disabled]="!assignmentForm.specialtyId || assignmentForm.cost < 0"
+                className="!text-[14px] font-semibold"
+                class="!px-8 !h-11 bg-accent hover:bg-accent-hover text-white !rounded-xl shadow-sm transition-all min-w-[140px]">
+                {{ editingAssignmentId() ? 'Guardar Cambios' : 'Asignar' }}
             </app-button>
         </div>
     </app-card>

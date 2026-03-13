@@ -52,7 +52,6 @@ export class MainLayoutComponent {
     patients: this.icons.Users,
     specialists: this.icons.Stethoscope,
     specialties: this.icons.MessageCircle,
-    assignments: this.icons.Users,
     shifts: this.icons.Clock,
     roles_permissions: this.icons.Shield,
     subscription: this.icons.Zap,
@@ -62,13 +61,13 @@ export class MainLayoutComponent {
   private readonly labelOverride: Record<string, string> = {
     roles_permissions: 'Gestión de Usuarios',
     shifts: 'Turnos y Horarios',
-    assignments: 'Asignación de Especialidades',
     subscription: 'Planes y Suscripción',
     settings: 'Configuración Global'
   };
 
   navItems = computed(() => {
     const items = [...(this.currentUser()?.features ?? [])]
+      .filter(f => f.featureKey !== 'assignments') // Explicitly remove Assignments
       .sort((a, b) => a.order - b.order)
       .map(f => ({
         label: this.labelOverride[f.featureKey] ?? f.name,

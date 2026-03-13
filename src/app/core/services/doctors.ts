@@ -19,6 +19,8 @@ export interface Doctor extends User {
   rating?: number;
   reviewsCount?: number;
   active?: boolean;
+  nps?: number;
+  isProfileComplete?: boolean;
   // photoUrl is in User
 }
 
@@ -60,9 +62,11 @@ export class DoctorsService {
         let docs = data.content.map((d: any) => ({
           ...d,
           id: d.userId, // Map userId to id for general profile logic
-          doctorId: d.doctorId, // Correctly map Doctor Profile ID from doctorId field
+          doctorId: d.doctorId, 
           specialties: d.specialties || [],
-          active: d.isActive ?? d.active !== false
+          active: d.isActive !== false,
+          nps: d.nps,
+          isProfileComplete: d.isProfileComplete
         }));
 
         this.doctors.set(docs);
@@ -103,41 +107,17 @@ export class DoctorsService {
   }
 
   addDoctor(doctor: any) {
-    // 1. Get DOCTOR role ID
-    return this.http.get<any[]>(this.rolesUrl).pipe(
-      map(roles => {
-        const doctorRole = roles.find(r => r.roleKey.toUpperCase() === 'DOCTOR');
-        if (!doctorRole) throw new Error('Role DOCTOR not found');
-        return doctorRole.roleId;
-      }),
-      switchMap(roleId => {
-        // 2. Create User with that Role
-        const newUser = {
-          fullName: doctor.fullName,
-          email: doctor.email,
-          phone: doctor.phone,
-          dni: doctor.dni,
-          password: doctor.password || '12345678', // Default password
-          roleIds: [roleId],
-          photoUrl: doctor.photoUrl,
-          clinicId: this.authService.currentUser()?.clinicId
-        };
-        return this.http.post<any>(this.apiUrl, newUser);
-      }),
-      switchMap(createdUser => {
-        // 3. Create Doctor Profile linked to User
-        const newDoctorProfile = {
-          userId: createdUser.userId || createdUser.id,
-          cmp: doctor.cmp,
-          dni: doctor.dni
-        };
-        return this.http.post<any>(this.doctorsUrl, newDoctorProfile);
-      }),
-      switchMap(createdDoctor => {
-        // 4. Activate Doctor immediately
-        // Backend returns DoctorResponse which has doctorId
-        return this.http.patch(`${this.doctorsUrl}/${createdDoctor.doctorId}/status`, { isActive: true });
-      }),
+    const payload = {
+      fullName: doctor.fullName,
+      email: doctor.email,
+      phone: doctor.phone,
+      dni: doctor.dni,
+      password: doctor.password || '12345678',
+      cmp: doctor.cmp,
+      photoUrl: doctor.photoUrl
+    };
+
+    return this.http.post<any>(`${this.doctorsUrl}/with-users`, payload).pipe(
       tap(() => {
         this.refreshDoctors();
         this.refreshSelectableDoctors();
@@ -251,27 +231,7 @@ export class DoctorsService {
     return this.http.get<any[]>(`${this.doctorsUrl}/${doctorId}/reviews`);
   }
 
-  calculateNPS(reviews: any[]): number {
-    if (!reviews || reviews.length === 0) return 0;
-
-    // Promoters: 9-10
-    // Passives: 7-8
-    // Detractors: 0-6
-    const promoters = reviews.filter(r => r.score >= 9).length;
-    const detractors = reviews.filter(r => r.score <= 6).length;
-
-    const nps = ((promoters - detractors) / reviews.length) * 100;
-    return Math.round(nps);
-  }
-
   isProfileComplete(doctor: Doctor): boolean {
-    // Required fields: Full Name, CMP, DNI, Phone, Email
-    return !!(
-      doctor.fullName &&
-      doctor.cmp &&
-      doctor.dni &&
-      doctor.phone &&
-      doctor.email
-    );
+    return !!doctor.isProfileComplete;
   }
 }

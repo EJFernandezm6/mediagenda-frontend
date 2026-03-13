@@ -2,6 +2,7 @@ import { Injectable, signal, inject, effect } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 
 export interface Schedule {
@@ -67,9 +68,26 @@ export class SchedulesService {
     );
   }
 
+  addRecurringSchedule(doctorId: string, recurrence: any) {
+    return this.http.post<Schedule[]>(`${this.apiUrl}/doctors/${doctorId}/schedules/recurring`, recurrence).pipe(
+      tap(() => this.refreshSchedules({ doctorId }))
+    );
+  }
+
   removeSchedule(scheduleId: string, doctorId: string) {
     return this.http.delete(`${this.apiUrl}/schedules/${scheduleId}`).pipe(
       tap(() => this.refreshSchedules({ doctorId }))
+    );
+  }
+
+  getValidEndTimes(doctorId: string, specialtyId: string, date: string, startTime: string) {
+    return this.http.post<{ endTimes: string[] }>(`${this.apiUrl}/valid-end-times`, {
+      doctorId,
+      specialtyId,
+      date,
+      startTime
+    }).pipe(
+      map(res => res.endTimes)
     );
   }
 

@@ -2,7 +2,9 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpecialtiesService, Specialty } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
-import { LucideAngularModule, Plus, Search, Pencil, SquarePen, Trash2, Activity, Power, X } from 'lucide-angular';
+import { LucideAngularModule, Plus, Search, Pencil, SquarePen, Trash2, Activity, Power, X, ChevronRight, Edit3, Trash, User, Eye } from 'lucide-angular';
+import { DoctorsService } from '../../../core/services/doctors';
+import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
 import { FormsModule } from '@angular/forms';
@@ -31,9 +33,11 @@ import { SearchInputComponent } from '../../../shared/components/ui/search-input
 export class SpecialtiesListComponent implements OnInit {
   private service = inject(SpecialtiesService);
   private confirmService = inject(ConfirmModalService);
+  private doctorsService = inject(DoctorsService);
+  private doctorSpecialtyService = inject(DoctorSpecialtyService);
 
   // Icons
-  readonly icons = { Plus, Search, Pencil, SquarePen, Trash2, Activity, Power, X };
+  readonly icons = { Plus, Search, Pencil, SquarePen, Trash2, Activity, Power, X, ChevronRight, Edit3, Trash, User, Eye };
 
   specialties = this.service.specialties;
 
@@ -142,6 +146,114 @@ export class SpecialtiesListComponent implements OnInit {
     }
   }
 
+  // Assignments Panel State
+  isAssignmentsPanelOpen = signal(false);
+  selectedSpecialtyForAssignments = signal<Specialty | null>(null);
+
+  // Assignment Modal/Form State
+  isAssignmentModalOpen = signal(false);
+  editingAssignmentId = signal<string | null>(null);
+  assignmentForm = {
+    doctorId: '',
+    cost: 0,
+    durationMinutes: 15
+  };
+
+  assignedDoctors = computed(() => {
+    const specialty = this.selectedSpecialtyForAssignments();
+    if (!specialty) return [];
+    return this.doctorSpecialtyService.associations().filter(a => a.specialtyId === specialty.specialtyId);
+  });
+
+  availableDoctors = computed(() => {
+    const assignedIds = this.assignedDoctors().map(a => a.doctorId);
+    return this.doctorsService.doctors().filter(d => !assignedIds.includes(d.doctorId || d.id));
+  });
+
+  get availableDoctorOptions() {
+    return this.availableDoctors().map(d => ({
+      id: d.doctorId || d.id,
+      label: d.fullName
+    }));
+  }
+
+  openAssignmentsPanel(specialty: Specialty) {
+    this.selectedSpecialtyForAssignments.set(specialty);
+    this.isAssignmentsPanelOpen.set(true);
+  }
+
+  closeAssignmentsPanel() {
+    this.isAssignmentsPanelOpen.set(false);
+    setTimeout(() => this.selectedSpecialtyForAssignments.set(null), 300);
+  }
+
+  openAssignmentModal(assoc?: any) {
+    if (assoc) {
+      this.editingAssignmentId.set(assoc.doctorSpecialtyId);
+      this.assignmentForm = {
+        doctorId: assoc.doctorId,
+        cost: assoc.cost,
+        durationMinutes: assoc.durationMinutes
+      };
+    } else {
+      this.editingAssignmentId.set(null);
+      this.assignmentForm = {
+        doctorId: '',
+        cost: 0,
+        durationMinutes: 15
+      };
+    }
+    this.isAssignmentModalOpen.set(true);
+  }
+
+  closeAssignmentModal() {
+    this.isAssignmentModalOpen.set(false);
+  }
+
+  saveAssignment() {
+    const specialty = this.selectedSpecialtyForAssignments();
+    if (!specialty) return;
+
+    if (this.editingAssignmentId()) {
+      this.doctorSpecialtyService.updateAssociation(this.editingAssignmentId()!, this.assignmentForm).subscribe({
+        next: () => this.closeAssignmentModal(),
+        error: () => alert('Error al actualizar la asignación.')
+      });
+    } else {
+      const payload = {
+        ...this.assignmentForm,
+        specialtyId: specialty.specialtyId
+      };
+      this.doctorSpecialtyService.addAssociation(this.assignmentForm.doctorId, payload).subscribe({
+        next: () => this.closeAssignmentModal(),
+        error: () => alert('Error al crear la asignación.')
+      });
+    }
+  }
+
+  getDoctorInfo(doctorId: string) {
+    const doctor = this.doctorsService.doctors().find(d => d.doctorId === doctorId || d.id === doctorId);
+    return doctor;
+  }
+
+  async removeAssignment(assocId: string) {
+    const confirmed = await this.confirmService.confirm({
+      title: 'Desasignar Especialista',
+      message: '¿Estás seguro de que deseas desasignar a este especialista de la especialidad?',
+      confirmText: 'Desasignar',
+      cancelText: 'Cancelar'
+    });
+
+    if (confirmed) {
+      this.doctorSpecialtyService.removeAssociation(assocId).subscribe({
+        next: () => {
+          // Success handled by tap in service
+        },
+        error: () => alert('Error al desasignar el especialista.')
+      });
+    }
+  }
+
   toggleActive(specialty: Specialty) {
     this.service.updateStatus(specialty.specialtyId, !specialty.active).subscribe();
   }
@@ -159,6 +271,10 @@ export class SpecialtiesListComponent implements OnInit {
         error: () => alert('No se pudo eliminar la especialidad. Es posible que esté asignada a uno o más médicos en este momento.')
       });
     }
+  }
+
+  getSpecialistCount(specialtyId: string): number {
+    return this.doctorSpecialtyService.associations().filter(a => a.specialtyId === specialtyId).length;
   }
 }
 // Force rebuild Sat Feb  7 18:25:41 -05 2026

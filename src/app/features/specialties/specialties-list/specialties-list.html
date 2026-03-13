@@ -42,6 +42,7 @@
                         <th class="pl-8 bg-transparent">Especialidad</th>
                         <th class="bg-transparent">Descripción</th>
                         <th class="text-center bg-transparent">Estado</th>
+                        <th class="text-center bg-transparent">Especialistas</th>
                         <th class="pr-8 text-right bg-transparent">Acciones</th>
                     </tr>
                 </thead>
@@ -69,9 +70,20 @@
                             </span>
                         </td>
 
+                        <!-- Specialists Count -->
+                        <td class="text-center">
+                            <span class="text-[13px] font-semibold px-2.5 py-1 bg-accent/5 text-accent rounded-lg border border-accent/10">
+                                {{ getSpecialistCount(specialty.specialtyId) }} médicos
+                            </span>
+                        </td>
+
                         <!-- Actions -->
                         <td class="pr-8 text-right">
                             <div class="flex items-center justify-end gap-1">
+                                <button class="action-btn" (click)="openAssignmentsPanel(specialty)" title="Ver Asignaciones">
+                                    <lucide-icon [img]="icons.Eye" [strokeWidth]="1.5" class="w-4.5 h-4.5"></lucide-icon>
+                                </button>
+
                                 <button class="action-btn" (click)="toggleActive(specialty)" title="Alternar estado">
                                     <lucide-icon [img]="icons.Power" [strokeWidth]="1.5"
                                         [class]="specialty.active ? 'w-4.5 h-4.5 text-success' : 'w-4.5 h-4.5 text-danger'"></lucide-icon>
@@ -120,10 +132,10 @@
     <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
 
     <app-card variant="elevated" [noPadding]="true"
-        class="relative w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl overflow-hidden border-none">
+        class="relative w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl overflow-visible border-none">
         
         <!-- Modal Header -->
-        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white">
+        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-3xl">
             <div>
                 <h3 class="text-xl font-bold text-text-main">
                     {{ editingId ? 'Editar' : 'Nueva' }} Especialidad
@@ -165,6 +177,191 @@
                 className="!text-[14px] font-semibold"
                 class="!px-8 !h-11 bg-accent hover:bg-accent-hover text-white !rounded-xl shadow-sm transition-all min-w-[140px]">
                 {{ editingId ? 'Guardar Cambios' : 'Registrar' }}
+            </app-button>
+        </div>
+    </app-card>
+</div>
+
+<!-- Assignments Slide-over Panel -->
+<div *ngIf="selectedSpecialtyForAssignments()" 
+     class="fixed inset-0 z-[60] overflow-hidden" 
+     [class.pointer-events-none]="!isAssignmentsPanelOpen()">
+    
+    <!-- Backdrop with blur -->
+    <div (click)="closeAssignmentsPanel()" 
+         class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+         [class.opacity-0]="!isAssignmentsPanelOpen()"
+         [class.opacity-100]="isAssignmentsPanelOpen()">
+    </div>
+
+    <!-- Slide Panel -->
+    <div class="absolute inset-y-0 right-0 max-w-2xl w-full bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-out"
+         [class.translate-x-full]="!isAssignmentsPanelOpen()"
+         [class.translate-x-0]="isAssignmentsPanelOpen()">
+        
+        <!-- Header Section -->
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div>
+                <h2 class="text-[20px] font-semibold text-text-main leading-tight">
+                    {{ selectedSpecialtyForAssignments()?.name }}
+                </h2>
+                <p class="text-sm text-text-muted mt-1">Gestión de especialistas, costos y duración</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <app-button variant="accent" (onClick)="openAssignmentModal()" class="!px-5 !h-10 !rounded-xl !text-sm font-bold shadow-lg shadow-accent/20">
+                    <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
+                    Asignar Médico
+                </app-button>
+                <button (click)="closeAssignmentsPanel()" class="p-2.5 rounded-xl text-text-light hover:text-text-main hover:bg-gray-100 transition-all outline-none">
+                    <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <!-- Assignments Table -->
+            <div *ngIf="assignedDoctors().length > 0" class="border border-border-soft rounded-2xl overflow-hidden shadow-sm bg-white">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/50">
+                            <th class="px-5 py-3 text-[12px] font-medium text-text-muted tracking-wide">Especialista</th>
+                            <th class="px-5 py-3 text-[12px] font-medium text-text-muted tracking-wide text-center">Costo</th>
+                            <th class="px-5 py-3 text-[12px] font-medium text-text-muted tracking-wide text-center">Duración</th>
+                            <th class="px-5 py-3 text-[12px] font-medium text-text-muted tracking-wide text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-soft">
+                        <tr *ngFor="let assoc of assignedDoctors()" class="hover:bg-gray-50/30 transition-colors group">
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-3">
+                                    <!-- Simple Avatar -->
+                                    <div class="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center text-text-muted font-bold text-xs border border-white shadow-sm overflow-hidden text-center whitespace-nowrap">
+                                        <img *ngIf="getDoctorInfo(assoc.doctorId)?.photoUrl && !getDoctorInfo(assoc.doctorId)?.photoUrl?.includes('ui-avatars')"
+                                            [src]="getDoctorInfo(assoc.doctorId)?.photoUrl" class="h-full w-full object-cover">
+                                        <span *ngIf="!getDoctorInfo(assoc.doctorId)?.photoUrl || getDoctorInfo(assoc.doctorId)?.photoUrl?.includes('ui-avatars')">
+                                            {{ getDoctorInfo(assoc.doctorId)?.fullName?.substring(0, 2)?.toUpperCase() || 'DR' }}
+                                        </span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[14px] font-medium text-text-main">{{ getDoctorInfo(assoc.doctorId)?.fullName || 'Cargando doctor...' }}</span>
+                                        <span class="text-[11px] text-text-light">CMP: {{ getDoctorInfo(assoc.doctorId)?.cmp || '---' }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 text-center">
+                                <span class="text-[14px] font-medium text-text-main">S/ {{ assoc.cost.toFixed(2) }}</span>
+                            </td>
+                            <td class="px-5 py-4 text-center">
+                                <span class="text-[14px] text-text-muted font-normal">{{ assoc.durationMinutes }} min</span>
+                            </td>
+                            <td class="px-5 py-4 text-right">
+                                <div class="flex items-center justify-end gap-1">
+                                    <button class="action-btn p-2 hover:text-accent" (click)="openAssignmentModal(assoc)" title="Editar costo/tiempo">
+                                        <lucide-icon [img]="icons.Edit3" class="w-4 h-4"></lucide-icon>
+                                    </button>
+                                    <button (click)="removeAssignment(assoc.doctorSpecialtyId!)" class="action-btn p-2 hover:text-danger" title="Desasignar">
+                                        <lucide-icon [img]="icons.Trash" class="w-4 h-4"></lucide-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State for Assignments -->
+            <div *ngIf="assignedDoctors().length === 0" 
+                 class="border-2 border-dashed border-gray-200 rounded-3xl p-16 text-center bg-gray-50/30">
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100 mb-6">
+                        <lucide-icon [img]="icons.User" class="w-10 h-10 text-gray-300" [strokeWidth]="1.5"></lucide-icon>
+                    </div>
+                    <h3 class="text-[16px] font-bold text-text-main">No hay especialistas asignados</h3>
+                    <p class="text-[14px] text-text-muted mt-2 max-w-xs mx-auto">Haz clic en + Asignar Médico para empezar a vincular especialistas a esta especialidad.</p>
+                    <app-button variant="accent" (onClick)="openAssignmentModal()" class="mt-8 !rounded-xl !h-11 !px-8 shadow-lg shadow-accent/20">
+                        <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
+                        Asignar Especialista
+                    </app-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign/Edit Doctor Modal -->
+<div *ngIf="isAssignmentModalOpen()" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm transition-opacity" (click)="closeAssignmentModal()"></div>
+
+    <app-card variant="elevated" [noPadding]="true"
+        class="relative w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl overflow-visible border-none text-left">
+        
+        <!-- Modal Header -->
+        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-3xl">
+            <div>
+                <h3 class="text-xl font-bold text-text-main">
+                    {{ editingAssignmentId() ? 'Editar' : 'Nueva' }} Asignación
+                </h3>
+                <p class="text-xs text-text-light font-medium mt-1">Configurar especialista y costos</p>
+            </div>
+            <button (click)="closeAssignmentModal()" class="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-light hover:text-text-main">
+                <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
+            </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-8 pt-4">
+            <div class="space-y-6">
+                <!-- Doctor Selection (Only for New) -->
+                <div *ngIf="!editingAssignmentId()">
+                    <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Seleccionar Especialista <span class="text-red-500">*</span></label>
+                    <app-searchable-select 
+                        [options]="availableDoctorOptions" 
+                        [value]="assignmentForm.doctorId"
+                        (valueChange)="assignmentForm.doctorId = $event.toString()"
+                        placeholder="Buscar médico...">
+                    </app-searchable-select>
+                </div>
+
+                <!-- Info for Edit -->
+                <div *ngIf="editingAssignmentId() && getDoctorInfo(assignmentForm.doctorId) as doctor" class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div class="h-10 w-10 rounded-lg bg-accent text-white flex items-center justify-center font-bold text-xs shrink-0">
+                         {{ doctor.fullName.substring(0, 2).toUpperCase() }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-text-main">{{ doctor.fullName }}</p>
+                        <p class="text-xs text-text-light">CMP: {{ doctor.cmp || '---' }}</p>
+                    </div>
+                </div>
+
+                <!-- Cost & Duration Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Costo (S/) <span class="text-red-500">*</span></label>
+                        <input [(ngModel)]="assignmentForm.cost" type="number" placeholder="0.00"
+                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Duración (min) <span class="text-red-500">*</span></label>
+                        <input [(ngModel)]="assignmentForm.durationMinutes" type="number" placeholder="15"
+                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-8 py-5 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end gap-4">
+            <app-button variant="ghost" (onClick)="closeAssignmentModal()" 
+                className="!text-[14px] font-semibold"
+                class="!px-6 !h-11 !bg-white border border-gray-300 text-gray-700 hover:!bg-gray-50 !rounded-xl transition-all">
+                Cancelar
+            </app-button>
+            <app-button variant="accent" (onClick)="saveAssignment()" [disabled]="!assignmentForm.doctorId || assignmentForm.cost < 0"
+                className="!text-[14px] font-semibold"
+                class="!px-8 !h-11 bg-accent hover:bg-accent-hover text-white !rounded-xl shadow-sm transition-all min-w-[140px]">
+                {{ editingAssignmentId() ? 'Guardar Cambios' : 'Asignar' }}
             </app-button>
         </div>
     </app-card>

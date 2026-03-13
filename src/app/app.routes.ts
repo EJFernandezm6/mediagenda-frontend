@@ -43,10 +43,6 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/doctors/doctor-detail/doctor-detail').then(m => m.DoctorDetailComponent)
             },
             {
-                path: 'doctor-specialty',
-                loadComponent: () => import('./features/doctors/doctor-specialty/doctor-specialty').then(m => m.DoctorSpecialtyComponent)
-            },
-            {
                 path: 'schedule-config',
                 loadComponent: () => import('./features/schedules/schedule-config/schedule-config').then(m => m.ScheduleConfigComponent)
             },

@@ -74,25 +74,11 @@ export class AppointmentsService {
   }
 
   fetchPendingAppointments() {
-    // Assuming endpoint supports filtering or we fetch future and filter
-    // For now, let's fetch 'all' or a wide range, or assume a specific endpoint exists.
-    // I'll try fetching with paymentStatus=PENDING if backend supports, otherwise I'll need to fetch recent/future.
-    // Given I don't want to break things, I'll use a new call to /pending if it existed, but likely I just need to add a param.
-    // Let's try GET /appointments/pending if possible, or just standard GET with params.
-    // I'll assume GET /appointments/pending works as a safe bet for a new feature, or I'll just filter in client from a "current month" fetch?
-    // User requested: "notifications for when admin needs to change status manually".
-    // I will try to fetch ALL pending appointments.
-    const params = new HttpParams().set('paymentStatus', 'PENDING');
-    this.http.get<Appointment[]>(`${this.apiUrl}`, { params }).subscribe({
+    this.http.get<Appointment[]>(`${this.apiUrl}/pending-verification`).subscribe({
       next: (data) => {
-        // Filter mainly for YAPE/PLIN/CASH and PENDING status
-        const pending = data
-          .filter(a => a.paymentStatus === 'PENDING' && ['YAPE', 'PLIN', 'CASH'].includes(a.paymentMethod || ''))
-          .map(a => this.normalizeAppointment(a));
-        this.pendingAppointments.set(pending);
+        this.pendingAppointments.set(data.map(a => this.normalizeAppointment(a)));
       },
       error: () => {
-        // Fallback or ignore
         console.warn('Failed to fetch pending appointments');
       }
     });

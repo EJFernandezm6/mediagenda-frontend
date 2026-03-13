@@ -7,16 +7,31 @@ import { SpecialtiesService } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { ConfigurationService } from '../../../core/services/configuration';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
-import { LucideAngularModule, Clock, Plus, Trash2 } from 'lucide-angular';
+import { LucideAngularModule, Clock, Plus, Trash2, Search, Calendar, X, Filter, Trash, Eye } from 'lucide-angular';
 
+import { PageHeaderComponent } from '../../../shared/components/ui/page-header/page-header.component';
+import { SearchInputComponent } from '../../../shared/components/ui/search-input/search-input.component';
 import { DoctorSelectorComponent } from '../../../shared/components/doctor-selector/doctor-selector';
 import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
 import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
+import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-schedule-config',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, DoctorSelectorComponent, SearchableSelectComponent, DatePickerComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    LucideAngularModule, 
+    DoctorSelectorComponent,
+    SearchableSelectComponent,
+    DatePickerComponent,
+    ButtonComponent,
+    PaginationComponent,
+    PageHeaderComponent,
+    SearchInputComponent
+  ],
   templateUrl: './schedule-config.html',
   styleUrl: './schedule-config.css'
 })
@@ -28,28 +43,67 @@ export class ScheduleConfigComponent {
   private confirmService = inject(ConfirmModalService);
   private configService = inject(ConfigurationService);
 
-  readonly icons = { Clock, Plus, Trash2 };
+  readonly icons = { Clock, Plus, Trash2, Search, Calendar, X, Filter, Trash, Eye };
+
+  // Filter State
+  searchText = signal('');
+  filterDate = signal('');
+  filterSpecialtyId = signal('');
+  
+  // Pagination State
+  currentPage = signal(1);
+  itemsPerPage = 5;
+
+  // Form & Slide-over State
+  isRegistrationModalOpen = signal(false);
+  isRepeating = signal(false);
+  repeatFrequency = signal<'DAILY' | 'WEEKLY'>('WEEKLY');
+  repeatDays = signal<number[]>([1, 2, 3, 4, 5]); // Default Mon-Fri
+  repeatEndDate = signal<string>('');
 
   // doctors computed removed as it is not used in HTML anymore (handled by selector)
 
   selectedDoctorId = signal('');
 
   // Flatten schedules effectively
-  currentSchedules = computed(() => {
-    const docId = this.selectedDoctorId();
+  // Filtering logic
+  filteredSchedules = computed(() => {
     const all = this.scheduleService.schedules();
+    const search = this.searchText().toLowerCase();
+    const date = this.filterDate();
+    const specId = this.filterSpecialtyId();
     const today = new Date().toISOString().split('T')[0];
 
-    let filtered = all.filter(s => s.date >= today); // always filter past dates
-
-    if (docId) {
-      filtered = filtered.filter(s => s.doctorId === docId);
-    }
-
-    return filtered.sort((a, b) => {
+    return all.filter(s => {
+      const docName = this.getDoctorName(s.doctorId).toLowerCase();
+      const matchesSearch = !search || docName.includes(search);
+      const matchesDate = date ? s.date === date : s.date >= today; // Only future if no specific date
+      const matchesSpec = !specId || s.specialtyId === specId;
+      return matchesSearch && matchesDate && matchesSpec;
+    }).sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
       return a.startTime.localeCompare(b.startTime);
     });
+  });
+
+  get paginatedSchedules() {
+    const start = (this.currentPage() - 1) * this.itemsPerPage;
+    return this.filteredSchedules().slice(start, start + this.itemsPerPage);
+  }
+
+  get totalItems() {
+    return this.filteredSchedules().length;
+  }
+
+  // Specialties for filter dropdown
+  allSpecialtiesOptions = computed(() => {
+    return [
+      { id: '', label: 'Todas las especialidades' },
+      ...this.specialtyService.specialties().map(s => ({
+        id: s.specialtyId,
+        label: s.name
+      }))
+    ];
   });
 
   formatTimeDisplay(time: string): string {
@@ -102,6 +156,12 @@ export class ScheduleConfigComponent {
     return this.specialtyService.specialties().find(s => s.specialtyId === id)?.name || '';
   }
 
+  formatModality(modality: string): string {
+    if (!modality) return 'Presencial';
+    const m = modality.toLowerCase();
+    return m.charAt(0).toUpperCase() + m.slice(1);
+  }
+
   // Doctor Name for Form
   selectedDoctorName = computed(() => {
     const docId = this.selectedDoctorId();
@@ -113,6 +173,27 @@ export class ScheduleConfigComponent {
   getDoctorName(docId: string): string {
     const doc = this.doctorService.selectableDoctors().find(d => d.id === docId || d.doctorId === docId);
     return doc ? doc.fullName : 'Desconocido';
+  }
+
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  }
+
+  getAvatarColor(name: string): string {
+    const colors = [
+      'bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 
+      'bg-indigo-500', 'bg-rose-500', 'bg-amber-500'
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
   }
 
   get isSelectionComplete(): boolean {
@@ -177,59 +258,15 @@ export class ScheduleConfigComponent {
       return;
     }
 
-    const assoc = this.associationService.associations().find(a => a.doctorId === docId && a.specialtyId === specId);
-    const duration = assoc?.durationMinutes || 30;
-
-    // Obtener turnos del médico para la fecha seleccionada
-    const targetDate = this.formData.date;
-    const existingSchedules = this.scheduleService.schedules()
-      .filter(s => s.doctorId === docId && s.date === targetDate)
-      .sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-    // Si el startTime seleccionado cae DENTRO de un bloque existente,
-    // no hay horas de fin válidas (el inicio ya es inválido).
-    // Nota: Si empieza EXACTAMENTE cuando termina otro bloque, sí es válido.
-    const isInsideExistingBlock = existingSchedules.some(s => {
-      return startTime >= s.startTime && startTime < s.endTime;
+    this.scheduleService.getValidEndTimes(docId, specId, this.formData.date, startTime).subscribe({
+      next: (times) => {
+        this.validEndTimes.set(times);
+        if (!times.includes(this.formData.endTime)) {
+          this.formData.endTime = times[0] || '';
+        }
+      },
+      error: () => this.validEndTimes.set([])
     });
-
-    if (isInsideExistingBlock) {
-      this.validEndTimes.set([]);
-      this.formData.endTime = '';
-      return;
-    }
-
-    // Encontrar el próximo bloque ocupado DESPUÉS del startTime elegido
-    const nextSchedule = existingSchedules.find(s => s.startTime >= startTime);
-
-    const times: string[] = [];
-    let current = this.dateFromTime(startTime);
-
-    // Límite final general (cierre de clínica)
-    const closeTimeStr = this.configService.settings().clinicCloseTime || '20:00';
-    let endLimit = this.dateFromTime(closeTimeStr);
-
-    // Límite dinámico basado en el próximo turno del médico (si existe y entra antes del cierre)
-    if (nextSchedule) {
-      const nextScheduleDate = this.dateFromTime(nextSchedule.startTime);
-      if (nextScheduleDate < endLimit) {
-        endLimit = nextScheduleDate;
-      }
-    }
-
-    current.setMinutes(current.getMinutes() + duration);
-
-    // Generar opciones de fin hasta chocar con el límite
-    while (current <= endLimit) {
-      times.push(this.timeFromDate(current));
-      current.setMinutes(current.getMinutes() + duration);
-    }
-
-    this.validEndTimes.set(times);
-
-    if (!times.includes(this.formData.endTime)) {
-      this.formData.endTime = times[0] || '';
-    }
   }
 
   dateFromTime(time: string): Date {
@@ -237,10 +274,6 @@ export class ScheduleConfigComponent {
     const d = new Date();
     d.setHours(h, m, 0, 0);
     return d;
-  }
-
-  timeFromDate(date: Date): string {
-    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   }
 
   onStartTimeChange() {
@@ -264,6 +297,58 @@ export class ScheduleConfigComponent {
     }
   }
 
+  toggleRepeatDay(day: number) {
+    const current = this.repeatDays();
+    if (current.includes(day)) {
+      this.repeatDays.set(current.filter(d => d !== day));
+    } else {
+      this.repeatDays.set([...current, day].sort());
+    }
+  }
+
+  // Filter Actions
+  onSearchChange(val: string) {
+    this.searchText.set(val);
+    this.currentPage.set(1);
+  }
+
+  onFilterDateChange(val: string) {
+    this.filterDate.set(val);
+    this.currentPage.set(1);
+  }
+
+  onFilterSpecialtyChange(val: string | number) {
+    this.filterSpecialtyId.set(val.toString());
+    this.currentPage.set(1);
+  }
+
+  onPageChange(page: number) {
+    this.currentPage.set(page);
+  }
+
+  clearFilters() {
+    this.searchText.set('');
+    this.filterDate.set('');
+    this.filterSpecialtyId.set('');
+    this.currentPage.set(1);
+  }
+
+  // Modal Control
+  openRegistrationModal() {
+    this.isRegistrationModalOpen.set(true);
+  }
+
+  closeRegistrationModal() {
+    this.isRegistrationModalOpen.set(false);
+    // Reset form after closing
+    this.selectedDoctorId.set('');
+    this.formData.specialtyId = '';
+    this.formData.endTime = '';
+    this.isRepeating.set(false);
+    this.repeatDays.set([1, 2, 3, 4, 5]);
+    this.repeatEndDate.set('');
+  }
+
   saveSchedule() {
     const docId = this.selectedDoctorId();
     if (docId && this.formData.specialtyId && this.formData.endTime) {
@@ -271,47 +356,52 @@ export class ScheduleConfigComponent {
       const formatTime = (t: string) => t.length === 5 ? `${t}:00` : t;
       const payloads: any[] = [];
       const [sy, sm, sd] = this.formData.date.split('-').map(Number);
-      // Create date at noon to avoid timezone rollover issues
       const startDate = new Date(sy, sm - 1, sd, 12, 0, 0);
 
-      const totalOccurrences = 1 + this.formData.weeksToRepeat;
-
-      for (let i = 0; i < totalOccurrences; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(startDate.getDate() + (i * 7));
-
-        const isoDate = [
-          currentDate.getFullYear(),
-          (currentDate.getMonth() + 1).toString().padStart(2, '0'),
-          currentDate.getDate().toString().padStart(2, '0')
-        ].join('-');
-
-        payloads.push({
+      if (!this.isRepeating()) {
+        const payload = {
           specialtyId: this.formData.specialtyId,
-          date: isoDate,
+          date: this.formData.date,
           startTime: formatTime(this.formData.startTime),
           endTime: formatTime(this.formData.endTime),
           modality: this.formData.modality
+        };
+        this.scheduleService.addSchedule(docId, [payload]).subscribe({
+          next: () => this.handleSaveSuccess(docId),
+          error: (err) => this.handleSaveError(err)
+        });
+      } else {
+        const recurrencePayload = {
+          specialtyId: this.formData.specialtyId,
+          startDate: this.formData.date,
+          endDate: this.repeatEndDate(),
+          startTime: formatTime(this.formData.startTime),
+          endTime: formatTime(this.formData.endTime),
+          modality: this.formData.modality,
+          frequency: this.repeatFrequency(),
+          repeatDays: this.repeatDays()
+        };
+        this.scheduleService.addRecurringSchedule(docId, recurrencePayload).subscribe({
+          next: () => this.handleSaveSuccess(docId),
+          error: (err) => this.handleSaveError(err)
         });
       }
-
-      this.scheduleService.addSchedule(docId, payloads).subscribe({
-        next: () => {
-          this.scheduleService.refreshSchedules({ doctorId: docId }); // Ensure refresh
-
-          // Reset form to default values to avoid adding duplicate schedules easily
-          this.formData.startTime = '09:00';
-          this.formData.endTime = '';
-          this.formData.weeksToRepeat = 0;
-          this.formData.modality = 'PRESENCIAL';
-          this.updateValidEndTimes();
-        },
-        error: (err) => {
-          console.error('Error saving schedule', err);
-          alert('Error al guardar el turno. Verifique los datos.');
-        }
-      });
     }
+  }
+
+  private handleSaveSuccess(doctorId: string) {
+    this.scheduleService.refreshSchedules({ doctorId });
+    this.formData.startTime = '09:00';
+    this.formData.endTime = '';
+    this.formData.weeksToRepeat = 0;
+    this.formData.modality = 'PRESENCIAL';
+    this.updateValidEndTimes();
+    this.closeRegistrationModal();
+  }
+
+  private handleSaveError(err: any) {
+    console.error('Error saving schedule', err);
+    alert('Error al guardar el turno. Verifique que no haya superposiciones.');
   }
 
   async remove(schedule: Schedule) {

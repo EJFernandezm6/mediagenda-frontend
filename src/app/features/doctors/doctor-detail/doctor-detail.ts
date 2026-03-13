@@ -41,11 +41,18 @@ export class DoctorDetailComponent implements OnInit {
 
         if (found) {
             this.doctor.set(found);
+            // Use backend-computed NPS if available
+            this.nps.set(found.nps ?? 0);
             if (found.doctorId) {
                 this.doctorsService.getDoctorReviews(found.doctorId).subscribe({
                     next: (reviews) => {
                         this.reviews.set(reviews);
-                        this.nps.set(this.doctorsService.calculateNPS(reviews));
+                        // Recalculate NPS from reviews for accuracy in detail view
+                        if (reviews.length > 0) {
+                            const promoters = reviews.filter((r: any) => r.score >= 9).length;
+                            const detractors = reviews.filter((r: any) => r.score <= 6).length;
+                            this.nps.set(Math.round(((promoters - detractors) / reviews.length) * 100));
+                        }
                         this.isLoading.set(false);
                     },
                     error: () => this.isLoading.set(false)
@@ -54,7 +61,6 @@ export class DoctorDetailComponent implements OnInit {
                 this.isLoading.set(false);
             }
         } else {
-            // If not in cache, we could implement getDoctorById in service
             this.isLoading.set(false);
         }
     }

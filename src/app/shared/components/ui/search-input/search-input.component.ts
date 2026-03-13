@@ -19,7 +19,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
         [value]="currentValue()" 
         (input)="onInputChange($event)"
         type="text" 
-        class="pl-11 w-full"
+        class="pl-11 w-full h-10 !py-0 text-sm border border-border-main rounded-xl focus:border-accent transition-all outline-none placeholder:text-text-light"
         [placeholder]="placeholder()">
       
       <button 

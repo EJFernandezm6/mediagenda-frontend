@@ -1,244 +1,312 @@
-<div class="px-4 py-6 sm:px-6 lg:px-8 bg-gray-50 min-h-screen">
-    <!-- Title Section -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Turnos y Horarios</h1>
-        <p class="mt-2 text-sm text-gray-500">Define los días y horas de atención por especialista y especialidad.</p>
+<div class="h-[calc(100vh-8rem)] flex flex-col overflow-hidden px-8 pb-4">
+    <!-- Header with primary CTA relocated -->
+    <div class="shrink-0 mb-4">
+        <app-page-header 
+            title="Turnos y Horarios" 
+            subtitle="Gestiona la disponibilidad de tus especialistas de forma centralizada."
+            buttonText="Nuevo Turno"
+            [buttonIcon]="icons.Plus"
+            [largeButton]="true"
+            (actionClick)="openRegistrationModal()">
+        </app-page-header>
     </div>
 
-    <!-- Main Card Module -->
-    <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+    <!-- Balanced Action Bar -->
+    <div class="shrink-0 mb-4 flex items-center gap-4">
+        <div class="flex-1">
+            <app-search-input 
+                placeholder="Buscar especialista..." 
+                [initialValue]="searchText()"
+                (search)="onSearchChange($event)">
+            </app-search-input>
+        </div>
 
-        <!-- Inline Form Wrapper -->
-        <div class="p-6 border-b border-gray-200 bg-white">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Registrar Nuevo Turno</h2>
+        <div class="flex-1">
+            <app-datepicker 
+                [allowPastDates]="true"
+                [value]="filterDate()" 
+                (valueChange)="onFilterDateChange($event)" 
+                placeholder="Seleccionar fecha">
+            </app-datepicker>
+        </div>
 
-            <div class="space-y-5">
-                <!-- Top Row: Doctor, Specialty, Date -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 items-end">
-                    <!-- Doctor Selection -->
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Especialista</label>
-                        <app-doctor-selector class="block w-full" [requireSpecialties]="true"
-                            (selectionChanged)="onDoctorSelectionChange($event)"></app-doctor-selector>
-                    </div>
+        <div class="flex-1">
+            <app-searchable-select 
+                [options]="allSpecialtiesOptions()" 
+                [value]="filterSpecialtyId()"
+                (valueChange)="onFilterSpecialtyChange($event)"
+                placeholder="Todas las especialidades">
+            </app-searchable-select>
+        </div>
+        
+        <!-- Clear Button -->
+        <button 
+            *ngIf="searchText() || filterDate() || filterSpecialtyId()"
+            (click)="clearFilters()"
+            class="action-btn h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-border-main text-text-light hover:text-danger hover:bg-danger-soft transition-all shrink-0"
+            title="Limpiar filtros">
+            <lucide-icon [img]="icons.X" class="w-4.5 h-4.5"></lucide-icon>
+        </button>
+    </div>
 
-                    <!-- Specialty Selection -->
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Especialidad</label>
-                        <app-searchable-select [options]="specialtyOptions" [value]="formData.specialtyId"
-                            (valueChange)="onSpecialtyChange($event.toString())" [disabled]="!selectedDoctorId()"
-                            placeholder="Seleccione especialidad..." displayMode="default">
-                        </app-searchable-select>
-                    </div>
+    <!-- Turnos List Table - Replicated from Specialties -->
+    <div class="bg-surface rounded-3xl shadow-md border border-border-soft flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 overflow-x-auto overflow-y-hidden relative custom-scrollbar">
+            <table class="table-v2 w-full">
+                <!-- Sticky Header -->
+                <thead class="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm border-b border-border-soft shadow-sm">
+                    <tr class="table-v2-header">
+                        <th class="w-[35%] pl-8 bg-transparent text-left text-[12px] font-medium text-gray-500">Especialista</th>
+                        <th class="w-[20%] bg-transparent text-left text-[12px] font-medium text-gray-500">Fecha</th>
+                        <th class="w-[20%] bg-transparent text-left text-[12px] font-medium text-gray-500">Rango Horario</th>
+                        <th class="w-[15%] bg-transparent text-left text-[12px] font-medium text-gray-500">Modalidad</th>
+                        <th class="w-[10%] pr-8 bg-transparent text-right text-[12px] font-medium text-gray-500">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-soft">
+                    <!-- Empty State -->
+                    <tr *ngIf="paginatedSchedules.length === 0">
+                        <td colspan="5" class="py-24">
+                            <div class="flex flex-col items-center justify-center text-center px-4 animate-fade-in">
+                                <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4 border border-border-soft">
+                                    <lucide-icon [img]="icons.Clock" class="w-8 h-8 text-text-light" [strokeWidth]="1.5"></lucide-icon>
+                                </div>
+                                <h3 class="text-lg font-bold text-text-main">No hay turnos registrados</h3>
+                                <p class="text-sm text-text-muted mt-1 max-w-xs mx-auto">
+                                    {{ (searchText() || filterDate() || filterSpecialtyId()) ? 'No se encontraron resultados con los filtros aplicados.' : 'No hay turnos programados en el sistema.' }}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
 
-                    <!-- Date Selection -->
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de atención <span
-                                class="text-red-500">*</span></label>
-                        <app-datepicker [value]="formData.date"
-                            (valueChange)="formData.date = $event; onDateChange($event)"
-                            [disabled]="!selectedDoctorId() || !formData.specialtyId">
-                        </app-datepicker>
-                    </div>
+                    <!-- Records Rows -->
+                    <tr *ngFor="let schedule of paginatedSchedules" class="table-v2-row group">
+                        <td class="pl-8 py-3">
+                            <div class="flex items-center gap-3">
+                                <!-- Avatar -->
+                                <div class="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-xs ring-4 ring-white shadow-sm shrink-0"
+                                    [ngClass]="getAvatarColor(getDoctorName(schedule.doctorId))">
+                                    {{ getInitials(getDoctorName(schedule.doctorId)) }}
+                                </div>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="cell-primary text-base font-bold truncate">{{ getDoctorName(schedule.doctorId) }}</span>
+                                    <span class="text-[12px] text-text-light flex items-center gap-1.5 leading-none mt-1">
+                                        <span class="text-accent/40 text-[8px]">•</span>
+                                        {{ getSpecialtyName(schedule.specialtyId) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center gap-2.5 text-text-main text-[14px]">
+                                <lucide-icon [img]="icons.Calendar" class="w-4 h-4 text-text-light"></lucide-icon>
+                                <span class="capitalize">{{ getScheduleDisplay(schedule) }}</span>
+                            </div>
+                        </td>
+                        <td class="py-3 text-left align-middle">
+                            <div class="inline-flex flex-col items-center justify-center gap-1">
+                                <div class="inline-flex h-8 items-center px-4 bg-gray-50 border border-border-soft rounded-lg text-[13px] font-bold text-text-main shadow-sm">
+                                    {{ formatTimeDisplay(schedule.startTime) }} - {{ formatTimeDisplay(schedule.endTime) }}
+                                </div>
+                                <span class="text-[11px] text-text-light/60 font-medium">
+                                    ({{ calculateDuration(schedule) }})
+                                </span>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <span 
+                                [class]="(schedule.modality || '').toLowerCase() === 'presencial' 
+                                    ? 'bg-blue-50/70 text-blue-600 font-bold' 
+                                    : 'bg-purple-50/70 text-purple-600 font-bold'"
+                                class="inline-flex h-7 items-center px-3 rounded-full text-[11px] tracking-wider">
+                                {{ formatModality(schedule.modality) }}
+                            </span>
+                        </td>
+                        <td class="pr-8 py-3 text-right">
+                            <div class="flex items-center justify-end">
+                                <button class="action-btn" (click)="remove(schedule)" title="Eliminar turno">
+                                    <lucide-icon [img]="icons.Trash" [strokeWidth]="1.5" class="w-4.5 h-4.5"></lucide-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Footer: Flat Pagination -->
+        <div class="shrink-0 border-t border-border-soft bg-white rounded-b-3xl">
+            <app-pagination 
+                [currentPage]="currentPage()" 
+                [totalItems]="totalItems" 
+                [pageSize]="itemsPerPage"
+                itemLabel="turnos"
+                (pageChange)="onPageChange($event)">
+            </app-pagination>
+        </div>
+    </div>
+
+    <!-- Slide-over: Registrar Nuevo Turno -->
+    <div *ngIf="isRegistrationModalOpen()" 
+        class="fixed inset-0 z-[100] flex justify-end overflow-hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-text-main/30 backdrop-blur-sm transition-opacity" 
+            (click)="closeRegistrationModal()"></div>
+        
+        <!-- Slide-over Content -->
+        <div class="relative w-full max-w-xl bg-white shadow-2xl h-full flex flex-col transform transition-transform duration-300 ease-in-out">
+            <!-- Header -->
+            <div class="px-8 py-6 border-b border-border-soft flex items-center justify-between bg-white sticky top-0 z-10">
+                <div class="flex flex-col">
+                    <h2 class="text-[20px] font-bold text-text-main">Registrar Nuevo Turno</h2>
+                    <p class="text-[13px] text-text-muted mt-1">Asigna disponibilidad a un especialista.</p>
                 </div>
+                <button (click)="closeRegistrationModal()" 
+                    class="p-2.5 text-text-light hover:text-text-main hover:bg-gray-100 rounded-xl transition-all">
+                    <lucide-icon [img]="icons.X" class="w-6 h-6"></lucide-icon>
+                </button>
+            </div>
 
-                <!-- Middle Row: Modality & Times -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 items-end">
-                    <!-- Modality Selection -->
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Modalidad <span
-                                class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <select [(ngModel)]="formData.modality"
-                                [disabled]="!selectedDoctorId() || !formData.specialtyId"
-                                class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
-                                <option value="" disabled selected>Seleccione modalidad...</option>
-                                <option value="PRESENCIAL">Presencial</option>
-                                <option value="VIRTUAL">Virtual</option>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 top-1/2 -translate-y-1/2 flex items-center px-3 text-gray-400">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar bg-white">
+                <div class="p-8 space-y-10">
+                    <!-- Step 1: Selection -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3">
+                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-accent/10 text-accent text-[12px] font-bold">1</span>
+                            <h3 class="text-sm font-bold text-text-main uppercase tracking-wider">Selección de Especialista</h3>
+                        </div>
+                        
+                        <div class="space-y-6 ml-9">
+                            <!-- Specialist Selector -->
+                            <div class="space-y-2">
+                                <label class="block text-[13px] font-bold text-text-main">Especialista <span class="text-red-500">*</span></label>
+                                <app-doctor-selector class="block w-full" 
+                                    [requireSpecialties]="true"
+                                    (selectionChanged)="onDoctorSelectionChange($event)"></app-doctor-selector>
+                            </div>
+
+                            <!-- Specialty Selector -->
+                            <div class="space-y-2">
+                                <label class="block text-[13px] font-bold text-text-main">Especialidad <span class="text-red-500">*</span></label>
+                                <app-searchable-select 
+                                    [options]="specialtyOptions" 
+                                    [value]="formData.specialtyId"
+                                    (valueChange)="onSpecialtyChange($event.toString())" 
+                                    [disabled]="!selectedDoctorId()"
+                                    placeholder="Seleccione especialidad...">
+                                </app-searchable-select>
+                                <p class="text-[11px] text-text-muted italic">Las especialidades dependen del médico seleccionado.</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Time Range -->
-                    <div class="lg:col-span-4 flex items-center gap-4">
-                        <div class="w-full">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
-                            <input [(ngModel)]="formData.startTime" (ngModelChange)="onStartTimeChange()" type="time"
-                                [disabled]="!selectedDoctorId() || !formData.specialtyId"
-                                class="block w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm disabled:bg-gray-100 disabled:text-gray-400">
+                    <!-- Step 2: Date & Modal -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3">
+                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-accent/10 text-accent text-[12px] font-bold">2</span>
+                            <h3 class="text-sm font-bold text-text-main uppercase tracking-wider">Detalles del Horario</h3>
                         </div>
-                        <span class="text-gray-400 font-bold self-end pb-3 px-1">-</span>
-                        <div class="w-full relative">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
-                            <select [(ngModel)]="formData.endTime"
-                                [disabled]="!selectedDoctorId() || !formData.specialtyId"
-                                class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
-                                <option *ngFor="let time of validEndTimes()" [value]="time">{{ time }}</option>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-400">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
+
+                        <div class="space-y-6 ml-9">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="block text-[13px] font-bold text-text-main">Fecha <span class="text-red-500">*</span></label>
+                                    <app-datepicker 
+                                        [value]="formData.date"
+                                        (valueChange)="formData.date = $event; onDateChange($event)"
+                                        [disabled]="!selectedDoctorId() || !formData.specialtyId">
+                                    </app-datepicker>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-[13px] font-bold text-text-main">Modalidad <span class="text-red-500">*</span></label>
+                                    <select [(ngModel)]="formData.modality"
+                                        [disabled]="!selectedDoctorId() || !formData.specialtyId"
+                                        class="w-full h-[40px] px-4 bg-white border border-border-soft rounded-xl text-sm focus:border-accent outline-none appearance-none disabled:bg-gray-50 transition-all">
+                                        <option value="PRESENCIAL">Presencial</option>
+                                        <option value="VIRTUAL">Virtual</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="block text-[13px] font-bold text-text-main">Desde <span class="text-red-500">*</span></label>
+                                    <input [(ngModel)]="formData.startTime" (ngModelChange)="onStartTimeChange()" type="time"
+                                        [disabled]="!selectedDoctorId() || !formData.specialtyId"
+                                        class="w-full h-[40px] px-4 border border-border-soft rounded-xl text-sm focus:border-accent outline-none transition-all disabled:bg-gray-50">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-[13px] font-bold text-text-main">Hasta <span class="text-red-500">*</span></label>
+                                    <select [(ngModel)]="formData.endTime"
+                                        [disabled]="!selectedDoctorId() || !formData.specialtyId || validEndTimes().length === 0"
+                                        class="w-full h-[40px] px-4 border border-border-soft rounded-xl text-sm focus:border-accent outline-none transition-all appearance-none disabled:bg-gray-50">
+                                        <option *ngFor="let time of validEndTimes()" [value]="time">{{ time }}</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Repeating Options -->
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Repetir asignación:</label>
-                        <div class="relative">
-                            <select [(ngModel)]="formData.weeksToRepeat"
-                                [disabled]="!selectedDoctorId() || !formData.specialtyId"
-                                class="block w-full pl-3 pr-8 py-2.5 sm:text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg border bg-white shadow-sm disabled:bg-gray-100 disabled:text-gray-400 appearance-none">
-                                <option [ngValue]="0">Solo esta fecha</option>
-                                <option [ngValue]="4">Repetir por 1 mes</option>
-                                <option [ngValue]="8">Repetir por 2 meses</option>
-                                <option [ngValue]="12">Repetir por 3 meses</option>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-400">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
+                    <!-- Step 3: Repeating -->
+                    <div class="space-y-6 pb-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="flex items-center justify-center w-6 h-6 rounded-full bg-accent/10 text-accent text-[12px] font-bold">3</span>
+                                <h3 class="text-sm font-bold text-text-main uppercase tracking-wider">Programación Múltiple</h3>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" [checked]="isRepeating()" (change)="isRepeating.set(!isRepeating())" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent border-2 border-transparent"></div>
+                            </label>
+                        </div>
+
+                        <div *ngIf="isRepeating()" class="ml-9 p-6 bg-gray-50/50 rounded-2xl border border-dashed border-border-soft space-y-6 animate-in slide-in-from-top duration-300">
+                            <div class="space-y-2">
+                                <label class="block text-[13px] font-bold text-text-main uppercase tracking-tighter opacity-70">Frecuencia</label>
+                                <div class="flex p-1 bg-white border border-border-soft rounded-xl gap-1">
+                                    <button (click)="repeatFrequency.set('DAILY')" 
+                                        [class]="repeatFrequency() === 'DAILY' ? 'bg-accent text-white shadow-md' : 'text-text-muted hover:bg-gray-50'"
+                                        class="flex-1 py-1.5 text-[12px] font-bold rounded-lg transition-all">Todos los días</button>
+                                    <button (click)="repeatFrequency.set('WEEKLY')" 
+                                        [class]="repeatFrequency() === 'WEEKLY' ? 'bg-accent text-white shadow-md' : 'text-text-muted hover:bg-gray-50'"
+                                        class="flex-1 py-1.5 text-[12px] font-bold rounded-lg transition-all">Días específicos</button>
+                                </div>
+                            </div>
+
+                            <div *ngIf="repeatFrequency() === 'WEEKLY'" class="space-y-2">
+                                <label class="block text-[13px] font-bold text-text-main uppercase tracking-tighter opacity-70">Repetir los días</label>
+                                <div class="flex justify-between items-center gap-2">
+                                    <button *ngFor="let d of [1,2,3,4,5,6,0]" (click)="toggleRepeatDay(d)"
+                                        [class]="repeatDays().includes(d) ? 'bg-accent text-white border-accent shadow-sm' : 'bg-white text-text-muted border-border-soft hover:bg-gray-50'"
+                                        class="w-10 h-10 border rounded-xl text-[12px] font-bold transition-all flex items-center justify-center">
+                                        {{ d === 0 ? 'D' : d === 1 ? 'L' : d === 2 ? 'M' : d === 3 ? 'M' : d === 4 ? 'J' : d === 5 ? 'V' : 'S' }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-[13px] font-bold text-text-main mb-1">Repetir hasta el día <span class="text-red-500">*</span></label>
+                                <app-datepicker 
+                                    [value]="repeatEndDate()"
+                                    (valueChange)="repeatEndDate.set($event)">
+                                </app-datepicker>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Bottom Row: Assign Button -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 pb-2">
-                    <!-- Spacer -->
-                    <div class="lg:col-span-8 hidden lg:block"></div>
-
-                    <!-- Submit Button -->
-                    <div class="lg:col-span-4">
-                        <button (click)="saveSchedule()" [disabled]="!isFormValid"
-                            class="w-full h-[42px] inline-flex items-center justify-center px-4 border border-transparent text-sm font-semibold rounded-lg shadow-accent shadow-md text-white bg-accent hover:bg-indigo-700 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
-                            <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
-                            Asignar Turno
-                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Table Display -->
-            <div class="bg-white">
-                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                    <h3 class="text-lg font-medium text-gray-900">
-                        {{ selectedDoctorName() ? 'Horarios Registrados - ' + selectedDoctorName() : 'Horarios
-                        Registrados'
-                        }}
-                    </h3>
-                    <span class="text-sm py-1 px-3 bg-primary text-white rounded-full font-medium"
-                        *ngIf="currentSchedules().length > 0">
-                        {{ currentSchedules().length }} turnos asignados
-                    </span>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col"
-                                    class="w-[30%] px-6 py-3.5 text-left text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
-                                    Especialista</th>
-                                <th scope="col"
-                                    class="w-[20%] px-6 py-3.5 text-left text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
-                                    Fecha</th>
-                                <th scope="col"
-                                    class="w-[15%] px-6 py-3.5 text-center text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
-                                    Rango Horario</th>
-                                <th scope="col"
-                                    class="w-[10%] px-6 py-3.5 text-center text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
-                                    Modalidad</th>
-                                <th scope="col"
-                                    class="w-[15%] px-6 py-3.5 text-center text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
-                                    Duración</th>
-                                <th scope="col"
-                                    class="w-[10%] px-6 py-3.5 text-center text-xs font-bold text-gray-900 bg-gray-50 border-b border-gray-200">
-                                    Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <!-- Empty States -->
-                            <tr *ngIf="currentSchedules().length === 0">
-                                <td colspan="5" class="px-6 py-12 text-center">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <div class="bg-gray-100 p-4 rounded-full mb-4">
-                                            <lucide-icon [img]="icons.Clock"
-                                                class="w-8 h-8 text-gray-400"></lucide-icon>
-                                        </div>
-                                        <p class="text-gray-900 font-medium text-lg">No hay turnos programados para hoy
-                                        </p>
-                                        <p class="text-gray-500 text-sm mt-1 max-w-sm mx-auto">
-                                            {{ !selectedDoctorId() ? 'No hay turnos registrados en el sistema para
-                                            fechas futuras.' : 'Este especialista no tiene turnos asignados en las
-                                            fechas futuras.' }}
-                                        </p>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- Rows -->
-                            <tr *ngFor="let schedule of currentSchedules()"
-                                class="hover:bg-primary/50 hover:shadow-sm outline-none focus-within:bg-gray-50 transition-all duration-200 group border-b border-gray-100 last:border-0 relative z-0 hover:z-10">
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <div class="flex flex-col">
-                                        <span
-                                            class="text-sm font-semibold text-gray-900 group-hover:text-primary transition-colors">{{
-                                            getDoctorName(schedule.doctorId) }}</span>
-                                        <span
-                                            class="inline-flex items-center mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary border border-primary text-white w-fit">
-                                            {{ getSpecialtyName(schedule.specialtyId) }}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <div class="text-sm text-gray-700 font-medium flex items-center">
-                                        {{ getScheduleDisplay(schedule) }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-center">
-                                    <div
-                                        class="text-sm text-gray-700 bg-gray-100 px-3.5 py-1.5 rounded-lg inline-block font-medium border border-gray-200 shadow-sm">
-                                        {{ formatTimeDisplay(schedule.startTime) }} - {{
-                                        formatTimeDisplay(schedule.endTime)
-                                        }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-center">
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold border"
-                                        [ngClass]="(schedule.modality || schedule.schedule_type || '').toLowerCase() === 'presencial' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'">
-                                        {{ (schedule.modality || schedule.schedule_type || 'Desconocido') | titlecase }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-center">
-                                    <div
-                                        class="text-sm text-gray-500 font-medium bg-gray-50 inline-block px-3 py-1 rounded-full border border-gray-100">
-                                        {{ calculateDuration(schedule) }}</div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-center text-sm font-medium">
-                                    <button (click)="remove(schedule)"
-                                        class="text-red-400 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2.5 rounded-lg transition-all duration-200 inline-flex items-center opacity-70 group-hover:opacity-100 ring-1 ring-red-100"
-                                        title="Eliminar turno">
-                                        <lucide-icon [img]="icons.Trash2" class="w-4 h-4"></lucide-icon>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <!-- Footer -->
+            <div class="px-8 py-6 border-t border-border-soft bg-white flex items-center justify-end gap-3 sticky bottom-0">
+                <app-button variant="ghost" (onClick)="closeRegistrationModal()" class="!px-6 !h-11 !rounded-xl !text-sm font-bold border border-border-soft bg-white hover:bg-gray-50">
+                    Cancelar
+                </app-button>
+                <app-button variant="accent" (onClick)="saveSchedule()" [disabled]="!isFormValid || (isRepeating() && !repeatEndDate())" 
+                    class="!px-8 !h-11 !rounded-xl !text-sm font-bold shadow-lg shadow-accent/20">
+                    Guardar Turno
+                </app-button>
             </div>
         </div>
     </div>
+</div>

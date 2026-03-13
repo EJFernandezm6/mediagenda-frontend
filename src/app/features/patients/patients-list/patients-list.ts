@@ -234,6 +234,8 @@ export class PatientsListComponent implements OnInit {
 
   editPatient(patient: Patient) {
     this.form = { ...patient };
+    this.showGenderDropdown.set(false);
+    this.showDocTypeDropdown.set(false);
     this.isModalOpen = true;
   }
 
@@ -249,11 +251,15 @@ export class PatientsListComponent implements OnInit {
       age: 18, 
       gender: 'M' 
     };
+    this.showGenderDropdown.set(false);
+    this.showDocTypeDropdown.set(false);
     this.isModalOpen = true;
   }
 
   closeModal() {
     this.isModalOpen = false;
+    this.showGenderDropdown.set(false);
+    this.showDocTypeDropdown.set(false);
   }
 
   save() {

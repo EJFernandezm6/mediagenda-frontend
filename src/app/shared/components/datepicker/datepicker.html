@@ -1,13 +1,13 @@
 <div class="relative w-full" [class.z-50]="isOpen()">
     <!-- Clickable Input Fake -->
     <div (click)="openDropdown()"
-        class="flex items-center justify-between w-full px-2 py-2 transition-all cursor-pointer bg-white"
+        class="flex items-center justify-between w-full h-10 px-4 transition-all cursor-pointer bg-white"
         [ngClass]="[
-            disabledState() ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'hover:bg-gray-50',
-            borderless ? 'border-none' : 'border-2 border-gray-200 rounded-xl hover:border-gray-300'
+            disabledState() ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'hover:border-accent shadow-sm',
+            borderless ? 'border-none' : 'border border-border-main rounded-xl'
         ]">
 
-        <span [ngClass]="currentValue() ? 'text-gray-900 font-bold text-xs' : 'text-gray-400 text-xs'">
+        <span [ngClass]="currentValue() ? 'text-gray-900 font-medium text-sm' : 'text-text-light text-sm'">
             {{ currentValue() || placeholder }}
         </span>
 
