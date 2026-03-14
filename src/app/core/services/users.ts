@@ -9,17 +9,21 @@ export interface UserRequest {
     fullName: string;
     email: string;
     password?: string;
-    roles: string[]; // Updated for Multi-Role
+    roles: string[];
     phone?: string;
-    cmp?: string;
+    phonePrefix?: string;
+    documentNumber?: string;
+    documentType?: string;
     photoUrl?: string;
-    clinicId?: string;
     roleIds?: string[];
 }
 
 export interface UpdateProfileRequest {
     fullName?: string;
     phone?: string;
+    phonePrefix?: string;
+    documentNumber?: string;
+    documentType?: string;
     photoUrl?: string;
 }
 
@@ -93,6 +97,9 @@ export class UsersService {
                 password: user.password,
                 roleIds: user.roleIds,
                 phone: user.phone || '',
+                phonePrefix: user.phonePrefix || '',
+                documentNumber: user.documentNumber || '',
+                documentType: user.documentType || '',
                 photoUrl: user.photoUrl || ''
             };
             return this.http.post<User>(this.apiUrl, payload).pipe(
@@ -111,6 +118,9 @@ export class UsersService {
                     password: user.password,
                     roleIds: [roleObj.roleId],
                     phone: user.phone || '',
+                    phonePrefix: user.phonePrefix || '',
+                    documentNumber: user.documentNumber || '',
+                    documentType: user.documentType || '',
                     photoUrl: user.photoUrl || ''
                 };
                 return this.http.post<User>(this.apiUrl, finalPayload);

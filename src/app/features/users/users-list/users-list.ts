@@ -50,8 +50,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
         email: '',
         password: '123456',
         roles: [],
-        cmp: '',
-        clinicId: '',
         roleIds: [],
         phone: '',
         photoUrl: ''
@@ -84,8 +82,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
             list = list.filter(u => {
                 if (!u) return false;
                 return (u.fullName || '').toLowerCase().includes(term) ||
-                    (u.email || '').toLowerCase().includes(term) ||
-                    (u.cmp || '').toLowerCase().includes(term);
+                    (u.email || '').toLowerCase().includes(term);
             });
         }
 
@@ -169,8 +166,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
             email: '',
             password: '123456',
             roles: [],
-            cmp: '',
-            clinicId: '',
             roleIds: [],
             phone: '',
             photoUrl: ''
@@ -184,12 +179,13 @@ export class UsersListComponent implements OnInit, OnDestroy {
         this.formData = {
             fullName: user.fullName,
             email: user.email,
-            password: '', // Don't fill password
-            roles: [...user.roles], // Copy roles
-            cmp: user.cmp || '',
-            clinicId: user.clinicId,
+            password: '',
+            roles: [...user.roles],
             roleIds: user.roleIds ?? [],
             phone: user.phone || '',
+            phonePrefix: user.phonePrefix || '',
+            documentNumber: user.documentNumber || '',
+            documentType: user.documentType || '',
             photoUrl: user.photoUrl || ''
         };
         this.isModalOpen = true;
@@ -205,6 +201,9 @@ export class UsersListComponent implements OnInit, OnDestroy {
                 fullName: this.formData.fullName,
                 email: this.formData.email,
                 phone: this.formData.phone ?? '',
+                phonePrefix: this.formData.phonePrefix ?? '',
+                documentNumber: this.formData.documentNumber ?? '',
+                documentType: this.formData.documentType ?? '',
                 roleIds: this.formData.roleIds?.length ? this.formData.roleIds : undefined,
                 photoUrl: this.formData.photoUrl ?? ''
             };
@@ -222,17 +221,9 @@ export class UsersListComponent implements OnInit, OnDestroy {
                 }
             });
         } else {
-            // New User: Ensure clinicId is set
-            const currentUser = this.currentUser();
-            if (currentUser?.clinicId) {
-                this.formData.clinicId = currentUser.clinicId;
-            }
-
             // Clean empty strings to undefined to avoid Backend 400 errors on UUID fields
             const payload = { ...this.formData };
             if (!payload.roleIds?.length) delete payload.roleIds;
-            if (!payload.cmp) delete payload.cmp;
-            // Keep clinicId - it's required and copied from current user
 
             this.usersService.addUser(payload).subscribe({
                 next: () => this.closeModal(),

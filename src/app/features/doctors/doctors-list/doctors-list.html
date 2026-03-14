@@ -92,10 +92,10 @@
                             </span>
                         </td>
 
-                        <!-- DNI -->
+                        <!-- Documento -->
                         <td class="text-left">
                             <span class="text-sm text-text-light font-normal">
-                                {{ doctor.dni || '---' }}
+                                {{ doctor.documentNumber || '---' }}
                             </span>
                         </td>
 
@@ -199,26 +199,31 @@
                             </div>
 
                             <div class="relative">
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Documento <span class="text-red-500">*</span></label>
-                                 <div (click)="toggleDocTypeDropdown()" 
-                                      class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all cursor-pointer focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
-                                    <span class="text-[14px] font-semibold text-text-main">{{ form.docType }}</span>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Tipo de Documento <span class="text-red-500">*</span></label>
+                                <div (click)="toggleDocTypeDropdown()"
+                                     class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all cursor-pointer focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
+                                    <span class="text-[14px] font-semibold text-text-main">{{ form.documentType }}</span>
                                     <lucide-icon [img]="icons.ChevronDown" class="w-4 h-4 text-text-light"></lucide-icon>
                                 </div>
-                                <div *ngIf="showDocTypeDropdown()" 
+                                <div *ngIf="showDocTypeDropdown()"
                                      class="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-xl border border-border-soft overflow-hidden animate-in fade-in zoom-in duration-100">
-                                    <div (click)="selectDocType('DNI')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">DNI</div>
-                                    <div (click)="selectDocType('CE')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">CE</div>
+                                    <div (click)="selectDocType('DNI')"       class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">DNI</div>
+                                    <div (click)="selectDocType('CE')"        class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">CE</div>
+                                    <div (click)="selectDocType('PASAPORTE')" class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">PASAPORTE</div>
+                                    <div (click)="selectDocType('PTP')"       class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">PTP</div>
+                                    <div (click)="selectDocType('RUC')"       class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">RUC</div>
+                                    <div (click)="selectDocType('OTRO')"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">OTRO</div>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">{{ form.docType }} <span class="text-red-500">*</span></label>
-                                <input [ngModel]="form.dni" (input)="onDocumentInput($event)" type="text" [placeholder]="form.docType === 'DNI' ? '8 dígitos' : 'Número de Doc.'"
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Número de Documento <span class="text-red-500">*</span></label>
+                                <input [ngModel]="form.documentNumber" (input)="onDocumentInput($event)" type="text"
+                                    [placeholder]="form.documentType === 'DNI' ? '8 dígitos' : form.documentType === 'RUC' ? '11 dígitos' : 'Número de documento'"
                                     class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light"
                                     [class.border-red-500]="isDuplicateDni">
                                 <p *ngIf="isDuplicateDni" class="text-[10px] text-red-500 mt-1 font-bold italic animate-in slide-in-from-top-1">
-                                    ¡Este {{ form.docType }} ya está registrado!
+                                    ¡Este número de documento ya está registrado!
                                 </p>
                             </div>
 
@@ -238,7 +243,7 @@
                                         <label class="block text-[13px] font-medium text-gray-700 mb-1.5">País</label>
                                         <div class="relative flex items-center">
                                             <span class="absolute left-3 text-[14px] text-gray-400 font-medium">+</span>
-                                            <input [ngModel]="form.countryCode" (input)="onCountryCodeInput($event)" type="text"
+                                            <input [ngModel]="form.phonePrefix" (input)="onCountryCodeInput($event)" type="text"
                                                 class="w-full h-10 pl-6 pr-2 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none">
                                         </div>
                                     </div>
@@ -316,7 +321,7 @@
                         </span>
                     </div>
                     <p class="text-[13px] text-text-muted font-normal mt-1.5 flex items-center gap-2">
-                        <span>DNI: {{ selectedDoctorForProfile()?.dni || '---' }}</span>
+                        <span>{{ selectedDoctorForProfile()?.documentType || 'Documento' }}: {{ selectedDoctorForProfile()?.documentNumber || '---' }}</span>
                         <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                         <span>Colegiatura: {{ selectedDoctorForProfile()?.cmp || '---' }}</span>
                     </p>

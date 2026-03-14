@@ -90,7 +90,7 @@ export class DoctorSelectorComponent {
                     uniqueDoctorsMap.set(docId, {
                         ...doctor,
                         valueId: docId,
-                        displayName: doctor.dni ? `${doctor.dni} - ${doctor.fullName}` : doctor.fullName
+                        displayName: doctor.documentNumber ? `${doctor.documentNumber} - ${doctor.fullName}` : doctor.fullName
                     });
                 }
             });

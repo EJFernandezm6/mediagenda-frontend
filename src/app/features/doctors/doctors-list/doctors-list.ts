@@ -56,7 +56,7 @@ export class DoctorsListComponent implements OnInit {
   ]);
 
   ngOnInit() {
-    // Logic handled by components and signals
+    this.service.refreshDoctors();
   }
 
   ngOnDestroy() {
@@ -67,16 +67,16 @@ export class DoctorsListComponent implements OnInit {
   isModalOpen = false;
   isSaving = false;
   editingId: string | null = null;
-  form: any = { 
-    fullName: '', 
-    docType: 'DNI', 
-    dni: '', 
-    cmp: '', 
-    email: '', 
-    countryCode: '51',
-    phone: '', 
-    active: true, 
-    photoUrl: '' 
+  form: any = {
+    fullName: '',
+    documentType: 'DNI',
+    documentNumber: '',
+    cmp: '',
+    email: '',
+    phonePrefix: '51',
+    phone: '',
+    active: true,
+    photoUrl: ''
   };
 
   // Dropdown signals
@@ -94,9 +94,9 @@ export class DoctorsListComponent implements OnInit {
     this.showStatusDropdown.set(!this.showStatusDropdown());
   }
 
-  selectDocType(type: 'DNI' | 'CE') {
-    this.form.docType = type;
-    this.form.dni = '';
+  selectDocType(type: string) {
+    this.form.documentType = type;
+    this.form.documentNumber = '';
     this.showDocTypeDropdown.set(false);
   }
 
@@ -123,7 +123,7 @@ export class DoctorsListComponent implements OnInit {
     return docs.filter(d =>
       d.fullName?.toLowerCase().includes(term) ||
       d.email?.toLowerCase().includes(term) ||
-      d.dni?.toLowerCase().includes(term) ||
+      d.documentNumber?.toLowerCase().includes(term) ||
       d.cmp?.toLowerCase().includes(term)
     );
   });
@@ -156,17 +156,20 @@ export class DoctorsListComponent implements OnInit {
   onDocumentInput(event: Event) {
     const input = event.target as HTMLInputElement;
     let val = input.value;
-    
-    if (this.form.docType === 'DNI') {
-      val = val.replace(/\D/g, ''); 
+
+    if (this.form.documentType === 'DNI') {
+      val = val.replace(/\D/g, '');
       if (val.length > 8) val = val.substring(0, 8);
+    } else if (this.form.documentType === 'RUC') {
+      val = val.replace(/\D/g, '');
+      if (val.length > 11) val = val.substring(0, 11);
     } else {
       val = val.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-      if (val.length > 12) val = val.substring(0, 12);
+      if (val.length > 20) val = val.substring(0, 20);
     }
-    
+
     if (input.value !== val) input.value = val;
-    this.form.dni = val;
+    this.form.documentNumber = val;
   }
 
   onCountryCodeInput(event: Event) {
@@ -174,7 +177,7 @@ export class DoctorsListComponent implements OnInit {
     let val = input.value.replace(/\D/g, '');
     if (val.length > 4) val = val.substring(0, 4);
     if (input.value !== val) input.value = val;
-    this.form.countryCode = val;
+    this.form.phonePrefix = val;
   }
 
   onPhoneInput(event: Event) {
@@ -194,9 +197,9 @@ export class DoctorsListComponent implements OnInit {
   }
 
   get isDuplicateDni() {
-    if (!this.form.dni) return false;
-    return this.doctors().some(d => 
-      d.dni?.toLowerCase() === this.form.dni?.toLowerCase() && 
+    if (!this.form.documentNumber) return false;
+    return this.doctors().some(d =>
+      d.documentNumber?.toLowerCase() === this.form.documentNumber?.toLowerCase() &&
       d.id !== this.editingId
     );
   }
@@ -214,24 +217,28 @@ export class DoctorsListComponent implements OnInit {
   }
 
   get isFormValid() {
+    const docNum = this.form.documentNumber?.trim() || '';
+    const docValid = this.form.documentType === 'DNI' ? docNum.length === 8
+      : this.form.documentType === 'RUC' ? docNum.length === 11
+      : docNum.length >= 4;
     return this.form.fullName?.trim() &&
       this.form.phone?.trim()?.length >= 7 &&
-      this.form.countryCode?.trim()?.length >= 1 &&
-      (this.form.docType === 'DNI' ? this.form.dni?.trim()?.length === 8 : this.form.dni?.trim()?.length >= 4) &&
+      this.form.phonePrefix?.trim()?.length >= 1 &&
+      docValid &&
       (!this.form.email || this.emailRegex.test(this.form.email)) &&
       !this.isDuplicateDni &&
       !this.isDuplicateCmp;
   }
 
   isMissingData(doctor: Doctor) {
-    return !doctor.fullName?.trim() || !doctor.phone?.trim() || !doctor.cmp?.trim() || !doctor.dni?.trim() || !doctor.email?.trim();
+    return !doctor.fullName?.trim() || !doctor.phone?.trim() || !doctor.cmp?.trim() || !doctor.documentNumber?.trim() || !doctor.email?.trim();
   }
 
   getMissingFields(doctor: Doctor): string[] {
     const fields = [];
     if (!doctor.fullName?.trim()) fields.push('Nombre');
     if (!doctor.phone?.trim()) fields.push('Teléfono');
-    if (!doctor.dni?.trim()) fields.push('Doc. Identidad');
+    if (!doctor.documentNumber?.trim()) fields.push('Doc. Identidad');
     if (!doctor.email?.trim()) fields.push('Email');
     if (doctor.email && !this.emailRegex.test(doctor.email)) fields.push('Email Inválido');
     return fields;
@@ -240,23 +247,23 @@ export class DoctorsListComponent implements OnInit {
   openModal(doctor?: Doctor) {
     if (doctor) {
       this.editingId = doctor.id;
-      this.form = { 
-        ...doctor, 
-        docType: doctor.dni?.length === 8 && /^\d+$/.test(doctor.dni) ? 'DNI' : 'CE',
-        countryCode: '51' // Default or extracted if saved
+      this.form = {
+        ...doctor,
+        documentType: doctor.documentType || (doctor.documentNumber?.length === 8 && /^\d+$/.test(doctor.documentNumber || '') ? 'DNI' : 'CE'),
+        phonePrefix: doctor.phonePrefix || '51'
       };
     } else {
       this.editingId = null;
-      this.form = { 
-        fullName: '', 
-        docType: 'DNI', 
-        dni: '', 
-        cmp: '', 
-        email: '', 
-        countryCode: '51',
-        phone: '', 
-        active: true, 
-        photoUrl: 'https://ui-avatars.com/api/?background=random' 
+      this.form = {
+        fullName: '',
+        documentType: 'DNI',
+        documentNumber: '',
+        cmp: '',
+        email: '',
+        phonePrefix: '51',
+        phone: '',
+        active: true,
+        photoUrl: 'https://ui-avatars.com/api/?background=random'
       };
     }
     this.showDocTypeDropdown.set(false);
@@ -392,7 +399,7 @@ export class DoctorsListComponent implements OnInit {
     }
 
     if (this.isDuplicateDni) {
-      alert(`Ya existe un especialista registrado con el Documento: ${this.form.dni}`);
+      alert(`Ya existe un especialista registrado con el Documento: ${this.form.documentNumber}`);
       this.isSaving = false;
       return;
     }

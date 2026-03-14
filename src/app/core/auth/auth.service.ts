@@ -23,8 +23,10 @@ export interface User {
     photoUrl?: string;
     clinicId?: string;
     roles: string[];
-    cmp?: string;
     phone?: string;
+    phonePrefix?: string;
+    documentNumber?: string;
+    documentType?: string;
     plan?: 'STANDARD' | 'PLUS' | 'PREMIUM';
     subscriptionStatus?: 'ACTIVE' | 'EXPIRED' | 'PENDING';
     active?: boolean;

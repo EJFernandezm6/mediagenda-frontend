@@ -51,7 +51,7 @@
                             </p>
                             <p class="text-lg text-gray-500 font-bold flex items-center">
                                 <lucide-icon [img]="icons.MapPin" class="w-5 h-5 mr-2"></lucide-icon>
-                                DNI: {{ doctor()?.dni }}
+                                {{ doctor()?.documentType || 'Documento' }}: {{ doctor()?.documentNumber }}
                             </p>
                         </div>
 

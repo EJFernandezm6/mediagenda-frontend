@@ -79,15 +79,15 @@ export class PatientsListComponent implements OnInit {
   // Modal
   isModalOpen = false;
   isSaving = false;
-  form: any = { 
-    fullName: '', 
-    docType: 'DNI',
-    dni: '', 
-    email: '', 
-    countryCode: '51',
-    phone: '', 
-    age: 18, 
-    gender: 'M' 
+  form: any = {
+    fullName: '',
+    documentType: 'DNI',
+    documentNumber: '',
+    email: '',
+    phonePrefix: '51',
+    phone: '',
+    age: 18,
+    gender: 'M'
   };
 
   emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -102,9 +102,9 @@ export class PatientsListComponent implements OnInit {
     this.showDocTypeDropdown.set(!this.showDocTypeDropdown());
   }
 
-  selectDocType(type: 'DNI' | 'CE') {
-    this.form.docType = type;
-    this.form.dni = ''; // Clear ID when switching type
+  selectDocType(type: string) {
+    this.form.documentType = type;
+    this.form.documentNumber = '';
     this.showDocTypeDropdown.set(false);
   }
 
@@ -120,7 +120,7 @@ export class PatientsListComponent implements OnInit {
     return this.patients().filter(p =>
       p.fullName?.toLowerCase().includes(term) ||
       p.email?.toLowerCase().includes(term) ||
-      p.dni?.toLowerCase().includes(term)
+      p.documentNumber?.toLowerCase().includes(term)
     );
   });
 
@@ -152,17 +152,20 @@ export class PatientsListComponent implements OnInit {
   onDniInput(event: Event) {
     const input = event.target as HTMLInputElement;
     let val = input.value;
-    
-    if (this.form.docType === 'DNI') {
-      val = val.replace(/\D/g, ''); // Solo números para DNI
+
+    if (this.form.documentType === 'DNI') {
+      val = val.replace(/\D/g, '');
       if (val.length > 8) val = val.substring(0, 8);
+    } else if (this.form.documentType === 'RUC') {
+      val = val.replace(/\D/g, '');
+      if (val.length > 11) val = val.substring(0, 11);
     } else {
-      val = val.replace(/[^a-zA-Z0-9]/g, '').toUpperCase(); // Alfanumérico para CE
-      if (val.length > 12) val = val.substring(0, 12);
+      val = val.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      if (val.length > 20) val = val.substring(0, 20);
     }
-    
+
     if (input.value !== val) input.value = val;
-    this.form.dni = val;
+    this.form.documentNumber = val;
   }
 
   onCountryCodeInput(event: Event) {
@@ -170,7 +173,7 @@ export class PatientsListComponent implements OnInit {
     let val = input.value.replace(/\D/g, ''); // Solo números
     if (val.length > 4) val = val.substring(0, 4); // Max 4 dígitos (+51, +1234, etc)
     if (input.value !== val) input.value = val;
-    this.form.countryCode = val;
+    this.form.phonePrefix = val;
   }
 
   onPhoneInput(event: Event) {
@@ -182,10 +185,14 @@ export class PatientsListComponent implements OnInit {
   }
 
   get isFormValid() {
+    const docNum = this.form.documentNumber?.trim() || '';
+    const docValid = this.form.documentType === 'DNI' ? docNum.length === 8
+      : this.form.documentType === 'RUC' ? docNum.length === 11
+      : docNum.length >= 4;
     return this.form.fullName?.trim() &&
       this.form.phone?.trim()?.length >= 7 &&
-      this.form.countryCode?.trim()?.length >= 1 &&
-      (this.form.docType === 'DNI' ? this.form.dni?.trim()?.length === 8 : this.form.dni?.trim()?.length >= 4) &&
+      this.form.phonePrefix?.trim()?.length >= 1 &&
+      docValid &&
       this.form.age > 0 &&
       this.form.gender &&
       (!this.form.email || this.emailRegex.test(this.form.email));
@@ -241,15 +248,15 @@ export class PatientsListComponent implements OnInit {
 
 
   openModal() {
-    this.form = { 
-      fullName: '', 
-      docType: 'DNI',
-      dni: '', 
-      email: '', 
-      countryCode: '51',
-      phone: '', 
-      age: 18, 
-      gender: 'M' 
+    this.form = {
+      fullName: '',
+      documentType: 'DNI',
+      documentNumber: '',
+      email: '',
+      phonePrefix: '51',
+      phone: '',
+      age: 18,
+      gender: 'M'
     };
     this.showGenderDropdown.set(false);
     this.showDocTypeDropdown.set(false);
@@ -266,18 +273,28 @@ export class PatientsListComponent implements OnInit {
     this.isSaving = true;
 
     // Check duplicates directly on frontend list before sending to backend to avoid generic 400s
-    // Fallback logic in case backend error parsing is clunky
-    const isDuplicate = this.patientsList.some(p => p.dni === this.form.dni && p.patientId !== this.form.patientId);
+    const isDuplicate = this.patientsList.some(p => p.documentNumber === this.form.documentNumber && p.patientId !== this.form.patientId);
 
     if (isDuplicate) {
-      alert('Ya existe un paciente registrado con este DNI.');
+      alert('Ya existe un paciente registrado con este documento.');
       this.isSaving = false;
       return;
     }
 
+    const payload: any = {
+      fullName: this.form.fullName,
+      documentNumber: this.form.documentNumber,
+      documentType: this.form.documentType,
+      email: this.form.email || undefined,
+      phone: this.form.phone,
+      phonePrefix: this.form.phonePrefix,
+      age: this.form.age,
+      gender: this.form.gender
+    };
+
     const request = this.form.patientId
-      ? this.service.updatePatient(this.form.patientId, this.form)
-      : this.service.addPatient(this.form);
+      ? this.service.updatePatient(this.form.patientId, payload)
+      : this.service.addPatient(payload);
 
     request.subscribe({
       next: () => {

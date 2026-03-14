@@ -165,7 +165,7 @@ export class AppointmentsList implements OnInit {
   }
 
   getPatientDni(id: string) {
-    return this.patients().find(p => p.patientId === id || (p as any).id === id)?.dni || '---';
+    return this.patients().find(p => p.patientId === id || (p as any).id === id)?.documentNumber || '---';
   }
 
   // Status mapping helper - Modernized for Flat Pills

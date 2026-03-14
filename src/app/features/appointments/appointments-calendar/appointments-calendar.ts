@@ -284,7 +284,7 @@ export class AppointmentsCalendarComponent {
       { id: '', label: 'Todos los especialistas' },
       ...this.filteredDoctors().map(d => ({
         id: d.doctorId || d.id,
-        label: d.dni ? `${d.dni} - ${d.fullName}` : d.fullName
+        label: d.documentNumber ? `${d.documentNumber} - ${d.fullName}` : d.fullName
       }))
     ];
   }
@@ -310,7 +310,7 @@ export class AppointmentsCalendarComponent {
       { id: '', label: 'Seleccionar especialista' },
       ...this.filteredDoctorsForModal().map(d => ({
         id: d.doctorId || d.id,
-        label: d.dni ? `${d.dni} - ${d.fullName}` : d.fullName
+        label: d.documentNumber ? `${d.documentNumber} - ${d.fullName}` : d.fullName
       }))
     ];
   });
@@ -320,7 +320,7 @@ export class AppointmentsCalendarComponent {
       { id: '', label: 'Seleccionar paciente' },
       ...this.allPatients().map(p => ({
         id: p.patientId,
-        label: p.dni ? `${p.dni} - ${p.fullName}` : p.fullName
+        label: p.documentNumber ? `${p.documentNumber} - ${p.fullName}` : p.fullName
       }))
     ];
   }

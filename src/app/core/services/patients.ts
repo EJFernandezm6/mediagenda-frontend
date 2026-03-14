@@ -5,15 +5,18 @@ import { tap } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 
 export interface Patient {
-  patientId: string; // Updated to match Backend Entity @Id
+  patientId: string;
   clinicId?: string;
   fullName: string;
-  dni: string;
+  documentNumber: string;
+  documentType: string;
   email: string;
   phone: string;
+  phonePrefix?: string;
   age: number;
   gender: 'M' | 'F' | 'O';
   lastVisit?: string;
+  isActive?: boolean;
 }
 
 export interface Consultation {

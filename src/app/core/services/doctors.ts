@@ -7,21 +7,18 @@ import { Observable, forkJoin } from 'rxjs';
 
 
 export interface Doctor extends User {
-  // Extends User from Auth Service which has basics
-  // Specific doctor fields from Backend User entity:
-  id: string; // Must match User interface (required) - THIS IS USER ID
+  id: string; // THIS IS USER ID
   doctorId?: string; // Specific ID for Catalog/Doctor profile
-  userId?: string; // Redundant but kept for clarity
+  userId?: string;
   cmp?: string;
-  // DNI: Mandatory for Specialists (Not yet implemented in DB/Backend)
-  dni?: string;
-  specialties?: any[]; // Array of specialties mapped from backend
+  documentNumber?: string;
+  documentType?: string;
+  specialties?: any[];
   rating?: number;
   reviewsCount?: number;
   active?: boolean;
   nps?: number;
   isProfileComplete?: boolean;
-  // photoUrl is in User
 }
 
 @Injectable({
@@ -111,13 +108,15 @@ export class DoctorsService {
       fullName: doctor.fullName,
       email: doctor.email,
       phone: doctor.phone,
-      dni: doctor.dni,
+      phonePrefix: doctor.phonePrefix || '',
+      documentNumber: doctor.documentNumber || '',
+      documentType: doctor.documentType || 'DNI',
       password: doctor.password || '12345678',
       cmp: doctor.cmp,
       photoUrl: doctor.photoUrl
     };
 
-    return this.http.post<any>(`${this.doctorsUrl}/with-users`, payload).pipe(
+    return this.http.post<any>(`${this.doctorsUrl}/user`, payload).pipe(
       tap(() => {
         this.refreshDoctors();
         this.refreshSelectableDoctors();
@@ -138,7 +137,8 @@ export class DoctorsService {
     if (updates.fullName && updates.fullName !== currentDoctor.fullName) { userUpdates.fullName = updates.fullName; hasUserFieldUpdates = true; }
     if (updates.email && updates.email !== currentDoctor.email) { userUpdates.email = updates.email; hasUserFieldUpdates = true; }
     if (updates.phone && updates.phone !== currentDoctor.phone) { userUpdates.phone = updates.phone; hasUserFieldUpdates = true; }
-    if (updates.dni && updates.dni !== currentDoctor.dni) { userUpdates.dni = updates.dni; hasUserFieldUpdates = true; }
+    if (updates.documentNumber && updates.documentNumber !== currentDoctor.documentNumber) { userUpdates.documentNumber = updates.documentNumber; hasUserFieldUpdates = true; }
+    if (updates.documentType && updates.documentType !== currentDoctor.documentType) { userUpdates.documentType = updates.documentType; hasUserFieldUpdates = true; }
     if (updates.photoUrl && updates.photoUrl !== currentDoctor.photoUrl && updates.photoUrl.startsWith('data:image')) {
       userUpdates.photoUrl = updates.photoUrl;
       hasUserFieldUpdates = true;
@@ -150,7 +150,8 @@ export class DoctorsService {
       userUpdates.fullName = userUpdates.fullName || currentDoctor.fullName;
       userUpdates.email = userUpdates.email || currentDoctor.email;
       userUpdates.phone = userUpdates.phone || currentDoctor.phone;
-      userUpdates.dni = userUpdates.dni || currentDoctor.dni;
+      userUpdates.documentNumber = userUpdates.documentNumber || currentDoctor.documentNumber || '';
+      userUpdates.documentType = userUpdates.documentType || currentDoctor.documentType || 'DNI';
 
       // Extract roleIds from the roles object if present
       let existingRoles: string[] = [];
@@ -195,11 +196,13 @@ export class DoctorsService {
     if (doctorId) {
       const tasks: Observable<any>[] = [];
 
-      // Update CMP/DNI
-      if (updates.cmp !== undefined || updates.dni !== undefined) {
+      // Update CMP/documentNumber
+      if (updates.cmp !== undefined || updates.documentNumber !== undefined || updates.documentType !== undefined) {
+        const doc = this.doctors().find(d => d.id === id);
         tasks.push(this.http.put(`${this.doctorsUrl}/${doctorId}`, {
-          cmp: updates.cmp || this.doctors().find(d => d.id === id)?.cmp,
-          dni: updates.dni || this.doctors().find(d => d.id === id)?.dni
+          cmp: updates.cmp || doc?.cmp,
+          documentNumber: updates.documentNumber || doc?.documentNumber || '',
+          documentType: updates.documentType || doc?.documentType || 'DNI'
         }));
       }
 
