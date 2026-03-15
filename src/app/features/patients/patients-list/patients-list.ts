@@ -27,11 +27,26 @@ export class PatientsListComponent implements OnInit {
   private doctorService = inject(DoctorsService);
   private specialtyService = inject(SpecialtiesService);
   @ViewChild('filterContainer') filterContainer!: ElementRef;
+  @ViewChild('docTypeContainer') docTypeContainer!: ElementRef;
+  @ViewChild('genderContainer') genderContainer!: ElementRef;
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    if (this.showColumnFilter() && this.filterContainer && !this.filterContainer.nativeElement.contains(event.target)) {
+    const target = event.target as HTMLElement;
+
+    // Filter Column dropdown
+    if (this.showColumnFilter() && this.filterContainer && !this.filterContainer.nativeElement.contains(target)) {
       this.showColumnFilter.set(false);
+    }
+
+    // Modal Document Type dropdown
+    if (this.showDocTypeDropdown() && this.docTypeContainer && !this.docTypeContainer.nativeElement.contains(target)) {
+      this.showDocTypeDropdown.set(false);
+    }
+
+    // Modal Gender dropdown
+    if (this.showGenderDropdown() && this.genderContainer && !this.genderContainer.nativeElement.contains(target)) {
+      this.showGenderDropdown.set(false);
     }
   }
 
@@ -94,21 +109,24 @@ export class PatientsListComponent implements OnInit {
   showGenderDropdown = signal(false);
   showDocTypeDropdown = signal(false);
 
-  toggleGenderDropdown() {
+  toggleGenderDropdown(event: Event) {
+    event.stopPropagation();
     this.showGenderDropdown.set(!this.showGenderDropdown());
   }
 
-  toggleDocTypeDropdown() {
+  toggleDocTypeDropdown(event: Event) {
+    event.stopPropagation();
     this.showDocTypeDropdown.set(!this.showDocTypeDropdown());
   }
 
-  selectDocType(type: string) {
+  selectDocType(type: string, event: Event) {
+    event.stopPropagation();
     this.form.documentType = type;
-    this.form.documentNumber = '';
     this.showDocTypeDropdown.set(false);
   }
 
-  selectGender(gender: 'M' | 'F') {
+  selectGender(gender: 'M' | 'F', event: Event) {
+    event.stopPropagation();
     this.form.gender = gender;
     this.showGenderDropdown.set(false);
   }

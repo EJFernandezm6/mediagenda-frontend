@@ -1,10 +1,10 @@
-<div class="h-[calc(100vh-8rem)] flex flex-col overflow-hidden">
+<div class="h-full flex flex-col overflow-hidden">
     <!-- Header with primary CTA relocated -->
     <div class="shrink-0 mb-4">
         <app-page-header 
             title="Especialistas" 
             subtitle="Gestión de especialistas médicos y sus perfiles."
-            buttonText="Nuevo Especialista"
+            buttonText="Nuevo especialista"
             [buttonIcon]="icons.Plus"
             [largeButton]="true"
             (actionClick)="openModal()">
@@ -44,7 +44,7 @@
                         <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Estado</th>
                         <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Especialidades</th>
                         <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Colegiatura</th>
-                        <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Documento de Identidad</th>
+                        <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Documento de identidad</th>
                         <th class="pr-8 bg-transparent text-right text-[12px] font-medium text-gray-500">Acciones</th>
                     </tr>
                 </thead>
@@ -64,7 +64,7 @@
                                     <span class="cell-primary text-base font-semibold">{{ doctor.fullName }}</span>
                                     <div *ngIf="isMissingData(doctor)" class="flex items-center gap-1">
                                         <lucide-icon [img]="icons.AlertCircle" class="w-3 h-3 text-warning"></lucide-icon>
-                                        <span class="text-[10px] text-warning-hover font-medium">Perfil Incompleto</span>
+                                        <span class="text-[10px] text-warning-hover font-medium">Perfil incompleto</span>
                                     </div>
                                 </div>
                             </div>
@@ -119,8 +119,8 @@
 
                     <!-- Empty State -->
                     <tr *ngIf="doctorsList.length === 0">
-                        <td colspan="5" class="py-24">
-                            <div class="flex flex-col items-center justify-center text-center px-4 animate-fade-in">
+                        <td colspan="6">
+                            <div class="flex flex-col items-center justify-center text-center px-4 animate-fade-in min-h-[400px]">
                                 <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4 border border-border-soft">
                                     <lucide-icon [img]="icons.Search" class="w-8 h-8 text-text-light" [strokeWidth]="1.5"></lucide-icon>
                                 </div>
@@ -159,9 +159,9 @@
         <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-3xl">
             <div>
                 <h3 class="text-xl font-bold text-text-main">
-                    {{ editingId ? 'Editar' : 'Nuevo' }} Especialista
+                    {{ editingId ? 'Editar' : 'Nuevo' }} especialista
                 </h3>
-                <p class="text-xs text-text-light font-medium mt-1">Información del Médico</p>
+                <p class="text-xs text-text-light font-medium mt-1">Información del médico</p>
             </div>
             <button (click)="closeModal()" class="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-light hover:text-text-main">
                 <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
@@ -176,14 +176,14 @@
                     <!-- Photo Section (Left or Top) -->
                     <div class="md:col-span-5 lg:col-span-4">
                         <div class="bg-gray-50/50 p-8 rounded-2xl border border-dashed border-gray-200 flex flex-col items-center text-center h-full justify-center min-h-[300px]">
-                            <label class="block text-[12px] font-bold text-text-muted uppercase tracking-wider mb-6 w-full">Foto de Perfil</label>
+                            <label class="block text-[12px] font-bold text-text-muted tracking-wider mb-6 w-full">Foto de perfil</label>
                             <div class="h-32 w-32 rounded-[2rem] bg-accent flex items-center justify-center text-white text-4xl font-bold overflow-hidden ring-4 ring-white shadow-xl mb-6 transition-transform hover:scale-105 duration-300">
                                 <img [src]="form.photoUrl || 'https://ui-avatars.com/api/?background=random'" alt="Preview"
                                     class="h-full w-full object-cover">
                             </div>
                             <input type="file" (change)="onFileSelected($event)" accept="image/*" id="photo-upload" class="hidden">
                             <label for="photo-upload" class="px-6 py-2.5 bg-accent text-white text-[13px] font-bold rounded-xl cursor-pointer hover:bg-accent-hover shadow-md shadow-accent/20 transition-all mb-2">
-                                Seleccionar Imagen
+                                Seleccionar imagen
                             </label>
                             <p class="text-[10px] text-text-light mt-3 font-medium leading-tight">Recomendado: 400x400px • JPG/PNG</p>
                         </div>
@@ -193,13 +193,13 @@
                     <div class="md:col-span-7 lg:col-span-8">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                             <div class="sm:col-span-2">
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nombre Completo <span class="text-red-500">*</span></label>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nombre completo <span class="text-red-500">*</span></label>
                                 <input [ngModel]="form.fullName" (input)="onNameInput($event)" type="text" placeholder="Ej. Dr. Mario Perez"
                                     class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
                             </div>
 
                             <div class="relative">
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Tipo de Documento <span class="text-red-500">*</span></label>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Tipo de documento <span class="text-red-500">*</span></label>
                                 <div (click)="toggleDocTypeDropdown()"
                                      class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all cursor-pointer focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
                                     <span class="text-[14px] font-semibold text-text-main">{{ form.documentType }}</span>
@@ -217,7 +217,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Número de Documento <span class="text-red-500">*</span></label>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Número de documento <span class="text-red-500">*</span></label>
                                 <input [ngModel]="form.documentNumber" (input)="onDocumentInput($event)" type="text"
                                     [placeholder]="form.documentType === 'DNI' ? '8 dígitos' : form.documentType === 'RUC' ? '11 dígitos' : 'Número de documento'"
                                     class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light"
@@ -256,7 +256,7 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Correo Electrónico <span class="text-gray-400 font-normal ml-0.5">(Opcional)</span></label>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Correo electrónico <span class="text-gray-400 font-normal ml-0.5">(Opcional)</span></label>
                                 <input [(ngModel)]="form.email" type="email" placeholder="doctor@ejemplo.com"
                                     class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light"
                                     [class.border-red-500]="form.email && !emailRegex.test(form.email)">
@@ -277,7 +277,7 @@
             <app-button variant="accent" (onClick)="save()" [disabled]="isSaving || !isFormValid"
                 className="!text-[14px] font-semibold"
                 class="!px-8 !h-11 bg-accent hover:bg-accent-hover text-white !rounded-xl shadow-sm transition-all min-w-[140px]">
-                {{ isSaving ? 'Guardando...' : (editingId ? 'Guardar Cambios' : 'Crear Especialista') }}
+                {{ isSaving ? 'Guardando...' : (editingId ? 'Guardar cambios' : 'Crear especialista') }}
             </app-button>
         </div>
     </app-card>
@@ -336,6 +336,27 @@
         <!-- Scrollable Content -->
         <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
             <div class="space-y-8">
+                <!-- Missing Info Alert -->
+                <div *ngIf="selectedDoctorForProfile() as doctor">
+                    <div *ngIf="isMissingData(doctor)" 
+                         class="mb-8 p-6 bg-warning-soft/30 border border-warning-hover/10 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+                        <div class="flex gap-4">
+                            <div class="h-10 w-10 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm border border-warning-hover/10">
+                                <lucide-icon [img]="icons.AlertCircle" class="w-5 h-5 text-warning-hover"></lucide-icon>
+                            </div>
+                            <div>
+                                <h4 class="text-[15px] font-bold text-warning-hover">Pendiente de información</h4>
+                                <p class="text-[13px] text-text-muted mt-1">Este perfil aún no cuenta con los datos básicos obligatorios:</p>
+                                <div class="flex flex-wrap gap-2 mt-4">
+                                    <span *ngFor="let field of getMissingFields(doctor)" 
+                                          class="px-2.5 py-1.5 bg-white text-warning-hover text-[11px] font-bold rounded-lg border border-warning-hover/20 uppercase tracking-wider shadow-sm">
+                                        {{ field }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Contact Info Card -->
                 <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -349,7 +370,7 @@
                         </div>
                         <!-- Email -->
                         <div class="space-y-1 sm:col-span-2">
-                            <label class="block text-[12px] font-medium text-text-muted capitalize">Correo Electrónico</label>
+                            <label class="block text-[12px] font-medium text-text-muted capitalize">Correo electrónico</label>
                             <div class="flex items-center gap-2">
                                 <lucide-icon [img]="icons.Mail" class="w-4 h-4 text-accent"></lucide-icon>
                                 <span class="text-[14px] font-medium text-text-main truncate" [title]="selectedDoctorForProfile()?.email || 'No asignado'">
@@ -363,7 +384,7 @@
                 <!-- Assigned Specialties Section -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-[16px] font-semibold text-text-main">Especialidades Asignadas</h3>
+                        <h3 class="text-[16px] font-semibold text-text-main">Especialidades asignadas</h3>
                         <app-button variant="ghost" size="sm" (onClick)="openAssignmentModal()" class="!px-3 !h-9 border border-border-soft hover:!bg-gray-50 !rounded-lg text-accent font-bold text-xs">
                             <lucide-icon [img]="icons.Plus" class="w-3.5 h-3.5 mr-1.5"></lucide-icon>
                             Asignar nueva
@@ -416,7 +437,7 @@
                             </div>
                             <p class="text-[15px] font-medium text-text-muted">Este especialista no tiene especialidades asignadas</p>
                             <app-button variant="accent" size="sm" (onClick)="openAssignmentModal()" class="mt-4 !rounded-xl !h-10 !px-6 shadow-lg shadow-accent/20">
-                                Asignar Especialidad
+                                Asignar especialidad
                             </app-button>
                            </div>
             </div>

@@ -36,6 +36,22 @@ export class DatePickerComponent implements OnInit {
     @Input() allowPastDates: boolean = false;
     @Input() borderless: boolean = false;
     @Input() position: 'left' | 'right' = 'left';
+
+    private _minDate: string | null = null;
+    @Input() set minDate(v: string | null) {
+        this._minDate = v;
+        this.recalculateCalendar();
+    }
+    get minDate() { return this._minDate; }
+
+    private _maxDate: string | null = null;
+    @Input() set maxDate(v: string | null) {
+        this._maxDate = v;
+        this.recalculateCalendar();
+    }
+    get maxDate() { return this._maxDate; }
+
+    @Input() showIcon: boolean = true;
     disabledState = signal(false);
     @Input('disabled')
     set disabled(value: boolean) {
@@ -124,6 +140,12 @@ export class DatePickerComponent implements OnInit {
                     isEnabled = isCurrentMonth && this._enabledDates.includes(isoDate);
                 } else {
                     isEnabled = isCurrentMonth && (this.allowPastDates || isoDate >= todayIso);
+                    if (isEnabled && this.minDate) {
+                        isEnabled = isoDate >= this.minDate;
+                    }
+                    if (isEnabled && this.maxDate) {
+                        isEnabled = isoDate <= this.maxDate;
+                    }
                 }
 
                 week.push({

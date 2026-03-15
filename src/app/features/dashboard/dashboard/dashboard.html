@@ -1,10 +1,10 @@
-<div class="p-4 md:p-8 min-h-screen bg-[#f8fafc] space-y-8 animate-fade-in relative">
+<div class="space-y-8 animate-fade-in relative">
 
   <!-- ── HEADER ESTRATÉGICO ─────────────────────────────────── -->
   <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-[100]">
     <div class="space-y-1">
-      <h1 class="text-4xl md:text-5xl font-black tracking-tight text-gray-950 uppercase italic leading-tight py-2">
-        Dashboard <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 px-1">Estratégico</span>
+      <h1 class="text-4xl md:text-5xl font-black tracking-tight text-gray-950 italic leading-tight py-2">
+        Dashboard <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 px-1">estratégico</span>
       </h1>
       <p class="text-gray-500 font-medium text-sm flex items-center gap-2">
         <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-indigo-500"></lucide-icon>
@@ -14,12 +14,12 @@
 
     <div class="flex items-center gap-3 bg-white/60 p-1.5 rounded-3xl border border-white/50 shadow-sm backdrop-blur-2xl relative z-50">
       <div class="flex items-center gap-3 px-4 py-2 bg-white rounded-2xl shadow-inner border border-gray-100 min-w-[340px] relative">
-        <lucide-icon [img]="icons.CalendarCheck" class="w-4 h-4 text-gray-400"></lucide-icon>
+        <lucide-icon [img]="icons.CalendarCheck" class="w-4 h-4 text-accent"></lucide-icon>
         <div class="flex items-center gap-2">
-          <app-datepicker class="w-28" [value]="fromDate" (valueChange)="fromDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true"></app-datepicker>
+          <app-datepicker class="w-28" [value]="fromDate" (valueChange)="fromDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true" [maxDate]="toDate" [showIcon]="false"></app-datepicker>
           <span class="text-gray-300 text-xs font-bold">—</span>
           <!-- Dynamic alignment for the second picker to prevent it from going off-screen -->
-          <app-datepicker class="w-28" [value]="toDate" (valueChange)="toDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true" position="right"></app-datepicker>
+          <app-datepicker class="w-28" [value]="toDate" (valueChange)="toDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true" [minDate]="fromDate" [showIcon]="false" position="right"></app-datepicker>
         </div>
       </div>
     </div>
@@ -29,7 +29,7 @@
   <div *ngIf="isLoading$ | async" class="absolute inset-0 z-50 flex items-center justify-center bg-gray-50/20 backdrop-blur-[2px]">
     <div class="flex flex-col items-center gap-3 bg-white p-6 rounded-[2.5rem] shadow-2xl border border-white/50">
       <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      <span class="text-xs font-black uppercase text-gray-400 tracking-widest">Sincronizando...</span>
+      <span class="text-xs font-black text-gray-400 tracking-widest">Sincronizando...</span>
     </div>
   </div>
 
@@ -44,7 +44,7 @@
           <lucide-icon [img]="icons.TrendingUp" class="w-6 h-6"></lucide-icon>
         </div>
         <div>
-          <p class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 mb-1">Citas Totales</p>
+          <p class="text-[0.65rem] font-black tracking-widest text-gray-400 mb-1">Citas totales</p>
           <h2 class="text-4xl font-black text-gray-900 leading-none">{{ kpi.total }}</h2>
         </div>
       </div>
@@ -58,7 +58,7 @@
           <lucide-icon [img]="icons.CheckCircle" class="w-6 h-6"></lucide-icon>
         </div>
         <div>
-          <p class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 mb-1">Atendidas</p>
+          <p class="text-[0.65rem] font-black tracking-widest text-gray-400 mb-1">Atendidas</p>
           <h2 class="text-4xl font-black text-gray-900 leading-none">{{ kpi.attendedCount }}</h2>
           <span class="text-[0.6rem] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full mt-2 inline-block">
              {{ kpi.total > 0 ? (kpi.attendedCount / kpi.total * 100).toFixed(1) : 0 }}% Efectividad
@@ -75,7 +75,7 @@
           <lucide-icon [img]="icons.CreditCard" class="w-6 h-6"></lucide-icon>
         </div>
         <div>
-          <p class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 mb-1">Activas</p>
+          <p class="text-[0.65rem] font-black tracking-widest text-gray-400 mb-1">Activas</p>
           <h2 class="text-4xl font-black text-gray-900 leading-none">{{ kpi.activeCount }}</h2>
         </div>
       </div>
@@ -89,7 +89,7 @@
           <lucide-icon [img]="icons.XCircle" class="w-6 h-6"></lucide-icon>
         </div>
         <div>
-          <p class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 mb-1">Canceladas</p>
+          <p class="text-[0.65rem] font-black tracking-widest text-gray-400 mb-1">Canceladas</p>
           <h2 class="text-4xl font-black text-gray-900 leading-none">{{ kpi.cancelledCount }}</h2>
           <span class="text-[0.6rem] font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full mt-2 inline-block">
             {{ kpi.total > 0 ? (kpi.cancelledCount / kpi.total * 100).toFixed(1) : 0 }}% Pérdida
@@ -106,7 +106,7 @@
     <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col group">
       <h3 class="text-base font-black text-gray-900 mb-6 flex items-center gap-2">
         <lucide-icon [img]="icons.CreditCard" class="w-4 h-4 text-indigo-500"></lucide-icon>
-        Mix de Pagos
+        Mix de pagos
       </h3>
       <div class="flex-1" style="height: 300px">
         <ngx-charts-pie-chart
@@ -124,7 +124,7 @@
     <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 lg:col-span-2 group">
       <h3 class="text-base font-black text-gray-900 mb-6 flex items-center gap-2">
         <lucide-icon [img]="icons.Activity" class="w-4 h-4 text-emerald-500"></lucide-icon>
-        Demanda x Especialidad
+        Demanda por especialidad
       </h3>
       <div style="height: 300px">
         <ngx-charts-bar-horizontal
@@ -147,9 +147,9 @@
     <!-- Eficiencia por Especialidad (Stacked/Multi) -->
     <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 group">
       <div class="flex items-center justify-between mb-8">
-        <h3 class="text-base font-black text-gray-900 flex items-center gap-2 uppercase">
+        <h3 class="text-base font-black text-gray-900 flex items-center gap-2">
           <lucide-icon [img]="icons.TrendingUp" class="w-4 h-4 text-indigo-500"></lucide-icon>
-          Efectividad por Rama
+          Efectividad por rama
         </h3>
       </div>
       <div style="height: 320px">
@@ -168,9 +168,9 @@
     <!-- Retención de Pacientes -->
     <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100">
       <div class="flex items-center justify-between mb-8">
-        <h3 class="text-base font-black text-gray-900 flex items-center gap-2 uppercase">
+        <h3 class="text-base font-black text-gray-900 flex items-center gap-2">
           <lucide-icon [img]="icons.Users" class="w-4 h-4 text-emerald-500"></lucide-icon>
-          Crecimiento y Retención
+          Crecimiento y retención
         </h3>
       </div>
       <div style="height: 320px">
@@ -194,10 +194,10 @@
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
     <!-- Proyección Mensual -->
-    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 uppercase">
+    <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100">
       <h3 class="text-base font-black text-gray-900 mb-6 flex items-center gap-2">
         <lucide-icon [img]="icons.TrendingUp" class="w-4 h-4 text-indigo-500"></lucide-icon>
-        Proyección Mensual: Ingresos Esperados
+        Proyección mensual: ingresos esperados
       </h3>
       <div style="height: 280px">
         <ngx-charts-area-chart
@@ -217,7 +217,7 @@
     <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100">
       <h3 class="text-base font-black text-gray-900 mb-6 flex items-center gap-2">
         <lucide-icon [img]="icons.Clock" class="w-4 h-4 text-amber-500"></lucide-icon>
-        Mapa de Calor: Afluencia Operativa
+        Mapa de calor: afluencia operativa
       </h3>
       <div style="height: 280px">
         <ngx-charts-heat-map
@@ -239,17 +239,17 @@
     <!-- Pacientes Evolución -->
     <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 group">
       <div class="flex items-center justify-between mb-8">
-        <h3 class="text-base font-black text-gray-900 flex items-center gap-2 uppercase">
+        <h3 class="text-base font-black text-gray-900 flex items-center gap-2">
           <lucide-icon [img]="icons.Users" class="w-4 h-4 text-emerald-500"></lucide-icon>
-          Volumen de Pacientes
+          Volumen de pacientes
         </h3>
         <div class="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
           <button (click)="setPatientGranularity('WEEK')" 
                   [class]="(patientGranularity$ | async) === 'WEEK' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-400'"
-                  class="px-4 py-1.5 text-[0.6rem] font-black uppercase rounded-lg transition-all">Semanas</button>
+                  class="px-4 py-1.5 text-[0.6rem] font-black rounded-lg transition-all">Semanas</button>
           <button (click)="setPatientGranularity('MONTH')" 
                   [class]="(patientGranularity$ | async) === 'MONTH' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-400'"
-                  class="px-4 py-1.5 text-[0.6rem] font-black uppercase rounded-lg transition-all">Meses</button>
+                  class="px-4 py-1.5 text-[0.6rem] font-black rounded-lg transition-all">Meses</button>
         </div>
       </div>
       <div style="height: 320px">
@@ -268,17 +268,17 @@
     <!-- Citas Evolución -->
     <div class="bg-white p-7 rounded-[2rem] shadow-sm border border-gray-100 group">
       <div class="flex items-center justify-between mb-8">
-        <h3 class="text-base font-black text-gray-900 flex items-center gap-2 uppercase">
+        <h3 class="text-base font-black text-gray-900 flex items-center gap-2">
           <lucide-icon [img]="icons.CalendarCheck" class="w-4 h-4 text-violet-500"></lucide-icon>
-          Citas Programadas
+          Citas programadas
         </h3>
         <div class="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
           <button (click)="setAppointmentGranularity('WEEK')" 
                   [class]="(appointmentGranularity$ | async) === 'WEEK' ? 'bg-white shadow-sm text-violet-600' : 'text-gray-400'"
-                  class="px-4 py-1.5 text-[0.6rem] font-black uppercase rounded-lg transition-all">Semanas</button>
+                  class="px-4 py-1.5 text-[0.6rem] font-black rounded-lg transition-all">Semanas</button>
           <button (click)="setAppointmentGranularity('MONTH')" 
                   [class]="(appointmentGranularity$ | async) === 'MONTH' ? 'bg-white shadow-sm text-violet-600' : 'text-gray-400'"
-                  class="px-4 py-1.5 text-[0.6rem] font-black uppercase rounded-lg transition-all">Meses</button>
+                  class="px-4 py-1.5 text-[0.6rem] font-black rounded-lg transition-all">Meses</button>
         </div>
       </div>
       <div style="height: 320px">

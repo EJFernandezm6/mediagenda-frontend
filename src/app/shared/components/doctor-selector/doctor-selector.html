@@ -3,7 +3,7 @@
     <div class="relative z-40">
         <input type="text" [ngModel]="searchText()" (ngModelChange)="onSearchChange($event)" (focus)="isOpen.set(true)"
             placeholder="Buscar por Dni o Nombre..."
-            class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm border disabled:bg-gray-100 disabled:text-gray-500">
+            class="block w-full h-11 rounded-lg border-gray-300 !py-0 pl-3 pr-10 text-[14px] bg-white text-gray-900 border disabled:bg-muted/30 disabled:text-text-muted focus:border-accent focus:ring-4 focus:ring-accent/10 focus:outline-none transition-all placeholder:text-text-light">
 
         <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1"
             [class.pointer-events-none]="!selectedDoctorId() || disabled()">

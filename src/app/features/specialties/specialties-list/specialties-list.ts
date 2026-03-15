@@ -43,11 +43,12 @@ export class SpecialtiesListComponent implements OnInit {
 
   // Local Pagination & Search State
   searchTerm = signal('');
-  statusFilter = signal('ACTIVE');
+  statusFilter = signal('');
   currentPage = signal(1);
   itemsPerPage = 6;
 
   statusOptions = signal<SelectOption[]>([
+    { id: '', label: 'Todas las especialidades' },
     { id: 'ACTIVE', label: 'Especialidades Activas' },
     { id: 'INACTIVE', label: 'Especialidades Inactivas' }
   ]);

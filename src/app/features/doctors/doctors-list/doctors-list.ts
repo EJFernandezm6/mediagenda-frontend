@@ -51,6 +51,7 @@ export class DoctorsListComponent implements OnInit {
   itemsPerPage = 5;
 
   statusOptions = signal<SelectOption[]>([
+    { id: '', label: 'Ver todos' },
     { id: 'ACTIVE', label: 'Solo Activos' },
     { id: 'INACTIVE', label: 'Solo Inactivos' }
   ]);
@@ -231,16 +232,16 @@ export class DoctorsListComponent implements OnInit {
   }
 
   isMissingData(doctor: Doctor) {
-    return !doctor.fullName?.trim() || !doctor.phone?.trim() || !doctor.cmp?.trim() || !doctor.documentNumber?.trim() || !doctor.email?.trim();
+    return !doctor.fullName?.trim() || 
+           !doctor.phone?.trim() || 
+           !doctor.documentNumber?.trim();
   }
 
   getMissingFields(doctor: Doctor): string[] {
     const fields = [];
-    if (!doctor.fullName?.trim()) fields.push('Nombre');
+    if (!doctor.fullName?.trim()) fields.push('Nombre completo');
     if (!doctor.phone?.trim()) fields.push('Teléfono');
-    if (!doctor.documentNumber?.trim()) fields.push('Doc. Identidad');
-    if (!doctor.email?.trim()) fields.push('Email');
-    if (doctor.email && !this.emailRegex.test(doctor.email)) fields.push('Email Inválido');
+    if (!doctor.documentNumber?.trim()) fields.push('Documento de identidad');
     return fields;
   }
 

@@ -4,7 +4,7 @@
         <app-page-header 
             title="Pacientes" 
             subtitle="Directorio de pacientes y gestión de historias clínicas."
-            buttonText="Nuevo Paciente"
+            buttonText="Nuevo paciente"
             [buttonIcon]="icons.Plus"
             [largeButton]="true"
             (actionClick)="openModal()">
@@ -34,7 +34,7 @@
                     class="absolute left-0 sm:left-auto sm:right-0 z-50 mt-2 w-56 origin-top-right rounded-2xl bg-white shadow-2xl border border-border-soft ring-0 animate-in fade-in zoom-in duration-200">
                     <div class="p-2">
                         <div class="px-3 py-2 border-b border-gray-50 mb-1">
-                            <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider">Mostrar Columnas</span>
+                            <span class="text-[11px] font-bold text-text-muted tracking-wider">Mostrar columnas</span>
                         </div>
                         <div class="space-y-0.5">
                             <label class="flex items-center px-3 py-2.5 text-[13px] font-semibold text-text-main hover:bg-gray-50 rounded-xl cursor-pointer transition-colors">
@@ -173,8 +173,8 @@
         <!-- Modal Header -->
         <div class="relative px-8 pt-6 pb-6 border-b border-gray-100 bg-white rounded-t-3xl">
             <div>
-                <h3 class="text-[20px] font-semibold text-text-main leading-tight">Registrar paciente</h3>
-                <p class="text-[14px] text-text-muted font-normal mt-1">Información Personal</p>
+                <h3 class="text-[20px] font-semibold text-text-main leading-tight">{{ form.patientId ? 'Editar paciente' : 'Registrar paciente' }}</h3>
+                <p class="text-[14px] text-text-muted font-normal mt-1">Información personal</p>
             </div>
             <button (click)="closeModal()" class="absolute top-6 right-6 p-2 rounded-xl text-text-light hover:text-text-main hover:bg-gray-50 transition-all outline-none">
                 <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
@@ -187,37 +187,33 @@
                 <!-- Basic Info Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                     <div class="sm:col-span-2">
-                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nombres Completos <span class="text-red-500">*</span></label>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nombres completos <span class="text-red-500">*</span></label>
                         <input [ngModel]="form.fullName" (input)="onNameInput($event)" type="text" placeholder="Ej. Juan Pérez"
-                            [disabled]="!!form.patientId" 
                             class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
                     </div>
 
-                    <div class="relative">
-                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Tipo de Documento <span class="text-red-500">*</span></label>
-                        <div (click)="!form.patientId && toggleDocTypeDropdown()"
-                             [class.cursor-pointer]="!form.patientId"
-                             [class.bg-gray-50]="form.patientId"
-                             class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
+                    <div class="relative" #docTypeContainer>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Tipo de documento <span class="text-red-500">*</span></label>
+                        <div (click)="toggleDocTypeDropdown($event)"
+                             class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10 cursor-pointer">
                             <span class="text-[14px] font-semibold text-text-main">{{ form.documentType }}</span>
                             <lucide-icon [img]="icons.ChevronDown" class="w-4 h-4 text-text-light"></lucide-icon>
                         </div>
                         <div *ngIf="showDocTypeDropdown()"
                              class="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-xl border border-border-soft overflow-hidden animate-in fade-in zoom-in duration-100">
-                            <div (click)="selectDocType('DNI')"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">DNI</div>
-                            <div (click)="selectDocType('CE')"       class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">CE</div>
-                            <div (click)="selectDocType('PASAPORTE')" class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">PASAPORTE</div>
-                            <div (click)="selectDocType('PTP')"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">PTP</div>
-                            <div (click)="selectDocType('RUC')"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">RUC</div>
-                            <div (click)="selectDocType('OTRO')"     class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">OTRO</div>
+                            <div (click)="selectDocType('DNI', $event)"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">DNI</div>
+                            <div (click)="selectDocType('CE', $event)"       class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">CE</div>
+                            <div (click)="selectDocType('PASAPORTE', $event)" class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">PASAPORTE</div>
+                            <div (click)="selectDocType('PTP', $event)"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">PTP</div>
+                            <div (click)="selectDocType('RUC', $event)"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">RUC</div>
+                            <div (click)="selectDocType('OTRO', $event)"     class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">OTRO</div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Número de Documento <span class="text-red-500">*</span></label>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Número de documento <span class="text-red-500">*</span></label>
                         <input [ngModel]="form.documentNumber" (input)="onDniInput($event)" type="text"
                             [placeholder]="form.documentType === 'DNI' ? '8 dígitos' : form.documentType === 'RUC' ? '11 dígitos' : 'Número de documento'"
-                            [disabled]="!!form.patientId"
                             class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
                     </div>
 
@@ -239,37 +235,35 @@
 
                     <div>
                         <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Edad <span class="text-red-500">*</span></label>
-                        <input [(ngModel)]="form.age" type="number" [disabled]="!!form.patientId" 
+                        <input [(ngModel)]="form.age" type="number" 
                             class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
                     </div>
 
-                    <div class="relative">
+                    <div class="relative" #genderContainer>
                         <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Género <span class="text-red-500">*</span></label>
                         
                         <!-- Simplified Native-like Select -->
-                        <div (click)="!form.patientId && toggleGenderDropdown()" 
-                             [class.cursor-pointer]="!form.patientId"
-                             [class.bg-gray-50]="form.patientId"
-                             class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
+                        <div (click)="toggleGenderDropdown($event)" 
+                             class="w-full h-10 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10 cursor-pointer">
                             
                             <span class="text-[14px] font-medium text-text-main">{{ form.gender === 'M' ? 'Masculino' : 'Femenino' }}</span>
-                            <lucide-icon *ngIf="!form.patientId" [img]="icons.ChevronDown" class="w-4 h-4 text-text-light"></lucide-icon>
+                            <lucide-icon [img]="icons.ChevronDown" class="w-4 h-4 text-text-light"></lucide-icon>
                         </div>
 
                         <!-- Simplified Dropdown -->
                         <div *ngIf="showGenderDropdown()" 
                              class="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-xl border border-border-soft overflow-hidden animate-in fade-in zoom-in duration-100">
-                            <div (click)="selectGender('M')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">
+                            <div (click)="selectGender('M', $event)" class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">
                                 Masculino
                             </div>
-                            <div (click)="selectGender('F')" class="px-4 py-3 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">
+                            <div (click)="selectGender('F', $event)" class="px-4 py-3 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">
                                 Femenino
                             </div>
                         </div>
                     </div>
 
                     <div class="sm:col-span-2">
-                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Correo Electrónico <span class="text-gray-400 font-normal ml-0.5">(Opcional)</span></label>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Correo electrónico <span class="text-gray-400 font-normal ml-0.5">(Opcional)</span></label>
                         <input [(ngModel)]="form.email" type="email" placeholder="usuario@correo.com" 
                             class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light"
                             [class.border-red-500]="form.email && !emailRegex.test(form.email)">
@@ -292,7 +286,7 @@
             <app-button variant="accent" (onClick)="save()" [disabled]="isSaving || !isFormValid" 
                 className="!text-[14px] font-semibold"
                 class="!px-8 !h-11 bg-accent hover:bg-accent-hover text-white !rounded-xl shadow-sm transition-all min-w-[140px]">
-                {{ isSaving ? 'Guardando...' : (form.patientId ? 'Guardar Cambios' : 'Registrar') }}
+                {{ isSaving ? 'Guardando...' : (form.patientId ? 'Guardar cambios' : 'Registrar') }}
             </app-button>
         </div>
     </app-card>
@@ -334,7 +328,7 @@
                         <p class="text-[14px] text-text-main font-semibold">{{ selectedHistoryPatient.documentNumber }}</p>
                     </div>
                     <div>
-                        <p class="text-[12px] text-gray-500 font-medium mb-0.5">Correo Electrónico</p>
+                        <p class="text-[12px] text-gray-500 font-medium mb-0.5">Correo electrónico</p>
                         <p class="text-[14px] text-text-main font-semibold truncate" [title]="selectedHistoryPatient.email">{{ selectedHistoryPatient.email || '---' }}</p>
                     </div>
                     <div>

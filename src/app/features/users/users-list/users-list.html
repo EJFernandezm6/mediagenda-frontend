@@ -1,124 +1,153 @@
-<div class="sm:flex sm:items-center justify-between mb-8">
-    <div class="sm:flex-auto">
-        <h1 class="text-xl font-bold text-text-main">Gestión de Usuarios</h1>
-        <p class="mt-1 text-sm text-text-muted">Administra el acceso, roles y seguridad del sistema.</p>
+<div class="h-full flex flex-col overflow-hidden">
+    <!-- Header with primary CTA -->
+    <div class="shrink-0 mb-4">
+        <app-page-header 
+            title="Gestión de usuarios" 
+            subtitle="Administra el acceso, roles y seguridad del sistema."
+            buttonText="Nuevo usuario"
+            [buttonIcon]="Icons.Plus"
+            [largeButton]="true"
+            (actionClick)="openModal()">
+        </app-page-header>
     </div>
-    <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-        <app-button (onClick)="openModal()" variant="accent">
-            <lucide-icon [img]="Icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
-            Nuevo usuario
-        </app-button>
-    </div>
-</div>
 
-<app-card variant="flat" [noPadding]="true" class="mb-6">
-    <div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <!-- Search Bar -->
-        <div class="relative max-w-sm w-full">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <lucide-icon [img]="Icons.Search" class="h-4 w-4 text-text-light"></lucide-icon>
-            </div>
-            <input [value]="searchTerm()" (input)="onSearch($event)" type="text" class="pl-11 w-full"
-                placeholder="Buscar por nombre o email...">
+    <!-- Compact Action Bar -->
+    <div class="shrink-0 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="relative w-full sm:max-w-md">
+            <app-search-input 
+                placeholder="Buscar por nombre o email..." 
+                (search)="onSearch($event)">
+            </app-search-input>
         </div>
 
-        <div class="flex items-center gap-3">
-            <!-- Status Filter -->
-            <select [ngModel]="selectedStatus()" (ngModelChange)="filterByStatus($event)" class="min-w-[150px]">
-                <option value="">Todos los estados</option>
-                <option value="ACTIVE">Activos</option>
-                <option value="INACTIVE">Inactivos</option>
-            </select>
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div class="w-full sm:w-48">
+                <app-searchable-select 
+                    [options]="statusOptions()" 
+                    [value]="selectedStatus()"
+                    (valueChange)="filterByStatus($event.toString())"
+                    placeholder="Estado">
+                </app-searchable-select>
+            </div>
 
-            <!-- Role Filter -->
-            <select [ngModel]="selectedRole()" (ngModelChange)="filterByRole($event)" class="min-w-[180px]">
-                <option value="">Todos los roles</option>
-                <option value="ADMIN">Administradores</option>
-                <option value="DOCTOR">Especialistas</option>
-            </select>
+            <div class="w-full sm:w-56">
+                <app-searchable-select 
+                    [options]="roleOptions()" 
+                    [value]="selectedRole()"
+                    (valueChange)="filterByRole($event.toString())"
+                    placeholder="Rol / Cargo">
+                </app-searchable-select>
+            </div>
+        </div>
+        
+        <div class="flex-1"></div>
+    </div>
 
-            <!-- Pagination -->
-            <app-pagination [currentPage]="currentPage()" [totalItems]="totalItems" [pageSize]="itemsPerPage"
+    <!-- Users List Table -->
+    <div class="bg-surface rounded-3xl shadow-md border border-border-soft flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 overflow-x-auto overflow-y-auto relative custom-scrollbar">
+            <table class="table-v2 w-full">
+                <!-- Sticky Header -->
+                <thead class="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm border-b border-border-soft shadow-sm">
+                    <tr class="table-v2-header">
+                        <th class="pl-8 bg-transparent text-left text-[12px] font-medium text-gray-500">Usuario</th>
+                        <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Rol / Cargo</th>
+                        <th class="bg-transparent text-left text-[12px] font-medium text-gray-500">Estado</th>
+                        <th class="pr-8 text-right bg-transparent text-[12px] font-medium text-gray-500">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-soft">
+                    <tr *ngFor="let user of usersList" class="table-v2-row group">
+                        <!-- User Info -->
+                        <td class="pl-8 py-4">
+                            <div class="flex items-center gap-4">
+                                <!-- Simple Circle Avatar -->
+                                <div class="h-11 w-11 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold text-sm shadow-sm overflow-hidden shrink-0">
+                                    <img *ngIf="user.photoUrl && !user.photoUrl.includes('ui-avatars')"
+                                        [src]="user.photoUrl" class="h-full w-full object-cover">
+                                    <span *ngIf="!user.photoUrl || user.photoUrl.includes('ui-avatars')">
+                                        {{ user.fullName.substring(0, 2).toUpperCase() }}
+                                    </span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[14px] font-medium text-slate-900 leading-tight">
+                                        {{ user.fullName }}
+                                    </span>
+                                    <span class="text-[13px] text-gray-500 mt-0.5">
+                                        {{ user.email }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Roles -->
+                        <td class="px-6 py-4">
+                            <div class="flex gap-2">
+                                <ng-container *ngFor="let role of user.roles">
+                                    <span *ngIf="role.toUpperCase() !== 'STAFF'"
+                                        [class]="role.toUpperCase() === 'ADMIN' ? 'bg-amber-100 text-amber-900' : 'bg-blue-100 text-blue-900'"
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-bold">
+                                        {{ role.toUpperCase() === 'DOCTOR' ? 'Doctor' : 'Admin' }}
+                                    </span>
+                                </ng-container>
+                            </div>
+                        </td>
+
+                        <!-- Status -->
+                        <td class="px-6 py-4">
+                            <span [class]="user.active ? 'badge-v2-active' : 'badge-v2-inactive'" class="badge-v2">
+                                <span class="badge-v2-dot"></span>
+                                {{ user.active ? 'Activa' : 'Inactiva' }}
+                            </span>
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="pr-8 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button class="action-btn" (click)="toggleActive(user)" 
+                                    [disabled]="user.id === currentUser()?.id"
+                                    [title]="user.active ? 'Desactivar' : 'Activar'">
+                                    <lucide-icon [img]="Icons.Power" [strokeWidth]="1.5"
+                                        [class]="user.active ? 'w-4.5 h-4.5 text-success' : 'w-4.5 h-4.5 text-danger'"></lucide-icon>
+                                </button>
+
+                                <button class="action-btn" (click)="editUser(user)" title="Editar">
+                                    <lucide-icon [img]="Icons.Pencil" [strokeWidth]="1.5" class="w-4.5 h-4.5 text-gray-500 hover:text-accent"></lucide-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Empty State -->
+                    <tr *ngIf="usersList.length === 0">
+                        <td colspan="4">
+                            <div class="flex flex-col items-center justify-center text-center px-4 animate-fade-in min-h-[400px]">
+                                <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4 border border-border-soft">
+                                    <lucide-icon [img]="Icons.Search" class="w-8 h-8 text-text-light" [strokeWidth]="1.5"></lucide-icon>
+                                </div>
+                                <h3 class="text-lg font-bold text-text-main">No se encontraron usuarios</h3>
+                                <p class="text-sm text-text-muted mt-1 max-w-xs mx-auto">
+                                    Intenta ajustar tus criterios de búsqueda o los filtros aplicados para obtener resultados.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Footer: Flat Pagination -->
+        <div class="shrink-0 border-t border-border-soft bg-white rounded-b-3xl">
+            <app-pagination 
+                [currentPage]="currentPage()" 
+                [totalItems]="totalItems" 
+                [pageSize]="itemsPerPage"
+                itemLabel="usuarios"
                 (pageChange)="onPageChange($event)">
             </app-pagination>
         </div>
     </div>
-</app-card>
-
-<!-- Users Table Card -->
-<app-card variant="elevated" [noPadding]="true">
-    <div class="overflow-x-auto custom-scrollbar">
-        <table class="min-w-full divide-y divide-border-soft">
-            <thead class="bg-muted/30">
-                <tr>
-                    <th
-                        class="py-4 pl-6 pr-3 text-left text-[11px] font-bold text-text-main">
-                        Usuario
-                    </th>
-                    <th class="px-6 py-4 text-left text-[11px] font-bold text-text-main">
-                        Rol / Cargo
-                    </th>
-                    <th class="px-6 py-4 text-left text-[11px] font-bold text-text-main">
-                        Estado
-                    </th>
-                    <th class="relative py-4 pl-3 pr-6 text-right">
-                        <span class="sr-only">Acciones</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-border-soft">
-                <tr *ngFor="let user of usersList" class="hover:bg-muted/30 transition-colors">
-                    <td class="whitespace-nowrap py-3 pl-6 pr-3">
-                        <div class="flex items-center">
-                            <div class="h-10 w-10 flex-shrink-0">
-                                <div
-                                    class="h-10 w-10 rounded-2xl bg-muted p-0.5 border border-border-main overflow-hidden ring-4 ring-muted shadow-sm">
-                                    <img [src]="user.photoUrl || 'https://ui-avatars.com/api/?name=' + user.fullName + '&background=F3F4F6&color=6B7280'"
-                                        #uImg
-                                        (error)="uImg.src = 'https://ui-avatars.com/api/?name=' + user.fullName + '&background=F3F4F6&color=6B7280'"
-                                        class="w-full h-full object-cover rounded-xl">
-                                </div>
-                            </div>
-                            <div class="ml-3">
-                                <div class="text-sm font-bold text-text-main">{{ user.fullName }}</div>
-                                <div class="text-[11px] text-text-light font-bold">{{ user.email }}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="whitespace-nowrap px-6 py-3">
-                        <div class="flex gap-2">
-                            <ng-container *ngFor="let role of user.roles">
-                                <app-badge *ngIf="role.toUpperCase() !== 'STAFF'"
-                                    [variant]="role.toUpperCase() === 'ADMIN' ? 'warning' : 'primary'">
-                                    {{ role.toUpperCase() === 'DOCTOR' ? 'Doctor' : 'Admin' }}
-                                </app-badge>
-                            </ng-container>
-                        </div>
-                    </td>
-                    <td class="whitespace-nowrap px-6 py-3">
-                        <app-badge [variant]="user.active ? 'success' : 'neutral'" [dot]="true">
-                            {{ user.active ? 'Activo' : 'Inactivo' }}
-                        </app-badge>
-                    </td>
-                    <td class="whitespace-nowrap py-3 pl-3 pr-6 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            <app-button variant="ghost" size="sm" (onClick)="toggleActive(user)"
-                                [disabled]="user.id === currentUser()?.id" class="!p-2 !rounded-xl"
-                                [title]="user.id === currentUser()?.id ? 'No puedes desactivarte a ti mismo' : (user.active ? 'Desactivar' : 'Activar')">
-                                <lucide-icon [img]="Icons.Power"
-                                    [class]="user.active ? 'w-4 h-4 text-success' : 'w-4 h-4 text-danger'"></lucide-icon>
-                            </app-button>
-                            <app-button variant="ghost" size="sm" (onClick)="editUser(user)" class="!p-2 !rounded-xl">
-                                <lucide-icon [img]="Icons.Pencil"
-                                    class="w-4 h-4 text-text-muted hover:text-accent"></lucide-icon>
-                            </app-button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</app-card>
+</div>
 
 <!-- User Modal -->
 <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -130,7 +159,7 @@
         <div class="px-6 py-4 border-b border-border-soft flex items-center justify-between bg-gray-50/50">
             <div>
                 <h3 class="text-base font-bold text-text-main">{{ isEditing ? 'Editar usuario' : 'Nuevo usuario' }}</h3>
-                <p class="text-[10px] text-text-light font-bold mt-0.5">Acceso y Seguridad</p>
+                <p class="text-[10px] text-text-light font-bold mt-0.5">Acceso y seguridad</p>
             </div>
             <app-button variant="ghost" size="sm" (onClick)="closeModal()" class="!p-2 !rounded-xl">
                 <lucide-icon [img]="Icons.X" class="w-4 h-4"></lucide-icon>
@@ -142,7 +171,7 @@
             <div class="space-y-6">
                 <!-- Roles Selection -->
                 <div>
-                    <label>Asignar Roles</label>
+                    <label>Asignar roles</label>
                     <div class="grid grid-cols-2 gap-3 mt-2">
                         <div *ngFor="let role of availableRoles"
                             class="flex items-center p-3 rounded-xl border transition-all cursor-pointer select-none"
@@ -212,7 +241,7 @@
                 Cancelar
             </app-button>
             <app-button variant="accent" (onClick)="saveUser()" [disabled]="!isValid()" class="min-w-[140px]">
-                {{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}
+                {{ isEditing ? 'Guardar cambios' : 'Crear usuario' }}
             </app-button>
         </div>
     </app-card>

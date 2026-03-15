@@ -10,13 +10,26 @@ import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
+
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
+import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
+import { PageHeaderComponent } from '../../../shared/components/ui/page-header/page-header.component';
+import { SearchInputComponent } from '../../../shared/components/ui/search-input/search-input.component';
 
 @Component({
     selector: 'app-users-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent, ButtonComponent, BadgeComponent, CardComponent],
+    imports: [
+        CommonModule, 
+        FormsModule, 
+        LucideAngularModule, 
+        PaginationComponent, 
+        ButtonComponent, 
+        CardComponent,
+        SearchableSelectComponent,
+        PageHeaderComponent,
+        SearchInputComponent
+    ],
     templateUrl: './users-list.html',
     styleUrl: './users-list.css'
 })
@@ -37,7 +50,19 @@ export class UsersListComponent implements OnInit, OnDestroy {
 
     // Pagination
     currentPage = signal(1);
-    itemsPerPage = 5;
+    itemsPerPage = 10;
+
+    statusOptions = signal<SelectOption[]>([
+        { id: '', label: 'Todos los estados' },
+        { id: 'ACTIVE', label: 'Activos' },
+        { id: 'INACTIVE', label: 'Inactivos' }
+    ]);
+
+    roleOptions = signal<SelectOption[]>([
+        { id: '', label: 'Todos los roles' },
+        { id: 'ADMIN', label: 'Administradores' },
+        { id: 'DOCTOR', label: 'Especialistas' }
+    ]);
 
     // Modal Config
     isModalOpen = false;
@@ -63,6 +88,17 @@ export class UsersListComponent implements OnInit, OnDestroy {
         const role = this.selectedRole();
         const status = this.selectedStatus();
         let list = this.users() || [];
+
+        // 0. Strict Business Rule: Exclude strict doctors (only Doctor role)
+        // These are managed in the Specialists module.
+        list = list.filter(u => {
+            if (!u) return false;
+            const roles = u.roles || [];
+            // If they only have 'DOCTOR', we hide them here.
+            // If they have 'ADMIN' + 'DOCTOR', they stay.
+            const isStrictDoctor = roles.length === 1 && roles[0].toUpperCase() === 'DOCTOR';
+            return !isStrictDoctor;
+        });
 
         // 1. Filter by Status
         if (status === 'ACTIVE') list = list.filter(u => u && u.active !== false);
@@ -138,9 +174,8 @@ export class UsersListComponent implements OnInit, OnDestroy {
         this.currentPage.set(1);
     }
 
-    onSearch(event: Event) {
-        const input = event.target as HTMLInputElement;
-        this.searchTerm.set(input.value);
+    onSearch(value: string) {
+        this.searchTerm.set(value);
         this.currentPage.set(1);
     }
 

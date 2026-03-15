@@ -2,7 +2,7 @@
     <!-- Header with primary CTA -->
     <div class="shrink-0 mb-4">
         <app-page-header 
-            title="Reporte de Citas" 
+            title="Reporte de citas" 
             subtitle="Analiza el flujo y estado de atención de la clínica."
             buttonText="Exportar Excel"
             [buttonIcon]="icons.FileSpreadsheet"
@@ -15,36 +15,36 @@
     <div class="shrink-0 mb-3 flex flex-wrap items-end gap-3 px-1">
         <!-- Fecha Desde -->
         <div class="flex-1 min-w-[140px]">
-            <label class="block text-[10px] font-bold text-text-light mb-1.5 uppercase tracking-wider">Desde</label>
+            <label class="block text-[10px] font-bold text-text-light mb-1.5 tracking-wider">Desde</label>
             <app-datepicker [value]="dateFrom()" (valueChange)="dateFrom.set($event)" [allowPastDates]="true"
                 placeholder="Desde..."></app-datepicker>
         </div>
 
         <!-- Fecha Hasta -->
         <div class="flex-1 min-w-[140px]">
-            <label class="block text-[10px] font-bold text-text-light mb-1.5 uppercase tracking-wider">Hasta</label>
+            <label class="block text-[10px] font-bold text-text-light mb-1.5 tracking-wider">Hasta</label>
             <app-datepicker [value]="dateTo()" (valueChange)="dateTo.set($event)" [allowPastDates]="true"
                 placeholder="Hasta..."></app-datepicker>
         </div>
 
         <!-- Buscador Paciente -->
         <div class="flex-[1.5] min-w-[200px]">
-            <label class="block text-[10px] font-bold text-text-light mb-1.5 uppercase tracking-wider">Paciente</label>
+            <label class="block text-[10px] font-bold text-text-light mb-1.5 tracking-wider">Paciente</label>
             <app-searchable-select [options]="patientOptions()" [value]="searchPatient()"
-                (valueChange)="searchPatient.set($event)" placeholder="Buscar Paciente..."></app-searchable-select>
+                (valueChange)="searchPatient.set($event)" placeholder="Buscar paciente..."></app-searchable-select>
         </div>
 
         <!-- Dropdown Medicos -->
         <div class="flex-[1.5] min-w-[200px]">
-            <label class="block text-[10px] font-bold text-text-light mb-1.5 uppercase tracking-wider">Especialista</label>
+            <label class="block text-[10px] font-bold text-text-light mb-1.5 tracking-wider">Especialista</label>
             <app-searchable-select [options]="doctorOptions()" [value]="selectedDoctorId()"
                 (valueChange)="selectedDoctorId.set($event)"
-                placeholder="Todos los Especialistas"></app-searchable-select>
+                placeholder="Todos los especialistas"></app-searchable-select>
         </div>
 
         <!-- Dropdown Estados Principales -->
         <div class="flex-1 min-w-[150px]">
-            <label class="block text-[10px] font-bold text-text-light mb-1.5 uppercase tracking-wider">Estado</label>
+            <label class="block text-[10px] font-bold text-text-light mb-1.5 tracking-wider">Estado</label>
             <app-searchable-select [options]="statusOptions()"
                 [value]="selectedStatus().length ? selectedStatus()[0] : ''"
                 (valueChange)="$event ? selectedStatus.set([$event.toString()]) : selectedStatus.set([])"
@@ -59,10 +59,10 @@
                 <thead class="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm border-b border-border-soft shadow-sm">
                     <tr class="table-v2-header">
                         <th class="pl-8 bg-transparent">Fecha</th>
-                        <th class="bg-transparent">Hora de Cita</th>
+                        <th class="bg-transparent">Hora de cita</th>
                         <th class="bg-transparent">Paciente</th>
                         <th class="bg-transparent">Especialista</th>
-                        <th class="bg-transparent">Estado de Cita</th>
+                        <th class="bg-transparent">Estado de cita</th>
                         <th class="pr-8 text-center bg-transparent">Cobranza</th>
                     </tr>
                 </thead>

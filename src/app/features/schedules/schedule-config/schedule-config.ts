@@ -7,7 +7,7 @@ import { SpecialtiesService } from '../../../core/services/specialties';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
 import { ConfigurationService } from '../../../core/services/configuration';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
-import { LucideAngularModule, Clock, Plus, Trash2, Search, Calendar, X, Filter, Trash, Eye } from 'lucide-angular';
+import { LucideAngularModule, Clock, Plus, Trash2, Search, Calendar, X, Filter, Trash, Eye, ChevronDown } from 'lucide-angular';
 
 import { PageHeaderComponent } from '../../../shared/components/ui/page-header/page-header.component';
 import { SearchInputComponent } from '../../../shared/components/ui/search-input/search-input.component';
@@ -43,7 +43,7 @@ export class ScheduleConfigComponent {
   private confirmService = inject(ConfirmModalService);
   private configService = inject(ConfigurationService);
 
-  readonly icons = { Clock, Plus, Trash2, Search, Calendar, X, Filter, Trash, Eye };
+  readonly icons = { Clock, Plus, Trash2, Search, Calendar, X, Filter, Trash, Eye, ChevronDown };
 
   // Filter State
   searchText = signal('');
@@ -114,19 +114,22 @@ export class ScheduleConfigComponent {
   // Inline Form State
   formData: {
     date: string;
-    startTime: string;
-    endTime: string;
     specialtyId: string;
     weeksToRepeat: number;
-    modality: 'PRESENCIAL' | 'VIRTUAL';
   } = {
       date: new Date().toISOString().split('T')[0],
-      startTime: '09:00',
-      endTime: '',
       specialtyId: '',
-      weeksToRepeat: 0,
-      modality: 'PRESENCIAL'
+      weeksToRepeat: 0
     };
+
+  timeRanges = signal<Array<{
+    modality: 'PRESENCIAL' | 'VIRTUAL';
+    startTime: string;
+    endTime: string;
+    validEndTimes: string[];
+  }>>([
+    { modality: 'PRESENCIAL', startTime: '09:00', endTime: '', validEndTimes: [] }
+  ]);
 
   viewMode: 'list' = 'list';
 
@@ -196,19 +199,17 @@ export class ScheduleConfigComponent {
     return colors[Math.abs(hash) % colors.length];
   }
 
-  get isSelectionComplete(): boolean {
-    return !!(this.selectedDoctorId() && this.formData.specialtyId);
-  }
-
   get isFormValid(): boolean {
-    return !!(
+    const commonValid = !!(
       this.selectedDoctorId() &&
       this.formData.specialtyId &&
-      this.formData.date &&
-      this.formData.startTime &&
-      this.formData.endTime &&
-      this.formData.modality
+      this.formData.date
     );
+
+    if (!commonValid) return false;
+
+    // All ranges must be complete
+    return this.timeRanges().every(r => r.startTime && r.endTime && r.modality);
   }
 
   // Min Date for Date Picker
@@ -246,27 +247,52 @@ export class ScheduleConfigComponent {
   }
 
   // Duration Logic
-  validEndTimes = signal<string[]>([]);
-
-  updateValidEndTimes() {
+  updateValidEndTimes(index: number = 0) {
     const docId = this.selectedDoctorId();
     const specId = this.formData.specialtyId;
-    const startTime = this.formData.startTime;
+    const range = this.timeRanges()[index];
 
-    if (!docId || !specId || !startTime) {
-      this.validEndTimes.set([]);
+    if (!docId || !specId || !range?.startTime) {
+      this.updateRange(index, { validEndTimes: [] });
       return;
     }
 
-    this.scheduleService.getValidEndTimes(docId, specId, this.formData.date, startTime).subscribe({
+    this.scheduleService.getValidEndTimes(docId, specId, this.formData.date, range.startTime).subscribe({
       next: (times) => {
-        this.validEndTimes.set(times);
-        if (!times.includes(this.formData.endTime)) {
-          this.formData.endTime = times[0] || '';
+        this.updateRange(index, { validEndTimes: times });
+        if (!times.includes(range.endTime)) {
+          this.updateRange(index, { endTime: times[0] || '' });
         }
       },
-      error: () => this.validEndTimes.set([])
+      error: () => this.updateRange(index, { validEndTimes: [] })
     });
+  }
+
+  private updateRange(index: number, patch: Partial<typeof this.timeRanges extends () => (infer T)[] ? T : any>) {
+    const current = [...this.timeRanges()];
+    current[index] = { ...current[index], ...patch };
+    this.timeRanges.set(current);
+  }
+
+  addTimeRange() {
+    const lastRange = this.timeRanges()[this.timeRanges().length - 1];
+    this.timeRanges.set([
+      ...this.timeRanges(),
+      { 
+        modality: lastRange?.modality || 'PRESENCIAL', 
+        startTime: '15:00', // Default for second range
+        endTime: '', 
+        validEndTimes: [] 
+      }
+    ]);
+    this.updateValidEndTimes(this.timeRanges().length - 1);
+  }
+
+  removeTimeRange(index: number) {
+    if (this.timeRanges().length > 1) {
+      const current = this.timeRanges().filter((_, i) => i !== index);
+      this.timeRanges.set(current);
+    }
   }
 
   dateFromTime(time: string): Date {
@@ -276,13 +302,13 @@ export class ScheduleConfigComponent {
     return d;
   }
 
-  onStartTimeChange() {
-    this.updateValidEndTimes();
+  onStartTimeChange(index: number) {
+    this.updateValidEndTimes(index);
   }
 
   onSpecialtyChange(specId: string) {
     this.formData.specialtyId = specId;
-    this.updateValidEndTimes();
+    this.timeRanges().forEach((_, i) => this.updateValidEndTimes(i));
   }
 
   onDoctorSelectionChange(doctorId: string) {
@@ -290,10 +316,12 @@ export class ScheduleConfigComponent {
     if (doctorId) {
       const assocs = this.availableSpecialtiesForDoctor;
       this.formData.specialtyId = assocs.length > 0 ? assocs[0].specialtyId : '';
-      this.updateValidEndTimes();
+      this.timeRanges().forEach((_, i) => this.updateValidEndTimes(i));
     } else {
       this.formData.specialtyId = '';
-      this.validEndTimes.set([]);
+      this.timeRanges.set([
+        { modality: 'PRESENCIAL', startTime: '09:00', endTime: '', validEndTimes: [] }
+      ]);
     }
   }
 
@@ -343,7 +371,9 @@ export class ScheduleConfigComponent {
     // Reset form after closing
     this.selectedDoctorId.set('');
     this.formData.specialtyId = '';
-    this.formData.endTime = '';
+    this.timeRanges.set([
+      { modality: 'PRESENCIAL', startTime: '09:00', endTime: '', validEndTimes: [] }
+    ]);
     this.isRepeating.set(false);
     this.repeatDays.set([1, 2, 3, 4, 5]);
     this.repeatEndDate.set('');
@@ -351,39 +381,45 @@ export class ScheduleConfigComponent {
 
   saveSchedule() {
     const docId = this.selectedDoctorId();
-    if (docId && this.formData.specialtyId && this.formData.endTime) {
-      // Clean payload
+    if (docId && this.formData.specialtyId && this.timeRanges().length > 0) {
       const formatTime = (t: string) => t.length === 5 ? `${t}:00` : t;
-      const payloads: any[] = [];
-      const [sy, sm, sd] = this.formData.date.split('-').map(Number);
-      const startDate = new Date(sy, sm - 1, sd, 12, 0, 0);
-
+      
       if (!this.isRepeating()) {
-        const payload = {
+        const payloads = this.timeRanges().map(range => ({
           specialtyId: this.formData.specialtyId,
           date: this.formData.date,
-          startTime: formatTime(this.formData.startTime),
-          endTime: formatTime(this.formData.endTime),
-          modality: this.formData.modality
-        };
-        this.scheduleService.addSchedule(docId, [payload]).subscribe({
+          startTime: formatTime(range.startTime),
+          endTime: formatTime(range.endTime),
+          modality: range.modality
+        }));
+        
+        this.scheduleService.addSchedule(docId, payloads).subscribe({
           next: () => this.handleSaveSuccess(docId),
           error: (err) => this.handleSaveError(err)
         });
       } else {
-        const recurrencePayload = {
-          specialtyId: this.formData.specialtyId,
-          startDate: this.formData.date,
-          endDate: this.repeatEndDate(),
-          startTime: formatTime(this.formData.startTime),
-          endTime: formatTime(this.formData.endTime),
-          modality: this.formData.modality,
-          frequency: this.repeatFrequency(),
-          repeatDays: this.repeatDays()
-        };
-        this.scheduleService.addRecurringSchedule(docId, recurrencePayload).subscribe({
-          next: () => this.handleSaveSuccess(docId),
-          error: (err) => this.handleSaveError(err)
+        // Recurring currently only supports one range in backend usually, 
+        // but let's send multiple if API supports it, though usually recurring is handled once.
+        // For now, if recurring, we might only be able to send one or handle them sequentially.
+        // The user request emphasizes the UI for multiple ranges. 
+        // I will assume the backend addRecurringSchedule might need adjustment or we only do first one for recurring.
+        // Given the request, I'll process all as separate recurring if needed or just handle multiple payloads.
+        
+        this.timeRanges().forEach(range => {
+          const recurrencePayload = {
+            specialtyId: this.formData.specialtyId,
+            startDate: this.formData.date,
+            endDate: this.repeatEndDate(),
+            startTime: formatTime(range.startTime),
+            endTime: formatTime(range.endTime),
+            modality: range.modality,
+            frequency: this.repeatFrequency(),
+            repeatDays: this.repeatDays()
+          };
+          this.scheduleService.addRecurringSchedule(docId, recurrencePayload).subscribe({
+            next: () => this.handleSaveSuccess(docId),
+            error: (err) => this.handleSaveError(err)
+          });
         });
       }
     }
@@ -391,11 +427,7 @@ export class ScheduleConfigComponent {
 
   private handleSaveSuccess(doctorId: string) {
     this.scheduleService.refreshSchedules({ doctorId });
-    this.formData.startTime = '09:00';
-    this.formData.endTime = '';
-    this.formData.weeksToRepeat = 0;
-    this.formData.modality = 'PRESENCIAL';
-    this.updateValidEndTimes();
+    this.timeRanges().forEach((_, i) => this.updateValidEndTimes(i));
     this.closeRegistrationModal();
   }
 

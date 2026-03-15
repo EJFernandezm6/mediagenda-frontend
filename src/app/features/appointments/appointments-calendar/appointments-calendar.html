@@ -5,7 +5,7 @@
         <!-- Top Row: Title & Actions -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-            <h1 class="text-xl font-bold text-gray-900">Agenda de Citas</h1>
+            <h1 class="text-xl font-bold text-gray-900">Agenda de citas</h1>
                 <p class="text-sm text-gray-500">Gestiona los turnos y citas médicas globales.</p>
             </div>
 
@@ -31,7 +31,7 @@
 
                 <!-- Doctor Filter -->
                 <div class="min-w-[280px] flex-1 md:flex-none relative z-30">
-                    <label class="ml-1">Médico Especialista</label>
+                    <label class="ml-1">Médico especialista</label>
                     <app-searchable-select [options]="doctorOptions" [value]="selectedDoctorId()"
                         (valueChange)="selectedDoctorId.set($event.toString())" placeholder="Todos los médicos"
                         displayMode="compact">
@@ -543,7 +543,7 @@
 
                 <!-- Payment Method & Notes -->
                 <div class="mt-8 pt-6 border-t border-gray-100">
-                    <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-4">Información Adicional</h3>
+                    <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-4">Información adicional</h3>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                         <button type="button" (click)="modalPaymentMethod.set('CASH')"
@@ -596,7 +596,7 @@
                     [disabled]="saving() || !modalPatientId() || !modalTime() || !modalDoctorId() || !modalModality()"
                     type="button"
                     class="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary hover:bg-primary transition-all disabled:opacity-50 disabled:shadow-none">
-                    <span *ngIf="!saving()">Confirmar Cita</span>
+                    <span *ngIf="!saving()">Confirmar cita</span>
                     <span *ngIf="saving()">Guardando...</span>
                 </button>
             </div>
@@ -742,7 +742,7 @@
                             <div>
                                 <label
                                     class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Método
-                                    de Pago</label>
+                                    de pago</label>
                                 <p class="text-sm font-bold text-gray-800">{{
                                     getPaymentMethodLabel(selectedAppointment.paymentMethod) }}</p>
                             </div>
@@ -756,7 +756,7 @@
                             <lucide-icon [img]="icons.CheckCircle" class="w-5 h-5 text-green-600"></lucide-icon>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-green-900 mb-0.5">Validación de Pago Requerida</h4>
+                            <h4 class="text-sm font-bold text-green-900 mb-0.5">Validación de pago requerida</h4>
                             <p class="text-[11px] leading-relaxed text-green-700 font-medium whitespace-normal">
                                 Esta cita registra un pago pendiente. Presiona el botón <span
                                     class="font-bold underline text-green-800">"Confirmar

@@ -1,10 +1,10 @@
-<div class="h-[calc(100vh-8rem)] flex flex-col overflow-hidden px-8 pb-4">
+<div class="h-full flex flex-col overflow-hidden">
     <!-- Header with primary CTA relocated -->
     <div class="shrink-0 mb-4">
         <app-page-header 
-            title="Turnos y Horarios" 
+            title="Turnos y horarios" 
             subtitle="Gestiona la disponibilidad de tus especialistas de forma centralizada."
-            buttonText="Nuevo Turno"
+            buttonText="Nuevo turno"
             [buttonIcon]="icons.Plus"
             [largeButton]="true"
             (actionClick)="openRegistrationModal()">
@@ -58,7 +58,7 @@
                     <tr class="table-v2-header">
                         <th class="w-[35%] pl-8 bg-transparent text-left text-[12px] font-medium text-gray-500">Especialista</th>
                         <th class="w-[20%] bg-transparent text-left text-[12px] font-medium text-gray-500">Fecha</th>
-                        <th class="w-[20%] bg-transparent text-left text-[12px] font-medium text-gray-500">Rango Horario</th>
+                        <th class="w-[20%] bg-transparent text-left text-[12px] font-medium text-gray-500">Rango horario</th>
                         <th class="w-[15%] bg-transparent text-left text-[12px] font-medium text-gray-500">Modalidad</th>
                         <th class="w-[10%] pr-8 bg-transparent text-right text-[12px] font-medium text-gray-500">Acciones</th>
                     </tr>
@@ -156,10 +156,10 @@
         <!-- Slide-over Content -->
         <div class="relative w-full max-w-xl bg-white shadow-2xl h-full flex flex-col transform transition-transform duration-300 ease-in-out">
             <!-- Header -->
-            <div class="px-8 py-6 border-b border-border-soft flex items-center justify-between bg-white sticky top-0 z-10">
+            <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
                 <div class="flex flex-col">
-                    <h2 class="text-[20px] font-bold text-text-main">Registrar Nuevo Turno</h2>
-                    <p class="text-[13px] text-text-muted mt-1">Asigna disponibilidad a un especialista.</p>
+                    <h2 class="text-xl font-bold text-text-main">Registrar nuevo turno</h2>
+                    <p class="text-xs text-text-light font-medium mt-1">Asigna disponibilidad a un especialista.</p>
                 </div>
                 <button (click)="closeRegistrationModal()" 
                     class="p-2.5 text-text-light hover:text-text-main hover:bg-gray-100 rounded-xl transition-all">
@@ -173,22 +173,21 @@
                     <!-- Step 1: Selection -->
                     <div class="space-y-6">
                         <div class="flex items-center gap-3">
-                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-accent/10 text-accent text-[12px] font-bold">1</span>
-                            <h3 class="text-sm font-bold text-text-main uppercase tracking-wider">Selección de Especialista</h3>
+                            <h3 class="text-base font-semibold text-gray-900 tracking-tight">Selección de especialista</h3>
                         </div>
                         
-                        <div class="space-y-6 ml-9">
+                        <div class="space-y-4">
                             <!-- Specialist Selector -->
-                            <div class="space-y-2">
-                                <label class="block text-[13px] font-bold text-text-main">Especialista <span class="text-red-500">*</span></label>
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-medium text-gray-700">Especialista <span class="text-red-500">*</span></label>
                                 <app-doctor-selector class="block w-full" 
                                     [requireSpecialties]="true"
                                     (selectionChanged)="onDoctorSelectionChange($event)"></app-doctor-selector>
                             </div>
 
                             <!-- Specialty Selector -->
-                            <div class="space-y-2">
-                                <label class="block text-[13px] font-bold text-text-main">Especialidad <span class="text-red-500">*</span></label>
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-medium text-gray-700">Especialidad <span class="text-red-500">*</span></label>
                                 <app-searchable-select 
                                     [options]="specialtyOptions" 
                                     [value]="formData.specialtyId"
@@ -204,46 +203,75 @@
                     <!-- Step 2: Date & Modal -->
                     <div class="space-y-6">
                         <div class="flex items-center gap-3">
-                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-accent/10 text-accent text-[12px] font-bold">2</span>
-                            <h3 class="text-sm font-bold text-text-main uppercase tracking-wider">Detalles del Horario</h3>
+                            <h3 class="text-base font-semibold text-gray-900 tracking-tight">Detalles del horario</h3>
                         </div>
 
-                        <div class="space-y-6 ml-9">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label class="block text-[13px] font-bold text-text-main">Fecha <span class="text-red-500">*</span></label>
-                                    <app-datepicker 
-                                        [value]="formData.date"
-                                        (valueChange)="formData.date = $event; onDateChange($event)"
-                                        [disabled]="!selectedDoctorId() || !formData.specialtyId">
-                                    </app-datepicker>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-[13px] font-bold text-text-main">Modalidad <span class="text-red-500">*</span></label>
-                                    <select [(ngModel)]="formData.modality"
-                                        [disabled]="!selectedDoctorId() || !formData.specialtyId"
-                                        class="w-full h-[40px] px-4 bg-white border border-border-soft rounded-xl text-sm focus:border-accent outline-none appearance-none disabled:bg-gray-50 transition-all">
-                                        <option value="PRESENCIAL">Presencial</option>
-                                        <option value="VIRTUAL">Virtual</option>
-                                    </select>
-                                </div>
+                        <div class="space-y-6">
+                            <!-- Fecha Maestro -->
+                            <div class="w-1/2 space-y-1.5">
+                                <label class="block text-[13px] font-medium text-gray-700">Fecha <span class="text-red-500">*</span></label>
+                                <app-datepicker 
+                                    [value]="formData.date"
+                                    (valueChange)="formData.date = $event; onDateChange($event)"
+                                    [disabled]="!selectedDoctorId() || !formData.specialtyId">
+                                </app-datepicker>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label class="block text-[13px] font-bold text-text-main">Desde <span class="text-red-500">*</span></label>
-                                    <input [(ngModel)]="formData.startTime" (ngModelChange)="onStartTimeChange()" type="time"
-                                        [disabled]="!selectedDoctorId() || !formData.specialtyId"
-                                        class="w-full h-[40px] px-4 border border-border-soft rounded-xl text-sm focus:border-accent outline-none transition-all disabled:bg-gray-50">
+                            <!-- Dynamic Time Ranges -->
+                            <div class="space-y-4">
+                                <div *ngFor="let range of timeRanges(); let i = index" class="grid grid-cols-12 gap-3 items-end group animate-in slide-in-from-top-2 duration-200">
+                                    <!-- Modalidad -->
+                                    <div class="col-span-4 space-y-1.5">
+                                        <label *ngIf="i === 0" class="block text-[13px] font-medium text-gray-700">Modalidad <span class="text-red-500">*</span></label>
+                                        <div class="relative">
+                                            <select [(ngModel)]="range.modality"
+                                                [disabled]="!selectedDoctorId() || !formData.specialtyId"
+                                                class="w-full h-10 px-4 bg-white border border-gray-300 rounded-lg text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none appearance-none disabled:bg-gray-50 py-0 leading-normal">
+                                                <option value="PRESENCIAL">Presencial</option>
+                                                <option value="VIRTUAL">Virtual</option>
+                                            </select>
+                                            <lucide-icon [img]="icons.ChevronDown" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
+                                        </div>
+                                    </div>
+
+                                    <!-- Desde -->
+                                    <div class="col-span-3 space-y-1.5">
+                                        <label *ngIf="i === 0" class="block text-[13px] font-medium text-gray-700">Desde <span class="text-red-500">*</span></label>
+                                        <input [(ngModel)]="range.startTime" (ngModelChange)="onStartTimeChange(i)" type="time"
+                                            [disabled]="!selectedDoctorId() || !formData.specialtyId"
+                                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none disabled:bg-gray-50 py-0">
+                                    </div>
+
+                                    <!-- Hasta -->
+                                    <div class="col-span-3 space-y-1.5">
+                                        <label *ngIf="i === 0" class="block text-[13px] font-medium text-gray-700">Hasta <span class="text-red-500">*</span></label>
+                                        <div class="relative">
+                                            <select [(ngModel)]="range.endTime"
+                                                [disabled]="!selectedDoctorId() || !formData.specialtyId || range.validEndTimes.length === 0"
+                                                class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none appearance-none disabled:bg-gray-50 py-0 leading-normal">
+                                                <option *ngFor="let time of range.validEndTimes" [value]="time">{{ time }}</option>
+                                            </select>
+                                            <lucide-icon [img]="icons.ChevronDown" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
+                                        </div>
+                                    </div>
+
+                                    <!-- Eliminar -->
+                                    <div class="col-span-2 flex justify-center">
+                                        <button (click)="removeTimeRange(i)" 
+                                            [disabled]="timeRanges().length === 1"
+                                            class="h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all disabled:opacity-0">
+                                            <lucide-icon [img]="icons.Trash" class="w-4.5 h-4.5"></lucide-icon>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="space-y-2">
-                                    <label class="block text-[13px] font-bold text-text-main">Hasta <span class="text-red-500">*</span></label>
-                                    <select [(ngModel)]="formData.endTime"
-                                        [disabled]="!selectedDoctorId() || !formData.specialtyId || validEndTimes().length === 0"
-                                        class="w-full h-[40px] px-4 border border-border-soft rounded-xl text-sm focus:border-accent outline-none transition-all appearance-none disabled:bg-gray-50">
-                                        <option *ngFor="let time of validEndTimes()" [value]="time">{{ time }}</option>
-                                    </select>
-                                </div>
+
+                                <!-- Add Row Button -->
+                                <button (click)="addTimeRange()" 
+                                    [disabled]="!selectedDoctorId() || !formData.specialtyId"
+                                    class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium text-sm px-3 py-2 rounded-lg hover:bg-purple-50 transition-all disabled:opacity-50">
+                                    <lucide-icon [img]="icons.Plus" class="w-4 h-4"></lucide-icon>
+                                    Añadir otro horario
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -252,8 +280,7 @@
                     <div class="space-y-6 pb-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <span class="flex items-center justify-center w-6 h-6 rounded-full bg-accent/10 text-accent text-[12px] font-bold">3</span>
-                                <h3 class="text-sm font-bold text-text-main uppercase tracking-wider">Programación Múltiple</h3>
+                                <h3 class="text-base font-semibold text-gray-900 tracking-tight">Programación múltiple</h3>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" [checked]="isRepeating()" (change)="isRepeating.set(!isRepeating())" class="sr-only peer">
@@ -261,9 +288,9 @@
                             </label>
                         </div>
 
-                        <div *ngIf="isRepeating()" class="ml-9 p-6 bg-gray-50/50 rounded-2xl border border-dashed border-border-soft space-y-6 animate-in slide-in-from-top duration-300">
+                        <div *ngIf="isRepeating()" class="p-6 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 space-y-6 animate-in slide-in-from-top duration-300">
                             <div class="space-y-2">
-                                <label class="block text-[13px] font-bold text-text-main uppercase tracking-tighter opacity-70">Frecuencia</label>
+                                <label class="block text-[12px] font-bold text-text-muted tracking-wide uppercase">Frecuencia</label>
                                 <div class="flex p-1 bg-white border border-border-soft rounded-xl gap-1">
                                     <button (click)="repeatFrequency.set('DAILY')" 
                                         [class]="repeatFrequency() === 'DAILY' ? 'bg-accent text-white shadow-md' : 'text-text-muted hover:bg-gray-50'"
@@ -275,7 +302,7 @@
                             </div>
 
                             <div *ngIf="repeatFrequency() === 'WEEKLY'" class="space-y-2">
-                                <label class="block text-[13px] font-bold text-text-main uppercase tracking-tighter opacity-70">Repetir los días</label>
+                                <label class="block text-[12px] font-bold text-text-muted tracking-wide uppercase">Repetir los días</label>
                                 <div class="flex justify-between items-center gap-2">
                                     <button *ngFor="let d of [1,2,3,4,5,6,0]" (click)="toggleRepeatDay(d)"
                                         [class]="repeatDays().includes(d) ? 'bg-accent text-white border-accent shadow-sm' : 'bg-white text-text-muted border-border-soft hover:bg-gray-50'"
@@ -285,8 +312,8 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-2">
-                                <label class="block text-[13px] font-bold text-text-main mb-1">Repetir hasta el día <span class="text-red-500">*</span></label>
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-medium text-gray-700">Repetir hasta el día <span class="text-red-500">*</span></label>
                                 <app-datepicker 
                                     [value]="repeatEndDate()"
                                     (valueChange)="repeatEndDate.set($event)">
@@ -298,13 +325,16 @@
             </div>
 
             <!-- Footer -->
-            <div class="px-8 py-6 border-t border-border-soft bg-white flex items-center justify-end gap-3 sticky bottom-0">
-                <app-button variant="ghost" (onClick)="closeRegistrationModal()" class="!px-6 !h-11 !rounded-xl !text-sm font-bold border border-border-soft bg-white hover:bg-gray-50">
+            <div class="px-8 py-5 border-t border-gray-200 bg-white flex items-center justify-end gap-4 sticky bottom-0">
+                <app-button variant="ghost" (onClick)="closeRegistrationModal()" 
+                    className="!text-[14px] font-semibold"
+                    class="!px-6 !h-11 !bg-white border border-gray-300 text-gray-700 hover:!bg-gray-50 !rounded-lg transition-all">
                     Cancelar
                 </app-button>
                 <app-button variant="accent" (onClick)="saveSchedule()" [disabled]="!isFormValid || (isRepeating() && !repeatEndDate())" 
-                    class="!px-8 !h-11 !rounded-xl !text-sm font-bold shadow-lg shadow-accent/20">
-                    Guardar Turno
+                    className="!text-[14px] font-semibold"
+                    class="!px-8 !h-11 bg-accent hover:bg-accent-hover text-white !rounded-lg shadow-sm transition-all min-w-[140px]">
+                    Guardar turno
                 </app-button>
             </div>
         </div>
