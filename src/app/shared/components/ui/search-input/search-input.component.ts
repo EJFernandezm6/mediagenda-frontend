@@ -11,7 +11,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
   imports: [CommonModule, LucideAngularModule, FormsModule],
   template: `
     <div class="relative w-full">
-      <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+      <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
         <lucide-icon [img]="icons.Search" class="h-4 w-4 text-text-light"></lucide-icon>
       </div>
       <input 
@@ -19,13 +19,13 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
         [value]="currentValue()" 
         (input)="onInputChange($event)"
         type="text" 
-        class="pl-11 w-full h-10 !py-0 text-sm border border-border-main rounded-xl focus:border-accent transition-all outline-none placeholder:text-text-light"
+        class="pl-10 w-full h-11 !py-0 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none placeholder:text-gray-400 disabled:bg-muted/30"
         [placeholder]="placeholder()">
       
       <button 
         *ngIf="currentValue()" 
         (click)="clear()"
-        class="absolute inset-y-0 right-0 pr-4 flex items-center text-text-light hover:text-text-main transition-colors">
+        class="absolute inset-y-0 right-3 flex items-center text-text-light hover:text-text-main transition-colors">
         <lucide-icon [img]="icons.X" class="h-3.5 w-3.5"></lucide-icon>
       </button>
     </div>

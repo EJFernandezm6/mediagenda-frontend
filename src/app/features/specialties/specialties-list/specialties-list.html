@@ -25,7 +25,7 @@
                 [options]="statusOptions()" 
                 [value]="statusFilter()"
                 (valueChange)="statusFilter.set($event.toString()); currentPage.set(1)"
-                placeholder="Estado">
+                placeholder="Filtrar por estado...">
             </app-searchable-select>
         </div>
         
@@ -79,18 +79,31 @@
 
                         <!-- Actions -->
                         <td class="pr-8 text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                <button class="action-btn" (click)="openAssignmentsPanel(specialty)" title="Ver Asignaciones">
-                                    <lucide-icon [img]="icons.Eye" [strokeWidth]="1.5" class="w-4.5 h-4.5"></lucide-icon>
+                            <div class="flex items-center justify-end gap-3">
+                                <!-- 1st: Toggle State (Soft Semaphore) -->
+                                <button 
+                                    class="h-9 w-9 rounded-full border-none flex items-center justify-center transition-all duration-200"
+                                    [class.bg-green-100]="specialty.active"
+                                    [class.text-green-600]="specialty.active"
+                                    [class.hover:bg-green-200]="specialty.active"
+                                    [class.bg-red-100]="!specialty.active"
+                                    [class.text-red-600]="!specialty.active"
+                                    [class.hover:bg-red-200]="!specialty.active"
+                                    (click)="toggleActive(specialty)" 
+                                    [title]="specialty.active ? 'Desactivar especialidad' : 'Activar especialidad'">
+                                    <lucide-icon [img]="icons.Power" class="w-4.5 h-4.5" [strokeWidth]="2"></lucide-icon>
                                 </button>
 
-                                <button class="action-btn" (click)="toggleActive(specialty)" title="Alternar estado">
-                                    <lucide-icon [img]="icons.Power" [strokeWidth]="1.5"
-                                        [class]="specialty.active ? 'w-4.5 h-4.5 text-success' : 'w-4.5 h-4.5 text-danger'"></lucide-icon>
+                                <!-- 2nd: Edit (Soft Ghost) -->
+                                <button class="h-9 w-9 rounded-full border-none flex items-center justify-center bg-transparent text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 outline-none" 
+                                    (click)="openModal(specialty)" title="Editar especialidad">
+                                    <lucide-icon [img]="icons.SquarePen" class="w-4.5 h-4.5" [strokeWidth]="2"></lucide-icon>
                                 </button>
 
-                                <button class="action-btn" (click)="openModal(specialty)" title="Editar">
-                                    <lucide-icon [img]="icons.SquarePen" [strokeWidth]="1.5" class="w-4.5 h-4.5"></lucide-icon>
+                                <!-- 3rd: Detail (Soft Ghost) -->
+                                <button class="h-9 w-9 rounded-full border-none flex items-center justify-center bg-transparent text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 outline-none" 
+                                    (click)="openAssignmentsPanel(specialty)" title="Ver especialistas asignados">
+                                    <lucide-icon [img]="icons.Eye" class="w-4.5 h-4.5" [strokeWidth]="2"></lucide-icon>
                                 </button>
                             </div>
                         </td>
@@ -154,14 +167,14 @@
                 <div>
                     <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nombre de la especialidad <span class="text-red-500">*</span></label>
                     <input [ngModel]="form.name" (input)="onNameInput($event)" type="text" placeholder="Ej. Cardiología"
-                        class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light">
+                        class="w-full h-11 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none placeholder:text-gray-400">
                 </div>
 
                 <!-- Description Field -->
                 <div>
                     <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Descripción <span class="text-gray-400 font-normal ml-0.5">(Opcional)</span></label>
                     <textarea [(ngModel)]="form.description" rows="4" placeholder="Describe brevemente la especialidad..."
-                        class="w-full p-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none placeholder:text-text-light resize-none"></textarea>
+                        class="w-full p-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none placeholder:text-gray-400 resize-none"></textarea>
                 </div>
             </div>
         </div>
@@ -200,20 +213,21 @@
          [class.translate-x-0]="isAssignmentsPanelOpen()">
         
         <!-- Header Section -->
-        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
-            <div>
-                <h2 class="text-[20px] font-semibold text-text-main leading-tight">
+        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div class="flex flex-col">
+                <h2 class="text-[18px] font-bold text-text-main leading-none">
                     {{ selectedSpecialtyForAssignments()?.name }}
                 </h2>
-                <p class="text-sm text-text-muted mt-1">Gestión de especialistas, costos y duración</p>
+                <p class="text-[12px] text-text-light font-medium mt-1.5">Gestión de especialistas, costos y duración</p>
             </div>
             
-            <div class="flex items-center gap-4">
-                <app-button variant="accent" (onClick)="openAssignmentModal()" class="!px-5 !h-10 !rounded-xl !text-sm font-bold shadow-lg shadow-accent/20">
-                    <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
-                    Asignar médico
-                </app-button>
-                <button (click)="closeAssignmentsPanel()" class="p-2.5 rounded-xl text-text-light hover:text-text-main hover:bg-gray-100 transition-all outline-none">
+            <div class="flex items-center gap-3">
+                <button (click)="openAssignmentModal()" 
+                    class="flex items-center gap-2 bg-[#4F46E5] text-white rounded-lg px-4 py-2 text-[13px] font-semibold transition-all hover:bg-indigo-700 active:scale-95 shadow-sm">
+                    <lucide-icon [img]="icons.Plus" class="w-4 h-4"></lucide-icon>
+                    + Asignar especialista
+                </button>
+                <button (click)="closeAssignmentsPanel()" class="p-2 rounded-xl text-text-light hover:text-text-main hover:bg-gray-100 transition-all outline-none">
                     <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
                 </button>
             </div>
@@ -257,12 +271,12 @@
                                 <span class="text-[14px] text-text-muted font-normal">{{ assoc.durationMinutes }} min</span>
                             </td>
                             <td class="px-5 py-4 text-right">
-                                <div class="flex items-center justify-end gap-1">
-                                    <button class="action-btn p-2 hover:text-accent" (click)="openAssignmentModal(assoc)" title="Editar costo/tiempo">
-                                        <lucide-icon [img]="icons.Edit3" class="w-4 h-4"></lucide-icon>
+                                <div class="flex items-center justify-end gap-2 opacity-100 transition-opacity">
+                                    <button class="p-2 text-gray-400 hover:text-accent transition-colors outline-none" (click)="openAssignmentModal(assoc)" title="Editar configuración">
+                                        <lucide-icon [img]="icons.Edit3" class="w-4.5 h-4.5" [strokeWidth]="1.5"></lucide-icon>
                                     </button>
-                                    <button (click)="removeAssignment(assoc.doctorSpecialtyId!)" class="action-btn p-2 hover:text-danger" title="Desasignar">
-                                        <lucide-icon [img]="icons.Trash" class="w-4 h-4"></lucide-icon>
+                                    <button (click)="removeAssignment(assoc.doctorSpecialtyId!)" class="p-2 text-gray-400 hover:text-danger transition-colors outline-none" title="Desasignar especialista">
+                                        <lucide-icon [img]="icons.Trash" class="w-4.5 h-4.5" [strokeWidth]="1.5"></lucide-icon>
                                     </button>
                                 </div>
                             </td>
@@ -279,11 +293,12 @@
                         <lucide-icon [img]="icons.User" class="w-10 h-10 text-gray-300" [strokeWidth]="1.5"></lucide-icon>
                     </div>
                     <h3 class="text-[16px] font-bold text-text-main">No hay especialistas asignados</h3>
-                    <p class="text-[14px] text-text-muted mt-2 max-w-xs mx-auto">Haz clic en + Asignar Médico para empezar a vincular especialistas a esta especialidad.</p>
-                    <app-button variant="accent" (onClick)="openAssignmentModal()" class="mt-8 !rounded-xl !h-11 !px-8 shadow-lg shadow-accent/20">
-                        <lucide-icon [img]="icons.Plus" class="w-4 h-4 mr-2"></lucide-icon>
-                        Asignar especialista
-                    </app-button>
+                    <p class="text-[14px] text-text-muted mt-2 max-w-xs mx-auto">Haz clic en + Asignar especialista para empezar a vincular especialistas a esta especialidad.</p>
+                    <button (click)="openAssignmentModal()" 
+                        class="mt-8 flex items-center gap-2 bg-[#4F46E5] text-white rounded-lg px-6 py-2.5 text-[14px] font-bold transition-all hover:bg-indigo-700 active:scale-95 shadow-lg shadow-indigo-100">
+                        <lucide-icon [img]="icons.Plus" class="w-4 h-4"></lucide-icon>
+                        + Asignar especialista
+                    </button>
                 </div>
             </div>
         </div>
@@ -340,12 +355,12 @@
                     <div>
                         <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Costo (S/) <span class="text-red-500">*</span></label>
                         <input [(ngModel)]="assignmentForm.cost" type="number" placeholder="0.00"
-                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none">
+                            class="w-full h-11 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none">
                     </div>
                     <div>
                         <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Duración (min) <span class="text-red-500">*</span></label>
                         <input [(ngModel)]="assignmentForm.durationMinutes" type="number" placeholder="15"
-                            class="w-full h-10 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all outline-none">
+                            class="w-full h-11 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none">
                     </div>
                 </div>
             </div>

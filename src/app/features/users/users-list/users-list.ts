@@ -53,13 +53,11 @@ export class UsersListComponent implements OnInit, OnDestroy {
     itemsPerPage = 10;
 
     statusOptions = signal<SelectOption[]>([
-        { id: '', label: 'Todos los estados' },
-        { id: 'ACTIVE', label: 'Activos' },
-        { id: 'INACTIVE', label: 'Inactivos' }
+        { id: 'ACTIVE', label: 'Usuarios Activos' },
+        { id: 'INACTIVE', label: 'Usuarios Inactivos' }
     ]);
 
     roleOptions = signal<SelectOption[]>([
-        { id: '', label: 'Todos los roles' },
         { id: 'ADMIN', label: 'Administradores' },
         { id: 'DOCTOR', label: 'Especialistas' }
     ]);

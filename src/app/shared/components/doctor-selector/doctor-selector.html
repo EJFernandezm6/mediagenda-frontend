@@ -1,9 +1,13 @@
 <div class="relative w-full">
 
     <div class="relative z-40">
+        <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <lucide-icon [img]="icons.Search" class="h-4 w-4 text-gray-400"></lucide-icon>
+        </div>
+
         <input type="text" [ngModel]="searchText()" (ngModelChange)="onSearchChange($event)" (focus)="isOpen.set(true)"
             placeholder="Buscar por Dni o Nombre..."
-            class="block w-full h-11 rounded-lg border-gray-300 !py-0 pl-3 pr-10 text-[14px] bg-white text-gray-900 border disabled:bg-muted/30 disabled:text-text-muted focus:border-accent focus:ring-4 focus:ring-accent/10 focus:outline-none transition-all placeholder:text-text-light">
+            class="block w-full h-11 rounded-lg border-gray-300 !py-0 pl-10 pr-10 text-[14px] bg-white text-gray-900 border disabled:bg-muted/30 disabled:text-text-muted focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 focus:outline-none transition-all placeholder:text-text-light">
 
         <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1"
             [class.pointer-events-none]="!selectedDoctorId() || disabled()">
@@ -12,7 +16,6 @@
                 class="p-1 hover:bg-gray-100 rounded-full transition-colors pointer-events-auto">
                 <lucide-icon [img]="icons.X" class="h-3.5 w-3.5 text-gray-400 hover:text-red-500"></lucide-icon>
             </button>
-            <lucide-icon [img]="icons.Search" class="h-4 w-4 text-gray-400"></lucide-icon>
         </div>
 
         <!-- Dropdown List -->

@@ -39,7 +39,7 @@
             <label class="block text-[10px] font-bold text-text-light mb-1.5 tracking-wider">Especialista</label>
             <app-searchable-select [options]="doctorOptions()" [value]="selectedDoctorId()"
                 (valueChange)="selectedDoctorId.set($event)"
-                placeholder="Todos los especialistas"></app-searchable-select>
+                placeholder="Filtrar por especialista..."></app-searchable-select>
         </div>
 
         <!-- Dropdown Estados Principales -->
@@ -48,7 +48,7 @@
             <app-searchable-select [options]="statusOptions()"
                 [value]="selectedStatus().length ? selectedStatus()[0] : ''"
                 (valueChange)="$event ? selectedStatus.set([$event.toString()]) : selectedStatus.set([])"
-                placeholder="Estado"></app-searchable-select>
+                placeholder="Filtrar por estado..."></app-searchable-select>
         </div>
     </div>
 

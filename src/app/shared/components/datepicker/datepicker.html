@@ -1,17 +1,21 @@
 <div class="relative w-full" [class.z-40]="isOpen()">
     <!-- Clickable Input Fake -->
     <div (click)="openDropdown()"
-        class="flex items-center justify-between w-full h-11 px-4 transition-all cursor-pointer bg-white group"
+        class="relative flex items-center w-full h-11 transition-all cursor-pointer bg-white group"
         [ngClass]="[
             disabledState() ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'hover:bg-gray-50',
-            borderless ? 'border-none' : 'border border-gray-300 rounded-lg shadow-sm'
+            borderless ? 'border-none' : 'border border-gray-300 rounded-lg',
+            isOpen() ? 'border-[#4F46E5] ring-2 ring-[#4F46E5]/20 z-50' : ''
         ]">
 
-        <span [ngClass]="currentValue() ? 'text-gray-900 font-bold text-sm' : 'text-gray-400 text-sm font-medium'">
+        <!-- Master Icon Alignment: Left-3 -->
+        <div *ngIf="showIcon" class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <lucide-icon [img]="icons.Calendar" class="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors"></lucide-icon>
+        </div>
+
+        <span class="pl-10 pr-4" [ngClass]="currentValue() ? 'text-gray-900 font-bold text-sm' : 'text-gray-400 text-sm font-medium'">
             {{ currentValue() || placeholder }}
         </span>
-
-        <lucide-icon *ngIf="showIcon" [img]="icons.Calendar" class="w-4 h-4 text-gray-400 group-hover:text-accent transition-colors"></lucide-icon>
     </div>
 
     <!-- Dropdown Backdrop (Invisible overlay to detect clicks outside) -->
@@ -19,8 +23,15 @@
 
     <!-- Dropdown Panel -->
     <div *ngIf="isOpen()"
-        class="absolute z-[101] mt-2 bg-white border border-gray-100 rounded-[1.5rem] shadow-2xl overflow-hidden w-[320px] origin-top animate-in fade-in slide-in-from-top-2 duration-200"
-        [ngClass]="position === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'">
+        class="absolute z-[101] bg-white border border-gray-100 rounded-[1.5rem] shadow-2xl overflow-hidden w-[320px] animate-in fade-in duration-200"
+        [ngClass]="{
+            'mt-2 top-full focus:outline-none': direction === 'down',
+            'mb-2 bottom-full origin-bottom focus:outline-none': direction === 'up',
+            'left-0 origin-top-left': position === 'left' && direction === 'down',
+            'right-0 origin-top-right': position === 'right' && direction === 'down',
+            'left-0 origin-bottom-left': position === 'left' && direction === 'up',
+            'right-0 origin-bottom-right': position === 'right' && direction === 'up'
+        }">
 
         <!-- Header Controls -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-50 bg-white">

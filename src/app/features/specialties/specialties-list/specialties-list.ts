@@ -48,7 +48,6 @@ export class SpecialtiesListComponent implements OnInit {
   itemsPerPage = 6;
 
   statusOptions = signal<SelectOption[]>([
-    { id: '', label: 'Todas las especialidades' },
     { id: 'ACTIVE', label: 'Especialidades Activas' },
     { id: 'INACTIVE', label: 'Especialidades Inactivas' }
   ]);

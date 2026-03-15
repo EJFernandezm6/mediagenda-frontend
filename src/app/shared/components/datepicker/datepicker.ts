@@ -36,6 +36,7 @@ export class DatePickerComponent implements OnInit {
     @Input() allowPastDates: boolean = false;
     @Input() borderless: boolean = false;
     @Input() position: 'left' | 'right' = 'left';
+    @Input() direction: 'up' | 'down' = 'down';
 
     private _minDate: string | null = null;
     @Input() set minDate(v: string | null) {

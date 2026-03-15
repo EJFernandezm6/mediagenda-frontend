@@ -26,7 +26,7 @@
                     [options]="statusOptions()" 
                     [value]="selectedStatus()"
                     (valueChange)="filterByStatus($event.toString())"
-                    placeholder="Estado">
+                    placeholder="Filtrar por estado...">
                 </app-searchable-select>
             </div>
 
@@ -35,7 +35,7 @@
                     [options]="roleOptions()" 
                     [value]="selectedRole()"
                     (valueChange)="filterByRole($event.toString())"
-                    placeholder="Rol / Cargo">
+                    placeholder="Filtrar por rol...">
                 </app-searchable-select>
             </div>
         </div>
@@ -103,16 +103,28 @@
 
                         <!-- Actions -->
                         <td class="pr-8 text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                <button class="action-btn" (click)="toggleActive(user)" 
+                            <div class="flex items-center justify-end gap-3">
+                                <!-- 1st: Toggle State (Soft Semaphore) -->
+                                <button 
+                                    class="h-9 w-9 rounded-full border-none flex items-center justify-center transition-all duration-200"
+                                    [class.bg-green-100]="user.active"
+                                    [class.text-green-600]="user.active"
+                                    [class.hover:bg-green-200]="user.active"
+                                    [class.bg-red-100]="!user.active"
+                                    [class.text-red-600]="!user.active"
+                                    [class.hover:bg-red-200]="!user.active"
+                                    [class.opacity-50]="user.id === currentUser()?.id"
+                                    [class.cursor-not-allowed]="user.id === currentUser()?.id"
                                     [disabled]="user.id === currentUser()?.id"
-                                    [title]="user.active ? 'Desactivar' : 'Activar'">
-                                    <lucide-icon [img]="Icons.Power" [strokeWidth]="1.5"
-                                        [class]="user.active ? 'w-4.5 h-4.5 text-success' : 'w-4.5 h-4.5 text-danger'"></lucide-icon>
+                                    (click)="toggleActive(user)" 
+                                    [title]="user.active ? 'Desactivar usuario' : 'Activar usuario'">
+                                    <lucide-icon [img]="Icons.Power" class="w-4.5 h-4.5" [strokeWidth]="2"></lucide-icon>
                                 </button>
 
-                                <button class="action-btn" (click)="editUser(user)" title="Editar">
-                                    <lucide-icon [img]="Icons.Pencil" [strokeWidth]="1.5" class="w-4.5 h-4.5 text-gray-500 hover:text-accent"></lucide-icon>
+                                <!-- 2nd: Edit (Soft Ghost) -->
+                                <button class="h-9 w-9 rounded-full border-none flex items-center justify-center bg-transparent text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 outline-none" 
+                                    (click)="editUser(user)" title="Editar usuario">
+                                    <lucide-icon [img]="Icons.Pencil" class="w-4.5 h-4.5" [strokeWidth]="2"></lucide-icon>
                                 </button>
                             </div>
                         </td>
@@ -200,10 +212,10 @@
                     <div>
                         <label>Nombre Completo</label>
                         <div class="relative mt-2">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                                 <lucide-icon [img]="Icons.User" class="w-4 h-4 text-text-light"></lucide-icon>
                             </div>
-                            <input type="text" [(ngModel)]="formData.fullName" class="pl-11 w-full"
+                            <input type="text" [(ngModel)]="formData.fullName" class="pl-10 w-full"
                                 placeholder="Ej. Juan Pérez">
                         </div>
                     </div>
@@ -211,21 +223,21 @@
                     <div>
                         <label>Correo Electrónico</label>
                         <div class="relative mt-2">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                                 <lucide-icon [img]="Icons.Mail" class="w-4 h-4 text-text-light"></lucide-icon>
                             </div>
                             <input type="email" [(ngModel)]="formData.email" [disabled]="isEditing"
-                                class="pl-11 w-full disabled:bg-muted/50" placeholder="usuario@correo.com">
+                                class="pl-10 w-full disabled:bg-muted/50" placeholder="usuario@correo.com">
                         </div>
                     </div>
 
                     <div *ngIf="!isEditing">
                         <label>Contraseña Temporal</label>
                         <div class="relative mt-2">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                                 <lucide-icon [img]="Icons.Lock" class="w-4 h-4 text-text-light"></lucide-icon>
                             </div>
-                            <input type="text" [(ngModel)]="formData.password" class="pl-11 w-full"
+                            <input type="text" [(ngModel)]="formData.password" class="pl-10 w-full"
                                 placeholder="123456">
                         </div>
                         <p class="text-[9px] text-text-light font-bold mt-1 italic">El usuario

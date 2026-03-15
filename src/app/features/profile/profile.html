@@ -34,7 +34,7 @@
                     <div class="space-y-1">
                         <label class="text-sm font-medium text-gray-700">Nombre Completo</label>
                         <input type="text" formControlName="fullName"
-                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all outline-none"
                             placeholder="Tu nombre completo">
                         <p *ngIf="profileForm.get('fullName')?.touched && profileForm.get('fullName')?.invalid"
                             class="text-xs text-red-500">
@@ -45,7 +45,7 @@
                     <div class="space-y-1">
                         <label class="text-sm font-medium text-gray-700">Teléfono</label>
                         <input type="tel" formControlName="phone"
-                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all outline-none"
                             placeholder="+51 999 999 999">
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                 <div class="space-y-1">
                     <label class="text-sm font-medium text-gray-700">URL de Foto (Opcional)</label>
                     <input type="url" formControlName="photoUrl"
-                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all outline-none"
                         placeholder="https://example.com/photo.jpg">
                 </div>
 
@@ -87,7 +87,7 @@
                     <label class="text-sm font-medium text-gray-700">Contraseña Actual</label>
                     <div class="relative">
                         <input [type]="showCurrentPassword ? 'text' : 'password'" formControlName="currentPassword"
-                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all outline-none"
                             placeholder="••••••••">
                         <button type="button" (click)="showCurrentPassword = !showCurrentPassword"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -105,7 +105,7 @@
                     <label class="text-sm font-medium text-gray-700">Nueva Contraseña</label>
                     <div class="relative">
                         <input [type]="showPassword ? 'text' : 'password'" formControlName="password"
-                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all outline-none"
                             placeholder="••••••••">
                         <button type="button" (click)="showPassword = !showPassword"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -121,7 +121,7 @@
                 <div class="space-y-1">
                     <label class="text-sm font-medium text-gray-700">Confirmar Contraseña</label>
                     <input type="password" formControlName="confirmPassword"
-                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all outline-none"
                         placeholder="••••••••">
                     <p *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('confirmPassword')?.touched"
                         class="text-xs text-red-500">

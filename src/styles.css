@@ -91,17 +91,18 @@ input,
 textarea,
 select {
   background-color: var(--bg-surface);
-  @apply border border-solid rounded-xl px-4 py-3 transition-all duration-200 outline-none text-text-main placeholder:text-text-light;
-  border-color: var(--border-main);
+  @apply border border-solid rounded-lg px-4 transition-all duration-200 outline-none text-text-main placeholder:text-gray-400;
+  border-color: #D1D5DB; /* border-gray-300 */
+  height: 2.75rem; /* h-11 */
 }
 
 input:focus,
 textarea:focus,
 select:focus,
 .focus-within {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color), transparent 85%);
-  @apply bg-white;
+  border-color: #4F46E5; /* Brand Color */
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); /* ring-2 ring-brand/20 */
+  @apply bg-white outline-none;
 }
 
 label {

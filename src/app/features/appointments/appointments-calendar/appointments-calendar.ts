@@ -273,20 +273,14 @@ export class AppointmentsCalendarComponent {
 
   // Searchable Select Mappings
   get specialtyOptions(): SelectOption[] {
-    return [
-      { id: '', label: 'Todas las especialidades' },
-      ...this.specialties().map(s => ({ id: s.specialtyId, label: s.name }))
-    ];
+    return this.specialties().map(s => ({ id: s.specialtyId, label: s.name }));
   }
 
   get doctorOptions(): SelectOption[] {
-    return [
-      { id: '', label: 'Todos los especialistas' },
-      ...this.filteredDoctors().map(d => ({
-        id: d.doctorId || d.id,
-        label: d.documentNumber ? `${d.documentNumber} - ${d.fullName}` : d.fullName
-      }))
-    ];
+    return this.filteredDoctors().map(d => ({
+      id: d.doctorId || d.id,
+      label: d.documentNumber ? `${d.documentNumber} - ${d.fullName}` : d.fullName
+    }));
   }
 
   modalSpecialtyOptions = computed<SelectOption[]>(() => {
@@ -299,30 +293,21 @@ export class AppointmentsCalendarComponent {
       specialtiesToOffer = specialtiesToOffer.filter(s => specIds.includes(s.specialtyId));
     }
 
-    return [
-      { id: '', label: 'Seleccionar especialidad' },
-      ...specialtiesToOffer.map(s => ({ id: s.specialtyId, label: s.name }))
-    ];
+    return specialtiesToOffer.map(s => ({ id: s.specialtyId, label: s.name }));
   });
 
   modalDoctorOptions = computed<SelectOption[]>(() => {
-    return [
-      { id: '', label: 'Seleccionar especialista' },
-      ...this.filteredDoctorsForModal().map(d => ({
-        id: d.doctorId || d.id,
-        label: d.documentNumber ? `${d.documentNumber} - ${d.fullName}` : d.fullName
-      }))
-    ];
+    return this.filteredDoctorsForModal().map(d => ({
+      id: d.doctorId || d.id,
+      label: d.documentNumber ? `${d.documentNumber} - ${d.fullName}` : d.fullName
+    }));
   });
 
   get modalPatientOptions(): SelectOption[] {
-    return [
-      { id: '', label: 'Seleccionar paciente' },
-      ...this.allPatients().map(p => ({
-        id: p.patientId,
-        label: p.documentNumber ? `${p.documentNumber} - ${p.fullName}` : p.fullName
-      }))
-    ];
+    return this.allPatients().map(p => ({
+      id: p.patientId,
+      label: p.documentNumber ? `${p.documentNumber} - ${p.fullName}` : p.fullName
+    }));
   }
 
   validDatesForModal = computed(() => {

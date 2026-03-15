@@ -51,9 +51,8 @@ export class DoctorsListComponent implements OnInit {
   itemsPerPage = 5;
 
   statusOptions = signal<SelectOption[]>([
-    { id: '', label: 'Ver todos' },
-    { id: 'ACTIVE', label: 'Solo Activos' },
-    { id: 'INACTIVE', label: 'Solo Inactivos' }
+    { id: 'ACTIVE', label: 'Especialistas Activos' },
+    { id: 'INACTIVE', label: 'Especialistas Inactivos' }
   ]);
 
   ngOnInit() {
@@ -341,22 +340,55 @@ export class DoctorsListComponent implements OnInit {
     this.isAssignmentModalOpen.set(false);
   }
 
+  onCostInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    
+    // Remove leading zeros
+    val = val.replace(/^0+/, '');
+    
+    if (!val) {
+      this.assignmentForm.cost = 0;
+      input.value = '0.00';
+      return;
+    }
+
+    // Ensure we have at least 3 digits to handle "0.XX"
+    while (val.length < 3) {
+      val = '0' + val;
+    }
+
+    const whole = val.slice(0, -2);
+    const decimals = val.slice(-2);
+    const result = `${whole}.${decimals}`;
+    
+    this.assignmentForm.cost = parseFloat(result);
+    input.value = result;
+  }
+
   saveAssignment() {
     const doctor = this.selectedDoctorForProfile();
     if (!doctor) return;
 
+    const payload = {
+      ...this.assignmentForm,
+      doctorId: doctor.doctorId || doctor.id
+    };
+
     if (this.editingAssignmentId()) {
-      this.doctorSpecialtyService.updateAssociation(this.editingAssignmentId()!, this.assignmentForm).subscribe({
-        next: () => this.closeAssignmentModal(),
+      this.doctorSpecialtyService.updateAssociation(this.editingAssignmentId()!, payload).subscribe({
+        next: () => {
+          this.closeAssignmentModal();
+          this.service.refreshDoctors();
+        },
         error: () => alert('Error al actualizar la asignación.')
       });
     } else {
-      const payload = {
-        ...this.assignmentForm,
-        doctorId: doctor.doctorId || doctor.id
-      };
       this.doctorSpecialtyService.addAssociation(doctor.doctorId || doctor.id, payload).subscribe({
-        next: () => this.closeAssignmentModal(),
+        next: () => {
+          this.closeAssignmentModal();
+          this.service.refreshDoctors();
+        },
         error: () => alert('Error al crear la asignación.')
       });
     }
@@ -384,7 +416,9 @@ export class DoctorsListComponent implements OnInit {
     });
 
     if (confirmed) {
-      this.doctorSpecialtyService.removeAssociation(assocId).subscribe();
+      this.doctorSpecialtyService.removeAssociation(assocId).subscribe({
+        next: () => this.service.refreshDoctors()
+      });
     }
   }
 

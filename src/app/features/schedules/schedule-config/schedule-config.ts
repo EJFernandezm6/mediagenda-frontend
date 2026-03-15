@@ -97,13 +97,10 @@ export class ScheduleConfigComponent {
 
   // Specialties for filter dropdown
   allSpecialtiesOptions = computed(() => {
-    return [
-      { id: '', label: 'Todas las especialidades' },
-      ...this.specialtyService.specialties().map(s => ({
-        id: s.specialtyId,
-        label: s.name
-      }))
-    ];
+    return this.specialtyService.specialties().map(s => ({
+      id: s.specialtyId,
+      label: s.name
+    }));
   });
 
   formatTimeDisplay(time: string): string {
@@ -128,7 +125,7 @@ export class ScheduleConfigComponent {
     endTime: string;
     validEndTimes: string[];
   }>>([
-    { modality: 'PRESENCIAL', startTime: '09:00', endTime: '', validEndTimes: [] }
+    { modality: 'PRESENCIAL', startTime: '', endTime: '', validEndTimes: [] }
   ]);
 
   viewMode: 'list' = 'list';
@@ -146,6 +143,32 @@ export class ScheduleConfigComponent {
       label: s.name
     }));
   }
+
+  hasOverlap = computed(() => {
+    const ranges = this.timeRanges();
+    if (ranges.length < 2) return false;
+
+    const toMinutes = (t: string) => {
+      if (!t) return -1;
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + (m || 0);
+    };
+
+    for (let i = 0; i < ranges.length; i++) {
+      const start1 = toMinutes(ranges[i].startTime);
+      const end1 = toMinutes(ranges[i].endTime);
+      if (start1 === -1 || end1 === -1) continue;
+
+      for (let j = i + 1; j < ranges.length; j++) {
+        const start2 = toMinutes(ranges[j].startTime);
+        const end2 = toMinutes(ranges[j].endTime);
+        if (start2 === -1 || end2 === -1) continue;
+
+        if (Math.max(start1, start2) < Math.min(end1, end2)) return true;
+      }
+    }
+    return false;
+  });
 
   getDayName(day: number) {
     const simpleDays = [
@@ -206,10 +229,17 @@ export class ScheduleConfigComponent {
       this.formData.date
     );
 
-    if (!commonValid) return false;
+    if (!commonValid || this.hasOverlap()) return false;
 
     // All ranges must be complete
-    return this.timeRanges().every(r => r.startTime && r.endTime && r.modality);
+    const rangesValid = this.timeRanges().every(r => r.startTime && r.endTime && r.modality);
+    
+    // If recurring, need end date and days
+    if (this.isRepeating()) {
+      return rangesValid && !!this.repeatEndDate() && this.repeatDays().length > 0;
+    }
+
+    return rangesValid;
   }
 
   // Min Date for Date Picker
@@ -280,7 +310,7 @@ export class ScheduleConfigComponent {
       ...this.timeRanges(),
       { 
         modality: lastRange?.modality || 'PRESENCIAL', 
-        startTime: '15:00', // Default for second range
+        startTime: '', 
         endTime: '', 
         validEndTimes: [] 
       }
@@ -318,11 +348,14 @@ export class ScheduleConfigComponent {
       this.formData.specialtyId = assocs.length > 0 ? assocs[0].specialtyId : '';
       this.timeRanges().forEach((_, i) => this.updateValidEndTimes(i));
     } else {
-      this.formData.specialtyId = '';
       this.timeRanges.set([
-        { modality: 'PRESENCIAL', startTime: '09:00', endTime: '', validEndTimes: [] }
+        { modality: 'PRESENCIAL', startTime: '', endTime: '', validEndTimes: [] }
       ]);
     }
+  }
+
+  trackByIndex(index: number): number {
+    return index;
   }
 
   toggleRepeatDay(day: number) {
