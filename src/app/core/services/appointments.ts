@@ -33,6 +33,9 @@ export class AppointmentsService {
   appointments = signal<Appointment[]>([]);
   pendingAppointments = signal<Appointment[]>([]);
   refreshTrigger = signal<number>(0);
+  
+  private lastFetchedRange: string = '';
+  private isFetching = false;
 
   private normalizeTime(t: string): string {
     return t && t.length > 5 ? t.substring(0, 5) : t;
@@ -43,9 +46,22 @@ export class AppointmentsService {
   }
 
   refreshAppointmentsByRange(from: string, to: string) {
+    const rangeKey = `${from}_${to}`;
+    if (this.lastFetchedRange === rangeKey && !this.isFetching) return;
+    
+    this.isFetching = true;
+    this.lastFetchedRange = rangeKey;
+
     const params = new HttpParams().set('from', from).set('to', to);
-    this.http.get<Appointment[]>(`${this.apiUrl}/range`, { params }).subscribe(data => {
-      this.appointments.set(data.map(a => this.normalizeAppointment(a)));
+    this.http.get<Appointment[]>(`${this.apiUrl}/range`, { params }).subscribe({
+      next: (data) => {
+        this.appointments.set(data.map(a => this.normalizeAppointment(a)));
+        this.isFetching = false;
+      },
+      error: (err) => {
+        console.error('Error fetching appointments range:', err);
+        this.isFetching = false;
+      }
     });
   }
 

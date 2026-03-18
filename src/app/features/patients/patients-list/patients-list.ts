@@ -17,7 +17,7 @@ import { SearchInputComponent } from '../../../shared/components/ui/search-input
 @Component({
   selector: 'app-patients-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent, ButtonComponent, CardComponent, PageHeaderComponent, SearchInputComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent, ButtonComponent, PageHeaderComponent, SearchInputComponent],
   templateUrl: './patients-list.html',
   styleUrl: './patients-list.css'
 })
@@ -63,7 +63,7 @@ export class PatientsListComponent implements OnInit {
   // Local Pagination & Search State
   searchTerm = signal('');
   currentPage = signal(1);
-  itemsPerPage = 6;
+  itemsPerPage = 3;
 
   ngOnInit() {
     // Relying on service entirely for first load via effect
@@ -213,7 +213,7 @@ export class PatientsListComponent implements OnInit {
       docValid &&
       this.form.age > 0 &&
       this.form.gender &&
-      (!this.form.email || this.emailRegex.test(this.form.email));
+      (this.form.email?.trim() && this.emailRegex.test(this.form.email));
   }
 
   private loadPatients() {

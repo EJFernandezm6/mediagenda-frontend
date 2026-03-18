@@ -1,403 +1,184 @@
-<div class="h-full flex flex-col">
-    <!-- Header & Filters -->
-    <div class="bg-white border-b border-gray-200 px-6 py-4 flex flex-col gap-4">
-
-        <!-- Top Row: Title & Actions -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-            <h1 class="text-xl font-bold text-gray-900">Agenda de citas</h1>
-                <p class="text-sm text-gray-500">Gestiona los turnos y citas médicas globales.</p>
+<div class="h-full flex flex-col overflow-hidden bg-white">
+    <!-- Compact Header & Selection Area -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4 shrink-0 flex flex-col gap-5 relative z-40">
+        <!-- Fila 1: Navegación y Acción -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Agenda de citas</h1>
+                
+                <!-- Date Nav -->
+                <div class="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-sm">
+                    <button (click)="changeWeek(-1)" [disabled]="!canGoBack()" class="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600 disabled:opacity-30">
+                        <lucide-icon [img]="icons.ChevronLeft" class="w-5 h-5"></lucide-icon>
+                    </button>
+                    <div class="px-4 text-sm font-bold text-gray-800 min-w-[180px] text-center">
+                        <ng-container *ngIf="viewMode() === 'week'">
+                            {{ weekDays()[0].dayNum }} {{ weekDays()[0].monthName }} - {{ weekDays()[6].dayNum }} {{ weekDays()[6].monthName }}
+                        </ng-container>
+                        <ng-container *ngIf="viewMode() === 'day'">
+                            {{ currentDateStr() | titlecase }}
+                        </ng-container>
+                    </div>
+                    <button (click)="changeWeek(1)" class="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
+                        <lucide-icon [img]="icons.ChevronRight" class="w-5 h-5"></lucide-icon>
+                    </button>
+                </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <app-button (onClick)="openGenericBooking()" variant="accent">
-                    <lucide-icon [img]="icons.Plus" class="w-5 h-5 mr-2"></lucide-icon>
-                    Nueva cita
-                </app-button>
+            <div class="flex items-center gap-4">
+                <!-- View Toggle -->
+                <div class="bg-gray-100 p-1 rounded-xl flex border border-gray-200">
+                    <button (click)="toggleView('day')" 
+                        [class]="viewMode() === 'day' ? 'bg-white shadow-md text-indigo-600 font-bold' : 'text-gray-500 font-medium'" 
+                        class="px-5 py-2 text-xs rounded-lg transition-all">Día</button>
+                    <button (click)="toggleView('week')" 
+                        [class]="viewMode() === 'week' ? 'bg-white shadow-md text-indigo-600 font-bold' : 'text-gray-500 font-medium'" 
+                        class="px-5 py-2 text-xs rounded-lg transition-all">Semana</button>
+                </div>
+                
+                <button (click)="openGenericBooking()" 
+                    class="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-indigo-100 transition-all transform active:scale-95">
+                    <lucide-icon [img]="icons.Plus" class="w-5 h-5"></lucide-icon>
+                    <span>Nueva cita</span>
+                </button>
             </div>
         </div>
 
-        <!-- Filters Row (Design System implementation) -->
-        <app-card variant="flat" [noPadding]="true" [overflowVisible]="true" class="w-full relative z-30">
-            <div class="flex flex-wrap items-center gap-4 p-3 w-full">
-                <!-- Specialty Filter -->
-                <div class="min-w-[280px] flex-1 md:flex-none relative z-40">
-                    <label class="ml-1">Especialidad</label>
+        <!-- Fila 2: Filtros Globales y Leyenda -->
+        <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4 flex-1">
+                <div class="w-64">
                     <app-searchable-select [options]="specialtyOptions" [value]="selectedSpecialtyId()"
                         (valueChange)="selectedSpecialtyId.set($event.toString()); selectedDoctorId.set('')"
-                        placeholder="Todas las especialidades" displayMode="compact">
+                        placeholder="Especialidad" displayMode="compact">
                     </app-searchable-select>
                 </div>
-
-                <!-- Doctor Filter -->
-                <div class="min-w-[280px] flex-1 md:flex-none relative z-30">
-                    <label class="ml-1">Médico especialista</label>
+                <div class="w-64">
                     <app-searchable-select [options]="doctorOptions" [value]="selectedDoctorId()"
-                        (valueChange)="selectedDoctorId.set($event.toString())" placeholder="Todos los médicos"
+                        (valueChange)="selectedDoctorId.set($event.toString())" 
+                        placeholder="Médico"
                         displayMode="compact">
                     </app-searchable-select>
                 </div>
-            </div>
-        </app-card>
-    </div>
 
-    <!-- Calendar Grid Area -->
-    <div class="flex-1 overflow-auto bg-gray-50 p-2 sm:p-6 flex flex-col">
-
-        <!-- Unified Toolbar (Legend + Date Nav + View Toggle) -->
-        <div
-            class="flex flex-col xl:flex-row items-center justify-between gap-4 mb-4 bg-white p-2.5 rounded-2xl border border-gray-200 shadow-sm">
-
-            <!-- Left: Legend -->
-            <div class="flex items-center gap-4 text-[10px] font-bold text-gray-400 px-3 tracking-widest">
-                <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-success"></div> Pagada
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-warning"></div> Reservada
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-sm border border-blue-400 bg-blue-50"></div> Disponible
+                <!-- Modality Toggles -->
+                <div class="bg-gray-100 p-1 rounded-xl flex gap-1 border border-gray-200 ml-2">
+                    <button (click)="modalityFilter.set('ALL')" [class]="modalityFilter() === 'ALL' ? 'bg-white shadow-sm text-gray-900 font-bold' : 'text-gray-500 font-medium'" class="px-4 py-1.5 text-xs rounded-lg transition-all">Todas</button>
+                    <button (click)="modalityFilter.set('PRESENCIAL')" [class]="modalityFilter() === 'PRESENCIAL' ? 'bg-white shadow-sm text-blue-600 font-bold' : 'text-gray-500 font-medium'" class="px-4 py-1.5 text-xs rounded-lg transition-all">Presenciales</button>
+                    <button (click)="modalityFilter.set('VIRTUAL')" [class]="modalityFilter() === 'VIRTUAL' ? 'bg-white shadow-sm text-purple-600 font-bold' : 'text-gray-500 font-medium'" class="px-4 py-1.5 text-xs rounded-lg transition-all">Virtuales</button>
                 </div>
             </div>
 
-            <!-- Center: Date Navigation -->
-            <div class="flex items-center bg-muted/50 rounded-xl p-1 border border-border-soft">
-                <app-button variant="ghost" size="sm" (onClick)="changeWeek(-1)" [disabled]="!canGoBack()"
-                    class="!px-2">
-                    <lucide-icon [img]="icons.ChevronLeft" class="w-4 h-4"></lucide-icon>
-                </app-button>
-
-                <div class="px-6 text-center min-w-[180px]">
-                    <ng-container *ngIf="viewMode() === 'week'">
-                        <span class="block text-xs font-bold text-text-main leading-none mb-1">
-                            {{ weekDays()[0].dayNum }} {{ weekDays()[0].monthName }} - {{ weekDays()[6].dayNum }} {{
-                            weekDays()[6].monthName }}
-                        </span>
-                        <span class="block text-[9px] font-bold text-text-light tracking-widest">
-                            {{ weekDays()[0].date.getFullYear() }}
-                        </span>
-                    </ng-container>
-                    <ng-container *ngIf="viewMode() === 'day'">
-                        <span class="block text-xs font-bold text-text-main capitalize leading-none">
-                            {{ currentDateStr() | titlecase }}
-                        </span>
-                    </ng-container>
+            <!-- Legend Hierarchy -->
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-success ring-2 ring-emerald-50"></div>
+                    <span class="text-sm font-medium text-gray-700">Pagada</span>
                 </div>
-
-                <app-button variant="ghost" size="sm" (onClick)="changeWeek(1)" class="!px-2">
-                    <lucide-icon [img]="icons.ChevronRight" class="w-4 h-4"></lucide-icon>
-                </app-button>
-            </div>
-
-            <!-- Right: View Toggle & Payment Status -->
-            <div class="flex items-center gap-3">
-                <!-- View Toggle -->
-                <div class="bg-muted p-1 rounded-xl flex">
-                    <app-button size="sm" [variant]="viewMode() === 'day' ? 'accent' : 'ghost'"
-                        (onClick)="toggleView('day')" class="!rounded-lg !py-1.5 shadow-none">
-                        Día
-                    </app-button>
-                    <app-button size="sm" [variant]="viewMode() === 'week' ? 'accent' : 'ghost'"
-                        (onClick)="toggleView('week')" class="!rounded-lg !py-1.5 shadow-none">
-                        Semana
-                    </app-button>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-warning ring-2 ring-amber-50"></div>
+                    <span class="text-sm font-medium text-gray-700">Reservada</span>
                 </div>
-
-                <!-- Modality Filter -->
-                <div class="bg-muted p-1 rounded-xl flex border border-border-soft">
-                    <app-button size="sm" [variant]="modalityFilter() === 'ALL' ? 'accent' : 'ghost'"
-                        (onClick)="modalityFilter.set('ALL')" class="!rounded-lg !py-1.5 !px-3 shadow-none text-[10px]">
-                        Todas
-                    </app-button>
-                    <app-button size="sm" [variant]="modalityFilter() === 'PRESENCIAL' ? 'primary' : 'ghost'"
-                        (onClick)="modalityFilter.set('PRESENCIAL')"
-                        class="!rounded-lg !py-1.5 !px-3 shadow-none text-[10px]">
-                        Presenciales
-                    </app-button>
-                    <app-button size="sm" [variant]="modalityFilter() === 'VIRTUAL' ? 'success' : 'ghost'"
-                        (onClick)="modalityFilter.set('VIRTUAL')"
-                        class="!rounded-lg !py-1.5 !px-3 shadow-none text-[10px]">
-                        Virtuales
-                    </app-button>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-blue-500 ring-2 ring-blue-50"></div>
+                    <span class="text-sm font-medium text-gray-700">Disponible</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Weekly & Daily View Container -->
-        <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden min-w-[800px]">
-
-            <!-- Header Row -->
-            <div class="grid border-b border-gray-200 bg-gray-50 sticky top-0 z-10"
-                [class]="viewMode() === 'week' ? 'grid-cols-8' : 'grid-cols-[auto_1fr]'">
-
-                <!-- Time Label Header -->
-                <div
-                    class="p-4 text-xs font-semibold text-gray-400 tracking-wider text-center border-r border-gray-200 w-20 flex items-center justify-center">
-                    Hora
-                </div>
-
-                <!-- Week View Headers -->
-                <ng-container *ngIf="viewMode() === 'week'">
-                    <div *ngFor="let day of weekDays()"
-                        class="p-4 text-center border-r border-gray-200 last:border-r-0">
-                        <p class="text-xs font-semibold text-gray-500 mb-1">{{ day.dayName }}</p>
-                        <div class="flex flex-col items-center leading-none">
-                            <span class="text-lg font-bold text-gray-900">{{ day.dayNum }}</span>
-                            <span class="text-[10px] font-bold text-gray-400 mt-0.5">{{ day.monthName
-                                }}</span>
-                        </div>
+    <!-- Scrollable Calendar Area -->
+    <div class="flex-1 overflow-auto bg-white custom-scrollbar">
+        <div class="min-w-[1000px] flex flex-col">
+            
+            <!-- Header Row (Sticky) -->
+            <div class="grid grid-cols-8 border-b border-gray-200 bg-white sticky top-0 z-30 shadow-sm">
+                <!-- Empty corner -->
+                <div class="border-r border-gray-100 h-16 bg-gray-50/30"></div>
+                
+                <div *ngFor="let day of (viewMode() === 'week' ? weekDays() : [weekDays()[0]])"
+                    class="h-16 border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center"
+                    [class.bg-gray-50]="isToday(day.iso)">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1" [class.text-indigo-600]="isToday(day.iso)">{{ day.dayName }}</p>
+                    
+                    <div *ngIf="isToday(day.iso)" class="bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+                        {{ day.dayNum }}
                     </div>
-                </ng-container>
-
-                <!-- Day View Header -->
-                <ng-container *ngIf="viewMode() === 'day'">
-                    <div class="p-4 text-center">
-                        <p class="text-xs font-semibold text-gray-500 ">{{ currentDateStr() }}</p>
+                    <div *ngIf="!isToday(day.iso)" class="text-lg font-bold text-gray-800">
+                        {{ day.dayNum }}
                     </div>
-                </ng-container>
-            </div>
-
-            <!-- Time Slots Body -->
-            <div class="relative">
-                <div *ngFor="let time of timeSlots()"
-                    class="grid border-b border-gray-100 last:border-b-0 min-h-[3.5rem]"
-                    [class]="(viewMode() === 'week' ? 'grid-cols-8' : 'grid-cols-[auto_1fr]') + (isBreakTime(time) ? ' bg-gray-100' : '')">
-
-                    <!-- Time Label -->
-                    <div
-                        class="w-20 p-2 text-xs font-medium text-gray-500 text-center border-r border-gray-100 flex items-center justify-center bg-gray-50/50">
-                        {{ time }}
-                    </div>
-
-                    <!-- Week View Columns -->
-                    <ng-container *ngIf="viewMode() === 'week'">
-                        <div *ngFor="let day of weekDays(); let i = index"
-                            [class]="(!isWorkingDay(i) || isPastDate(day.iso) ? 'bg-gray-100/70 ' : '') + 'border-r border-gray-100 last:border-r-0 relative p-1 min-h-[3.5rem]'">
-
-                            <!-- Current Time Indicator -->
-                            <ng-container *ngIf="isToday(day.iso) && isCurrentTimeSlot(time)">
-                                <div class="absolute left-0 right-0 border-t-2 border-red-500 z-50 pointer-events-none"
-                                    [style.top]="getCurrentTimeOffsetInSlot(time) + '%'">
-                                    <div
-                                        class="absolute -top-[5px] -left-1 w-[10px] h-[10px] bg-red-500 rounded-full shadow-sm">
-                                    </div>
-                                </div>
-                            </ng-container>
-
-                            <!-- Logic to determine slot content -->
-                            <ng-container *ngIf="getSlotStatus(day.iso, time, i) as items">
-
-                                <!-- Unavailable BG -->
-                                <div *ngIf="items.length === 0" class="absolute inset-0 bg-gray-50/50 -z-10"></div>
-
-                                <!-- Items Loop -->
-                                <div class="w-full h-full relative z-10"
-                                    [ngClass]="items.length >= 3 ? 'flex flex-row flex-wrap content-start gap-1 p-1' : 'flex flex-col gap-1'">
-                                    <ng-container *ngFor="let item of items">
-
-                                        <!-- Available Card -->
-                                        <button *ngIf="item.type === 'available'"
-                                            (click)="!item.isPast && openBookingModal(day.iso, time, item.doctorId, item.specialtyId, item.modality)"
-                                            [disabled]="item.isPast"
-                                            [ngClass]="(items.length >= 3 ? 'w-8 h-8 p-0 justify-center ' : 'w-full min-h-[30px] p-0.5 ') + 
-                                                       (item.isPast ? 'opacity-100 cursor-not-allowed bg-gray-200 border-gray-300 border-dashed text-gray-500' : 'cursor-pointer hover:bg-blue-100 hover:border-solid hover:shadow-md bg-blue-50 border-blue-300 border-dashed')"
-                                            class="rounded border transition-all group flex flex-col justify-center items-center gap-0.5 relative">
-
-                                            <!-- Normal View -->
-                                            <ng-container *ngIf="items.length < 3">
-                                                <span
-                                                    [class]="item.isPast ? 'text-[9px] font-medium truncate w-full text-center' : 'text-[9px] font-medium text-blue-700 truncate w-full text-center'">{{
-                                                    item.doctorName }}</span>
-                                                <span
-                                                    class="text-[9px] text-blue-600 opacity-80 truncate w-full text-center pb-0.5">{{
-                                                    getSpecialtyName(item.specialtyId) }}</span>
-                                            </ng-container>
-
-                                            <!-- Condensed View (Icon) -->
-                                            <lucide-icon *ngIf="items.length >= 3" [img]="icons.Plus"
-                                                class="w-4 h-4 text-primary"></lucide-icon>
-
-                                            <!-- Tooltip -->
-                                            <div
-                                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] bg-gray-900 text-white text-[10px] rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg text-center">
-                                                <div>{{ item.doctorName }}</div>
-                                                <div class="opacity-75">{{ getSpecialtyName(item.specialtyId) }}</div>
-                                            </div>
-                                        </button>
-
-                                        <!-- Booked Card -->
-                                        <button *ngIf="item.type === 'booked'"
-                                            (click)="openAppointmentDetails(item.appointment); $event.stopPropagation()"
-                                            [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center items-center' : 'w-full min-h-[40px] p-1.5 text-left'"
-                                            [class]="'rounded border-l-4 shadow-sm cursor-pointer hover:shadow-md transition-all relative group flex flex-col justify-center ' + getAppointmentColorClass(item.appointment)">
-
-                                            <!-- Normal View -->
-                                            <ng-container *ngIf="items.length < 3">
-                                                <div class="font-bold text-[10px] truncate w-full">{{
-                                                    getPatientName(item.appointment.patientId) }}</div>
-                                                <div class="truncate text-[9px] opacity-80 w-full">{{
-                                                    getSpecialtyName(item.appointment.specialtyId) }}</div>
-                                            </ng-container>
-
-                                            <!-- Condensed View -->
-                                            <div *ngIf="items.length >= 3"
-                                                class="w-full h-full flex items-center justify-center">
-                                                <!-- Paid -> Check (Green) -->
-                                                <lucide-icon *ngIf="item.appointment.paymentStatus === 'PAID'"
-                                                    [img]="icons.CheckCircle"
-                                                    class="w-4 h-4 text-green-600"></lucide-icon>
-
-                                                <!-- Pending -> Help (Yellow) -->
-                                                <lucide-icon
-                                                    *ngIf="item.appointment.status === 'CONFIRMADA' && item.appointment.paymentStatus === 'PENDING'"
-                                                    [img]="icons.HelpCircle"
-                                                    class="w-4 h-4 text-yellow-600"></lucide-icon>
-
-                                                <!-- Default -> Initials -->
-                                                <div *ngIf="!(item.appointment.paymentStatus === 'PAID') && !(item.appointment.status === 'CONFIRMADA' && item.appointment.paymentStatus === 'PENDING')"
-                                                    class="text-[9px] font-bold">
-                                                    {{ getPatientName(item.appointment.patientId).charAt(0) }}
-                                                </div>
-                                            </div>
-
-                                            <!-- Tooltip -->
-                                            <div
-                                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] bg-gray-900 text-white text-[10px] rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg text-left">
-                                                <div class="font-bold">{{ getPatientName(item.appointment.patientId) }}
-                                                </div>
-                                                <div>{{ getSpecialtyName(item.appointment.specialtyId) }}</div>
-                                                <div class="opacity-75">{{ getAppointmentStatusLabel(item.appointment)
-                                                    }}</div>
-                                            </div>
-                                        </button>
-
-                                    </ng-container>
-                                </div>
-                            </ng-container>
-                        </div>
-                    </ng-container>
-
-                    <!-- Day View Column -->
-                    <ng-container *ngIf="viewMode() === 'day'">
-                        <div class="relative p-2 bg-white min-h-[3.5rem]">
-
-                            <!-- Current Time Indicator -->
-                            <ng-container
-                                *ngIf="isToday(currentDate().toISOString().split('T')[0]) && isCurrentTimeSlot(time)">
-                                <div class="absolute left-0 right-0 border-t-2 border-red-500 z-50 pointer-events-none"
-                                    [style.top]="getCurrentTimeOffsetInSlot(time) + '%'">
-                                    <div
-                                        class="absolute -top-[5px] -left-1 w-[10px] h-[10px] bg-red-500 rounded-full shadow-sm">
-                                    </div>
-                                </div>
-                            </ng-container>
-
-                            <!-- Show Current Day (Today) -->
-                            <!-- Reusing getSlotStatus logic with current date -->
-                            <ng-container
-                                *ngIf="getSlotStatus(currentDate().toISOString().split('T')[0], time, 0) as items">
-
-                                <!-- Unavailable BG -->
-                                <div *ngIf="items.length === 0"
-                                    class="absolute inset-0 bg-gray-50/40 pattern-diagonal-lines"></div>
-
-                                <!-- Cards Container (Horizontal layout for concurrent) -->
-                                <div class="w-full h-full relative z-10"
-                                    [ngClass]="items.length >= 3 ? 'flex flex-wrap content-start gap-1 p-1' : 'flex gap-2'">
-
-                                    <ng-container *ngFor="let item of items">
-
-                                        <!-- Available (Programado) -->
-                                        <button *ngIf="item.type === 'available'"
-                                            (click)="!item.isPast && openBookingModal(currentDate().toISOString().split('T')[0], time, item.doctorId, item.specialtyId)"
-                                            [disabled]="item.isPast"
-                                            [ngClass]="(items.length >= 3 ? 'w-8 h-8 p-0 justify-center ' : 'flex-1 p-2 justify-between min-w-[140px] ') + 
-                                                       (item.isPast ? 'opacity-100 cursor-not-allowed bg-gray-200 border-gray-300 border-dashed text-gray-500' : 'cursor-pointer hover:bg-blue-100 hover:border-solid hover:shadow-md bg-blue-50 border-blue-300 border-dashed')"
-                                            class="rounded-lg border transition-all flex items-center gap-2 group/card relative">
-
-                                            <!-- Normal View Content -->
-                                            <div *ngIf="items.length < 3" class="text-left overflow-hidden">
-                                                <div
-                                                    class="text-xs font-bold text-blue-700 truncate group-hover/card:text-blue-800">
-                                                    {{ item.doctorName }}</div>
-                                                <div class="text-[10px] text-blue-600 font-medium truncate">{{
-                                                    getSpecialtyName(item.specialtyId) }}</div>
-                                            </div>
-                                            <div *ngIf="items.length < 3"
-                                                class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover/card:bg-blue-200 transition-colors">
-                                                <lucide-icon [img]="icons.Plus"
-                                                    class="w-3 h-3 text-blue-600"></lucide-icon>
-                                            </div>
-
-                                            <!-- Condensed View Content (Icon Only) -->
-                                            <lucide-icon *ngIf="items.length >= 3" [img]="icons.Plus"
-                                                class="w-4 h-4 text-primary"></lucide-icon>
-
-                                            <!-- Tooltip (Hover) -->
-                                            <div
-                                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                                                <div>{{ item.doctorName }}</div>
-                                                <div class="opacity-75">{{ getSpecialtyName(item.specialtyId) }}</div>
-                                            </div>
-                                        </button>
-
-                                        <!-- Booked Card -->
-                                        <div *ngIf="item.type === 'booked'"
-                                            (click)="openAppointmentDetails(item.appointment)"
-                                            [ngClass]="items.length >= 3 ? 'w-8 h-8 p-0 justify-center' : 'flex-1 p-2 min-w-[140px]'"
-                                            [class]="'rounded-lg border-l-4 shadow-sm cursor-pointer hover:shadow hover:scale-[1.01] transition-all relative group/card flex items-center ' + getAppointmentColorClass(item.appointment)">
-
-                                            <!-- Normal View Content -->
-                                            <div *ngIf="items.length < 3" class="overflow-hidden w-full">
-                                                <div class="font-bold text-xs truncate">{{
-                                                    getPatientName(item.appointment.patientId) }}
-                                                </div>
-                                                <div class="text-[10px] opacity-90 truncate">{{
-                                                    getSpecialtyName(item.appointment.specialtyId) }}</div>
-                                            </div>
-
-                                            <!-- Condensed View Content -->
-                                            <div *ngIf="items.length >= 3"
-                                                class="w-full h-full flex items-center justify-center">
-                                                <!-- Paid -> Check (Green) -->
-                                                <lucide-icon *ngIf="item.appointment.paymentStatus === 'PAID'"
-                                                    [img]="icons.CheckCircle"
-                                                    class="w-4 h-4 text-green-600"></lucide-icon>
-
-                                                <!-- Pending -> Help (Yellow) -->
-                                                <lucide-icon
-                                                    *ngIf="item.appointment.status === 'CONFIRMADA' && item.appointment.paymentStatus === 'PENDING'"
-                                                    [img]="icons.HelpCircle"
-                                                    class="w-4 h-4 text-yellow-600"></lucide-icon>
-
-                                                <!-- Default -> Initials -->
-                                                <div *ngIf="!(item.appointment.paymentStatus === 'PAID') && !(item.appointment.status === 'CONFIRMADA' && item.appointment.paymentStatus === 'PENDING')"
-                                                    class="text-[10px] font-bold text-center">
-                                                    {{ getPatientName(item.appointment.patientId).charAt(0) }}
-                                                </div>
-                                            </div>
-
-                                            <!-- Tooltip -->
-                                            <div
-                                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg text-left">
-                                                <div class="font-bold">{{ getPatientName(item.appointment.patientId) }}
-                                                </div>
-                                                <div>{{ getSpecialtyName(item.appointment.specialtyId) }}</div>
-                                                <div class="opacity-75">{{ getAppointmentStatusLabel(item.appointment)
-                                                    }}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </ng-container>
-                                </div>
-
-                            </ng-container>
-                        </div>
-                    </ng-container>
                 </div>
             </div>
+
+            <!-- Table Body Area -->
+            <table class="w-full border-collapse table-fixed">
+                <tbody>
+                    <tr *ngFor="let hour of displayHours">
+                        <!-- Left Axis (Time Labels) -->
+                        <td class="w-[12.5%] border-r border-gray-100 h-24 align-top pt-0 text-center bg-white relative">
+                            <span class="text-gray-400 text-[11px] font-medium -mt-[7px] block">{{ hour }}</span>
+                        </td>
+
+                        <!-- Day Cells -->
+                        <td *ngFor="let day of weekDays()" 
+                            class="h-24 p-1 border-b border-gray-100 align-top bg-white relative group"
+                            [class.bg-gray-50/30]="isToday(day.iso)">
+                            
+                            <!-- Current Time Indicator (Inside each cell) -->
+                            <div *ngIf="isCurrentHour(day.iso, hour)" 
+                                class="absolute left-0 right-0 z-30 pointer-events-none"
+                                [style.top.%]="getMinutesMinsOnly()">
+                                <div class="w-full border-t-2 border-red-500 relative">
+                                    <div class="absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full shadow-sm"></div>
+                                </div>
+                            </div>
+
+                            <!-- Events Container -->
+                            <div class="flex flex-col gap-0 h-full w-full">
+                                <div *ngFor="let item of (eventsByDayMapping()[day.iso]?.[hour] || [])" 
+                                    class="w-full rounded shadow-sm p-1 flex flex-col hover:bg-opacity-90 cursor-pointer relative group transition-all shrink-0 overflow-hidden"
+                                    [ngClass]="[
+                                        item.type === 'booked' ? getAppointmentBlockClass(item.appointment) + ' bg-amber-50 border-l-4 border-amber-500' : 'border-2 border-dashed border-blue-300 bg-white text-blue-600',
+                                        item.heightClass
+                                    ]"
+                                    (click)="item.type === 'booked' ? openAppointmentDetails(item.appointment) : (!item.isPast && openBookingModal(day.iso, item.startTime, item.doctorId, item.specialtyId, item.modality))">
+                                
+                                <!-- Content Layer -->
+                                <ng-container *ngIf="item.type === 'booked'">
+                                    <span class="text-xs font-bold truncate pr-6"
+                                        [ngClass]="item.appointment?.paymentStatus === 'PAID' ? 'text-emerald-900' : 'text-amber-900'">
+                                        {{ getPatientName(item.appointment?.patientId) }}
+                                    </span>
+                                    
+                                    <span class="text-[10px] mt-0.5 whitespace-normal leading-tight line-clamp-2"
+                                        [ngClass]="item.appointment?.paymentStatus === 'PAID' ? 'text-emerald-700' : 'text-amber-700'">
+                                        {{ item.startTime }} - {{ item.endTime }} • {{ getSpecialtyName(item.appointment?.specialtyId) }}
+                                    </span>
+
+                                    <!-- Initials Tag -->
+                                    <div class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-white flex items-center justify-center text-[8px] font-bold shadow-sm"
+                                        [ngClass]="item.appointment?.paymentStatus === 'PAID' ? 'text-emerald-900' : 'text-amber-900'">
+                                        {{ item.doctorInitials }}
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngIf="item.type === 'available'">
+                                    <span class="text-[10px] font-bold truncate pr-6 text-blue-700">Disponible</span>
+                                    <span class="text-[9px] font-medium opacity-80 truncate">{{ item.doctorName }}</span>
+                                    
+                                    <div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-[7px] font-bold shadow-sm text-blue-800">
+                                        {{ item.doctorInitials }}
+                                    </div>
+
+                                    <div class="text-[8px] font-bold mt-auto opacity-70">
+                                        {{ item.startTime }} - {{ item.endTime }}
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -408,9 +189,9 @@
     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" (click)="tryCloseBookingModal()"></div>
 
     <!-- Modal Positioner -->
-    <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6 md:py-12 relative pointer-events-none">
         <!-- Modal Content -->
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col relative z-10 animate-fade-in-up">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col items-stretch relative z-10 animate-fade-in-up max-h-full overflow-hidden pointer-events-auto">
             <!-- Modal Header (Fixed) -->
             <div class="bg-primary px-6 py-4 shrink-0 flex items-center justify-between shadow-md z-20 rounded-t-2xl">
                 <div>
@@ -423,18 +204,18 @@
                 </button>
             </div>
 
-            <!-- Modal Body (Scrollable) -->
-            <div class="p-6">
+            <!-- Modal Body (Scrollable) with massive bottom padding for Datepicker room -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 pb-80">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Left Column: Form Details -->
-                    <div class="space-y-5 relative z-50">
+                    <div class="space-y-5">
                         <div>
                             <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-2">Detalles</h3>
                             <p class="text-xs text-gray-500">Completa la información requerida</p>
                         </div>
 
                         <!-- Specialty -->
-                        <div>
+                        <div class="relative z-40">
                             <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
                                 Especialidad <span class="text-red-500">*</span>
                             </label>
@@ -445,7 +226,7 @@
                         </div>
 
                         <!-- Doctor -->
-                        <div>
+                        <div class="relative z-30">
                             <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
                                 Médico <span class="text-red-500">*</span>
                             </label>
@@ -486,21 +267,22 @@
                             </div>
                         </div>
 
-                        <!-- Date -->
-                        <div>
+                        <!-- Date (Drop-up logic) -->
+                        <div class="relative z-50">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="block text-xs font-bold text-gray-600 tracking-wide">
                                     Fecha <span class="text-red-500">*</span>
                                 </label>
                             </div>
                             <app-datepicker [value]="modalDate()" (valueChange)="modalDate.set($event)"
-                                [enabledDates]="validDatesForModal()"
+                                direction="up"
+                                [placeholder]="!modalDoctorId() || !modalSpecialtyId() ? 'Seleccione un médico primero' : 'Seleccionar fecha...'"
                                 [disabled]="!modalDoctorId() || !modalSpecialtyId() || !modalModality()">
                             </app-datepicker>
                         </div>
 
                         <!-- Patient -->
-                        <div>
+                        <div class="relative z-20">
                             <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
                                 Paciente <span class="text-red-500">*</span>
                             </label>
@@ -534,15 +316,14 @@
                             <lucide-icon [img]="icons.Clock" class="w-12 h-12 mb-3 opacity-20"></lucide-icon>
                             <p class="text-sm font-medium px-4 leading-relaxed">
                                 {{ !modalDoctorId() || !modalDate() ? 'Selecciona médico y fecha para ver horarios.' :
-                                'No
-                                hay horarios disponibles para esta fecha.' }}
+                                'No hay horarios disponibles para esta fecha.' }}
                             </p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Payment Method & Notes -->
-                <div class="mt-8 pt-6 border-t border-gray-100">
+                <div class="mt-8 pt-6 border-t border-gray-100 pb-20">
                     <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-4">Información adicional</h3>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
@@ -586,8 +367,8 @@
                 </div>
             </div>
 
-            <!-- Modal Footer (Fixed) -->
-            <div class="bg-gray-50 px-6 py-4 flex gap-3 border-t border-gray-200 shrink-0">
+            <!-- Modal Footer (Sticky Bottom) -->
+            <div class="px-6 py-4 flex gap-3 border-t border-gray-200 sticky bottom-0 bg-white z-50 rounded-b-2xl">
                 <button (click)="tryCloseBookingModal()" type="button" [disabled]="saving()"
                     class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all">
                     Cancelar
@@ -595,7 +376,7 @@
                 <button (click)="saveAppointment()"
                     [disabled]="saving() || !modalPatientId() || !modalTime() || !modalDoctorId() || !modalModality()"
                     type="button"
-                    class="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary hover:bg-primary transition-all disabled:opacity-50 disabled:shadow-none">
+                    class="flex-1 py-3 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all disabled:opacity-50 disabled:shadow-none">
                     <span *ngIf="!saving()">Confirmar cita</span>
                     <span *ngIf="saving()">Guardando...</span>
                 </button>
@@ -610,9 +391,9 @@
     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" (click)="tryCloseDetailsModal()"></div>
 
     <!-- Modal Positioner -->
-    <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6 md:py-12 relative pointer-events-none">
         <!-- Modal Content -->
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl flex flex-col relative z-10 animate-fade-in-up">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl flex flex-col relative z-10 animate-fade-in-up max-h-full overflow-hidden pointer-events-auto">
 
             <!-- Header (Fixed - Professional White) -->
             <div
@@ -630,7 +411,7 @@
             </div>
 
             <!-- Body (Scrollable) -->
-            <div class="p-6 sm:p-7 flex-1 bg-white" [ngClass]="{'rounded-b-3xl': isConfirmingCancel}">
+            <div class="p-6 sm:p-7 flex-1 bg-white overflow-y-auto custom-scrollbar pb-64" [ngClass]="{'rounded-b-3xl': isConfirmingCancel}">
 
                 <!-- Standard View -->
                 <div *ngIf="selectedAppointment && !isRescheduling && !isConfirmingCancel" class="space-y-6">
@@ -785,7 +566,8 @@
                     </div>
 
                     <div class="space-y-6">
-                        <div>
+                        <!-- Date -->
+                        <div class="relative z-50">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="block text-[10px] font-bold text-gray-400 tracking-widest">Fecha
                                     Seleccionada</label>
@@ -796,6 +578,7 @@
                             </div>
                             <app-datepicker [value]="modalDate()"
                                 (valueChange)="modalDate.set($event); modalTime.set('')"
+                                direction="up"
                                 [enabledDates]="validDatesForModal()" [disabled]="!modalDoctorId()">
                             </app-datepicker>
                         </div>
@@ -940,6 +723,37 @@
                     </app-button>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Discard Changes Modal -->
+<div *ngIf="showConfirmCloseModal()" class="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 md:py-12">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" (click)="showConfirmCloseModal.set(false)"></div>
+    
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200 relative z-10">
+        <div class="p-6 flex flex-col items-center">
+            <!-- Alert Icon -->
+            <div class="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mb-4">
+                <lucide-icon [img]="icons.AlertCircle" class="w-10 h-10 text-amber-500"></lucide-icon>
+            </div>
+            
+            <h3 class="text-xl font-bold text-gray-900 text-center">¿Deseas descartar los cambios?</h3>
+            <p class="text-sm text-gray-500 mt-2 text-center">
+                Si cierras ahora, se perderán todos los datos ingresados en este turno. Esta acción no se puede deshacer.
+            </p>
+        </div>
+
+        <div class="flex justify-end gap-3 p-6 bg-gray-50 mt-6">
+            <button (click)="showConfirmCloseModal.set(false)" 
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                Cancelar
+            </button>
+            <button (click)="executeConfirmAction()" 
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all shadow-md">
+                Descartar
+            </button>
         </div>
     </div>
 </div>

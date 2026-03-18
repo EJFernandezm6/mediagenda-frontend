@@ -45,7 +45,7 @@ export class SpecialtiesListComponent implements OnInit {
   searchTerm = signal('');
   statusFilter = signal('');
   currentPage = signal(1);
-  itemsPerPage = 6;
+  itemsPerPage = 3;
 
   statusOptions = signal<SelectOption[]>([
     { id: 'ACTIVE', label: 'Especialidades Activas' },

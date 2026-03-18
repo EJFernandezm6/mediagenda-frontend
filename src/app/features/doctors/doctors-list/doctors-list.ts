@@ -25,7 +25,6 @@ import { SearchInputComponent } from '../../../shared/components/ui/search-input
     FormsModule, 
     PaginationComponent, 
     ButtonComponent, 
-    CardComponent, 
     SearchableSelectComponent,
     PageHeaderComponent,
     SearchInputComponent
@@ -48,7 +47,7 @@ export class DoctorsListComponent implements OnInit {
   searchTerm = signal('');
   statusFilter = signal('');
   currentPage = signal(1);
-  itemsPerPage = 5;
+  itemsPerPage = 3;
 
   statusOptions = signal<SelectOption[]>([
     { id: 'ACTIVE', label: 'Especialistas Activos' },
@@ -225,7 +224,7 @@ export class DoctorsListComponent implements OnInit {
       this.form.phone?.trim()?.length >= 7 &&
       this.form.phonePrefix?.trim()?.length >= 1 &&
       docValid &&
-      (!this.form.email || this.emailRegex.test(this.form.email)) &&
+      (this.form.email?.trim() && this.emailRegex.test(this.form.email)) &&
       !this.isDuplicateDni &&
       !this.isDuplicateCmp;
   }

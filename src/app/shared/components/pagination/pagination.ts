@@ -7,9 +7,9 @@ import { LucideAngularModule, ChevronLeft, ChevronRight } from 'lucide-angular';
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   template: `
-    <div class="flex items-center justify-between w-full" *ngIf="totalPages > 1">
+    <div class="flex items-center justify-between w-full" *ngIf="totalItems > 0">
       <!-- Mobile View -->
-      <div class="flex flex-1 justify-between sm:hidden w-full px-4 py-3">
+      <div class="flex flex-1 justify-between sm:hidden w-full px-4 py-3" *ngIf="totalPages > 1">
         <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1"
           class="relative inline-flex items-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-text-muted hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           Anterior
@@ -25,7 +25,7 @@ import { LucideAngularModule, ChevronLeft, ChevronRight } from 'lucide-angular';
         <div>
           <p class="text-[13px] text-text-muted">
             Mostrando
-            <span class="font-medium text-text-main">{{ startIndex + 1 }}</span>
+            <span class="font-medium text-text-main">{{ totalItems > 0 ? startIndex + 1 : 0 }}</span>
             a
             <span class="font-medium text-text-main">{{ endIndex }}</span>
             de
@@ -33,7 +33,7 @@ import { LucideAngularModule, ChevronLeft, ChevronRight } from 'lucide-angular';
             {{ itemLabel }}
           </p>
         </div>
-        <div>
+        <div *ngIf="totalPages > 1">
           <nav class="isolate inline-flex -space-x-px gap-1 rounded-md" aria-label="Pagination">
             <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1"
               class="relative inline-flex items-center rounded-lg p-2 text-text-light hover:text-accent hover:bg-accent-soft focus:z-20 outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-light transition-colors">

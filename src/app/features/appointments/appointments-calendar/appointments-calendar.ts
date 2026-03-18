@@ -14,12 +14,11 @@ import { SearchableSelectComponent, SelectOption } from '../../../shared/compone
 import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
-import { CardComponent } from '../../../shared/components/ui/card/card.component';
 
 @Component({
   selector: 'app-appointments-calendar',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent, DatePickerComponent, ButtonComponent, BadgeComponent, CardComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent, DatePickerComponent, ButtonComponent, BadgeComponent],
   templateUrl: './appointments-calendar.html',
   styleUrl: './appointments-calendar.css'
 })
@@ -65,10 +64,13 @@ export class AppointmentsCalendarComponent {
   viewMode = signal<'day' | 'week'>('week'); // Default to week per requirements? Or Day? User didn't specify default, but asked for "version semanal Y version diaria".
 
   // Data Sources
+  private serviceAppointments = this.appointmentsService.appointments;
+  mockAppointments = signal<Appointment[]>([]);
+  appointments = computed(() => [...this.serviceAppointments(), ...this.mockAppointments()]);
+  
   doctors = computed(() => this.doctorService.selectableDoctors().filter(d => d.active !== false));
   specialties = this.specialtyService.specialties;
   allPatients = signal<any[]>([]);
-  appointments = this.appointmentsService.appointments;
 
   // Filters
   selectedDoctorId = signal<string>('');
@@ -140,6 +142,9 @@ export class AppointmentsCalendarComponent {
     }, 60000); // Update every minute
   }
 
+  // Method removed per user request
+
+
   ngOnDestroy() {
     document.body.classList.remove('overflow-hidden');
     if (this.timerInterval) {
@@ -189,12 +194,12 @@ export class AppointmentsCalendarComponent {
   // Calendar State
   currentDate = signal<Date>(new Date());
   currentDateStr = computed(() => {
-    return this.currentDate().toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const d = this.currentDate();
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const dayName = d.toLocaleDateString('es-ES', { weekday: 'long' });
+    return `${dayName}, ${day}-${month}-${year}`;
   });
 
   canGoBack = computed(() => {
@@ -224,6 +229,17 @@ export class AppointmentsCalendarComponent {
   isRescheduling = false;
   isConfirmingCancel = false;
 
+  showConfirmCloseModal = signal(false);
+  private onConfirmAction: (() => void) | null = null;
+
+  executeConfirmAction() {
+    if (this.onConfirmAction) {
+      this.onConfirmAction();
+    }
+    this.showConfirmCloseModal.set(false);
+    this.onConfirmAction = null;
+  }
+
   doctorsInCurrentSpecialty = computed(() => {
     const specialtyId = this.isRescheduling ? this.modalSpecialtyId() : this.selectedSpecialtyId();
     if (!specialtyId) return this.doctors();
@@ -236,24 +252,77 @@ export class AppointmentsCalendarComponent {
     return this.doctors().filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
   });
 
+  // Time Block Layout Constants
+  displayHours = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00'];
+  hourHeight = 96; // h-24 = 6 pulg / 96px usually
+
   // Appointments for All Doctors (Today) - Used for Daily View logic mostly
   globalAppointments = computed(() => {
     const today = this.toIsoDate(this.currentDate());
     return this.appointments().filter(a => a.appointmentDate === today && a.status !== 'CANCELADA');
   });
 
+  // Helper to get minutes from start of display (07:00)
+  getMinutesFromStart(time: string): number {
+    const [h, m] = time.split(':').map(Number);
+    return (h * 60 + m) - (7 * 60); // 7:00 is base
+  }
+
+  isCurrentHour(isoDate: string, hour: string): boolean {
+    const today = new Date();
+    const todayIso = today.toISOString().split('T')[0];
+    if (isoDate !== todayIso) return false;
+    
+    const currHour = today.getHours();
+    const [h] = hour.split(':').map(Number);
+    return currHour === h;
+  }
+
+  getMinutesMinsOnly(): number {
+    return (new Date().getMinutes() / 60) * 100;
+  }
+
+  getEventStyles(startTime: string, endTime?: string, duration?: number, colWidth?: number, colOffset?: number) {
+    const [h, m] = startTime.split(':').map(Number);
+    const startOffsetMins = m; 
+    
+    let durationMins = 60; // Default 1h
+    if (endTime) {
+      const [eh, em] = endTime.split(':').map(Number);
+      durationMins = (eh * 60 + em) - (h * 60 + m);
+    } else if (duration) {
+      durationMins = duration;
+    }
+
+    // Pixels based on h-24 = 96px
+    const pixelsPerHour = 96;
+    const topPx = (startOffsetMins / 60) * pixelsPerHour + 4; // top-1 = 4px
+    const heightPx = (durationMins / 60) * 80; // Forced h-20 (80px) per hour as requested
+    
+    const styles: any = {
+      'top': `${topPx}px`,
+      'height': `${heightPx}px`,
+      'left': `calc(${ (colOffset || 0) * 100 }% + 4px)`,
+      'width': `calc(${ (colWidth || 1) * 100 }% - 8px)`
+    };
+
+    return styles;
+  }
+
   // Dynamic values for Modal & View
   filteredDoctors = computed(() => {
-    // If a specialty is selected, filter doctors by that specialty
     const specialtyId = this.selectedSpecialtyId();
     if (!specialtyId) return this.doctors();
 
     const associations = this.doctorSpecialtyService.associations();
     const doctorIds = associations
-      .filter(a => a.specialtyId === specialtyId)
-      .map(a => a.doctorId);
+      .filter(a => String(a.specialtyId || a.specialty_id || '').trim() === String(specialtyId).trim())
+      .map(a => String(a.doctorId || a.doctor_id || '').trim());
 
-    return this.doctors().filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
+    return this.doctors().filter(d => {
+      const dId = String(d.doctorId || d.id || '').trim();
+      return dId !== '' && doctorIds.includes(dId);
+    });
   });
 
   filteredDoctorsForModal = computed(() => {
@@ -262,10 +331,15 @@ export class AppointmentsCalendarComponent {
 
     if (specialtyId) {
       const associations = this.doctorSpecialtyService.associations();
+      const sId = String(specialtyId).trim();
       const doctorIds = associations
-        .filter(a => a.specialtyId === specialtyId)
-        .map(a => a.doctorId);
-      docs = docs.filter(d => d.doctorId != null && doctorIds.includes(d.doctorId));
+        .filter(a => String(a.specialtyId || a.specialty_id || '').trim() === sId)
+        .map(a => String(a.doctorId || a.doctor_id || '').trim());
+      
+      docs = docs.filter(d => {
+        const dId = String(d.doctorId || d.id || '').trim();
+        return dId !== '' && doctorIds.includes(dId);
+      });
     }
 
     return docs;
@@ -366,13 +440,24 @@ export class AppointmentsCalendarComponent {
 
     // 4. Filtrar slots ya ocupados y pasados
     return slots.filter(time => {
-      // 1. Check if slot is already booked
-      const isBooked = this.appointments().some(a =>
-        a.doctorId === doctorId &&
-        a.appointmentDate === date &&
-        this.normalizeTime(a.startTime) === time &&
-        a.status !== 'CANCELADA'
-      );
+      const slotStartMins = this.getMinutes(time);
+      const slotEndMins = slotStartMins + duration;
+
+      const isBooked = this.appointments().some(a => {
+        const aStatus = (a.status || '').toUpperCase();
+        if (aStatus === 'CANCELADA' || a.appointmentDate !== date) return false;
+        
+        const aDocId = String(a.doctorId || (a as any).userId || '').trim();
+        const targetId = String(doctorId).trim();
+        if (aDocId !== targetId) return false;
+
+        const appStartMins = this.getMinutes(this.normalizeTime(a.startTime));
+        const appEndMins = this.getMinutes(this.normalizeTime(a.endTime));
+        
+        // Slot overlaps with appointment if (StartA < EndB) && (EndA > StartB)
+        return (appStartMins < slotEndMins && appEndMins > slotStartMins);
+      });
+
       if (isBooked) return false;
 
       // 2. Check if slot is in the past (only relevant for today)
@@ -402,13 +487,13 @@ export class AppointmentsCalendarComponent {
   });
 
   // Helper to convert "HH:mm" to minutes since midnight
-  private getMinutes(time: string): number {
+  public getMinutes(time: string): number {
     const [h, m] = time.split(':').map(Number);
     return h * 60 + m;
   }
 
   // Helper to convert minutes to "HH:mm"
-  private formatMinutes(mins: number): string {
+  public formatMinutes(mins: number): string {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
@@ -521,6 +606,172 @@ export class AppointmentsCalendarComponent {
 
   // ...
 
+  // Pre-calculated Event Mapping for Time-Block (Grouped by Hour to avoid collision line bug)
+  eventsByDayMapping = computed(() => {
+    const mapping: { [key: string]: { [hour: string]: any[] } } = {};
+    const days = this.weekDays();
+    const docId = this.selectedDoctorId();
+    const specId = this.selectedSpecialtyId();
+    const doctorsToCheck = docId ? [docId] : this.doctorsInCurrentSpecialty().map(d => d.doctorId || d.id);
+    const schedules = this.scheduleService.schedules();
+    const appointments = this.appointments();
+
+    for (const day of days) {
+      const dateIso = day.iso;
+      const rawItems: any[] = [];
+
+      // 1. Collect ALL appointments for this day (regardless of selectable doctors list)
+      const dayApps = appointments.filter(a => {
+        const matchesDate = String(a.appointmentDate).includes(dateIso);
+        const aStatus = (a.status || '').toUpperCase();
+        if (!matchesDate || aStatus === 'CANCELADA') return false;
+
+        // If a specific doctor filter is active, apply it
+        if (docId) {
+          const aDocId = String(a.doctorId || '').trim();
+          const aUserId = String((a as any).userId || '').trim();
+          const targetId = String(docId).trim();
+          if (aDocId !== targetId && aUserId !== targetId) return false;
+        }
+
+        // If a specific specialty filter is active, apply it
+        if (specId && String(a.specialtyId || '').trim() !== String(specId).trim()) return false;
+
+        return true;
+      });
+
+      dayApps.forEach(app => {
+        const dId = app.doctorId || (app as any).userId || '';
+        rawItems.push({
+          type: 'booked',
+          appointment: app,
+          startTime: this.normalizeTime(app.startTime),
+          endTime: this.normalizeTime(app.endTime),
+          doctorId: dId,
+          doctorName: this.getDoctorName(dId),
+          doctorInitials: this.getDoctorInitials(dId),
+          modality: (app.modality || 'PRESENCIAL').toUpperCase(),
+          status: app.status
+        });
+      });
+
+      // 2. Collect Available Slots from Schedules (Split into slots)
+      for (const dId of doctorsToCheck) {
+        let docSchedules = schedules.filter(s => String(s.doctorId || (s as any).doctor_id) === String(dId) && s.date === dateIso);
+        if (specId) docSchedules = docSchedules.filter(s => String(s.specialtyId || (s as any).specialty_id) === String(specId));
+
+        docSchedules.forEach(s => {
+          const slotDuration = this.getDuration(dId, s.specialtyId);
+          const scheduleStart = this.getMinutes(this.normalizeTime(s.startTime));
+          const scheduleEnd = this.getMinutes(this.normalizeTime(s.endTime));
+
+          for (let time = scheduleStart; time < scheduleEnd; time += slotDuration) {
+            const slotStart = this.formatMins(time);
+            const slotEnd = this.formatMins(Math.min(time + slotDuration, scheduleEnd));
+            
+            // Check if ANY booked appointment for THIS doctor overlaps with this specific slot
+            const isBooked = dayApps.some(app => {
+              const aDocId = String(app.doctorId || (app as any).userId || '').trim();
+              if (aDocId !== String(dId).trim()) return false;
+              
+              const aStart = this.getMinutes(this.normalizeTime(app.startTime));
+              const aEnd = this.getMinutes(this.normalizeTime(app.endTime));
+              // Overlap condition: (StartA < EndB) && (EndA > StartB)
+              return (aStart < time + slotDuration && aEnd > time);
+            });
+
+            if (!isBooked) {
+              rawItems.push({
+                type: 'available',
+                doctorId: dId,
+                doctorName: this.getDoctorName(dId),
+                doctorInitials: this.getDoctorInitials(dId),
+                specialtyId: s.specialtyId,
+                modality: (s.modality || s.schedule_type || 'PRESENCIAL').toUpperCase(),
+                startTime: slotStart,
+                endTime: slotEnd,
+                isPast: this.isPastTime(dateIso, slotStart)
+              });
+            }
+          }
+        });
+      }
+
+      // Collision Detection Logic (Global Day Context)
+      const sorted = [...rawItems].sort((a, b) => this.getMinutes(a.startTime) - this.getMinutes(b.startTime));
+      const processed: any[] = [];
+      const used = new Set();
+      
+      for (let j = 0; j < sorted.length; j++) {
+        if (used.has(sorted[j])) continue;
+        
+        const current = sorted[j];
+        const group = [current];
+        used.add(current);
+
+        let merged = true;
+        while (merged) {
+          merged = false;
+          for (let k = 0; k < sorted.length; k++) {
+            const next = sorted[k];
+            if (used.has(next)) continue;
+            
+            const overlaps = group.some(item => {
+              const itemStart = this.getMinutes(item.startTime);
+              const itemEnd = this.getMinutes(item.endTime);
+              const nStart = this.getMinutes(next.startTime);
+              const nEnd = this.getMinutes(next.endTime);
+              return (nStart < itemEnd && nEnd > itemStart);
+            });
+
+            if (overlaps) {
+              group.push(next);
+              used.add(next);
+              merged = true;
+            }
+          }
+        }
+
+        group.forEach((item, index) => {
+          item.colWidth = 1 / group.length;
+          item.colOffset = index / group.length;
+          processed.push(item);
+        });
+      }
+
+      // Group by Start Hour
+      const dayMap: { [hour: string]: any[] } = {};
+      processed.forEach(item => {
+        const hour = item.startTime.split(':')[0] + ':00';
+        if (!dayMap[hour]) dayMap[hour] = [];
+        
+        // Calculate dynamic height based on duration (Assuming 60min cells)
+        const startMins = this.getMinutes(item.startTime);
+        const endMins = this.getMinutes(item.endTime);
+        const duration = Math.min(60, endMins - startMins); // Clamp to 60 for cell mapping
+        
+        if (duration <= 10) {
+          item.heightClass = 'h-[16.6%]';
+        } else if (duration <= 15) {
+          item.heightClass = 'h-[25%]';
+        } else if (duration <= 20) {
+          item.heightClass = 'h-[33.3%]';
+        } else if (duration <= 30) {
+          item.heightClass = 'h-1/2';
+        } else if (duration <= 45) {
+          item.heightClass = 'h-[75%]';
+        } else {
+          item.heightClass = 'h-full';
+        }
+
+        dayMap[hour].push(item);
+      });
+      mapping[dateIso] = dayMap;
+    }
+
+    return mapping;
+  });
+
   isPastDate(dateStr: string): boolean {
     const todayStr = this.toIsoDate(new Date());
     return dateStr < todayStr;
@@ -546,100 +797,74 @@ export class AppointmentsCalendarComponent {
     return false;
   }
 
-  // Helper to check availability for Week View
+  formatMins(total: number): string {
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  }
+
   getSlotStatus(dateIso: string, time: string, dayOfWeekIndex: number): any[] {
     const items: any[] = [];
     const isPast = this.isPastTime(dateIso, time);
-
-    // doctors to check (Use doctorId as that is what schedules use)
-    const doctorsToCheck = this.selectedDoctorId()
-      ? [this.selectedDoctorId()]
-      : this.doctorsInCurrentSpecialty().map(d => d.doctorId || d.id);
-
+    const doctorsToCheck = this.selectedDoctorId() ? [this.selectedDoctorId()] : this.doctorsInCurrentSpecialty().map(d => d.doctorId || d.id);
     const timeMins = this.getMinutes(time);
 
     for (const docId of doctorsToCheck) {
       const docName = this.getDoctorName(docId);
-
-      // Modality Filter
       const modFilter = this.modalityFilter();
 
-      // Check Appointments
       const matchingApp = this.appointments().find(a => {
         const aDocId = String(a.doctorId || '').trim();
         const aUserId = String((a as any).userId || '').trim();
         const targetId = String(docId || '').trim();
-
-        const idMatch = aDocId === targetId || aUserId === targetId;
-        const dateMatch = String(a.appointmentDate || '').includes(dateIso);
-        const timeMatch = this.normalizeTime(a.startTime) === time;
-
-        return idMatch && dateMatch && timeMatch && a.status !== 'CANCELADA';
+        const aStatus = (a.status || '').toUpperCase();
+        return (aDocId === targetId || aUserId === targetId) && String(a.appointmentDate || '').includes(dateIso) && this.normalizeTime(a.startTime) === time && aStatus !== 'CANCELADA';
       });
 
-      // Check Schedule availability to get the modality of this block
       let isWorking = false;
       let workingSpecialtyId = '';
       let workingModality = '';
 
-      // Helper logic
-      const checkSchedule = (schedulesList: any[]) => {
-        for (const s of schedulesList) {
-          if (s.date === dateIso) {
-            const startStr = this.normalizeTime(s.startTime);
-            const endStr = this.normalizeTime(s.endTime);
-            const startMins = this.getMinutes(startStr);
-            const endMins = this.getMinutes(endStr);
-            const duration = this.getDuration(docId, s.specialtyId);
+      const schedules = this.selectedSpecialtyId() 
+        ? this.scheduleService.getSchedulesForDoctor(docId, this.selectedSpecialtyId())
+        : this.scheduleService.schedules().filter(s => s.doctorId === docId);
 
-            // Time slots were generated using `startMins + N * duration`.
-            // Check if this time slot is within the schedule's active block.
-            if (timeMins >= startMins && timeMins < endMins) {
-              isWorking = true;
-              workingSpecialtyId = s.specialtyId;
-              workingModality = (s.modality || s.schedule_type || 'PRESENCIAL').toUpperCase();
-              return;
-            }
+      for (const s of schedules) {
+        if (s.date === dateIso) {
+          const startMins = this.getMinutes(this.normalizeTime(s.startTime));
+          const endMins = this.getMinutes(this.normalizeTime(s.endTime));
+          if (timeMins >= startMins && timeMins < endMins) {
+            isWorking = true;
+            workingSpecialtyId = s.specialtyId;
+            workingModality = (s.modality || s.schedule_type || 'PRESENCIAL').toUpperCase();
+            break;
           }
         }
-      };
-
-      if (this.selectedSpecialtyId()) {
-        const schedules = this.scheduleService.getSchedulesForDoctor(docId, this.selectedSpecialtyId());
-        checkSchedule(schedules);
-      } else {
-        // View All: Check any specialty
-        const allSchedules = this.scheduleService.schedules().filter(s => s.doctorId === docId);
-        checkSchedule(allSchedules);
       }
 
       if (matchingApp) {
         const appModality = (matchingApp.modality || (matchingApp as any).appointment_type || workingModality || 'PRESENCIAL').toUpperCase();
         if (modFilter === 'ALL' || modFilter === appModality) {
-          items.push({ type: 'booked', appointment: matchingApp });
+          items.push({ type: 'booked', appointment: matchingApp, startTime: this.normalizeTime(matchingApp.startTime), endTime: this.normalizeTime(matchingApp.endTime) });
         }
         continue;
       }
 
-      // If it's a date before today, hide availability slots
       if (this.isPastDate(dateIso)) continue;
 
-      if (isWorking) {
-        if (modFilter === 'ALL' || modFilter === workingModality) {
-          items.push({
-            type: 'available',
-            doctorId: docId,
-            doctorName: docName,
-            date: dateIso,
-            time: time,
-            specialtyId: workingSpecialtyId,
-            modality: workingModality,
-            isPast: isPast
-          });
-        }
+      if (isWorking && (modFilter === 'ALL' || modFilter === workingModality)) {
+        items.push({
+          type: 'available',
+          doctorId: docId,
+          doctorName: docName,
+          date: dateIso,
+          time: time,
+          specialtyId: workingSpecialtyId,
+          modality: workingModality,
+          isPast: isPast
+        });
       }
     }
-
     return items;
   }
 
@@ -699,9 +924,8 @@ export class AppointmentsCalendarComponent {
 
   tryCloseBookingModal() {
     if (this.isBookingDirty()) {
-      if (confirm('¿Estás seguro de que deseas cerrar? Se perderán los datos ingresados.')) {
-        this.closeModal();
-      }
+      this.onConfirmAction = () => this.closeModal();
+      this.showConfirmCloseModal.set(true);
     } else {
       this.closeModal();
     }
@@ -709,9 +933,8 @@ export class AppointmentsCalendarComponent {
 
   tryCloseDetailsModal() {
     if (this.isRescheduling) {
-      if (confirm('Estás reprogramando una cita. ¿Seguro que deseas cerrar sin guardar?')) {
-        this.closeDetailsModal();
-      }
+      this.onConfirmAction = () => this.closeDetailsModal();
+      this.showConfirmCloseModal.set(true);
     } else {
       this.closeDetailsModal();
     }
@@ -724,26 +947,23 @@ export class AppointmentsCalendarComponent {
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '';
-    // Parse ISO YYYY-MM-DD
-    // Note: Creating date from string in local time might be tricky if not careful with T00:00
-    // But since we deal with YYYY-MM-DD visual strings, we can just split and format.
-    const [y, m, d] = dateStr.split('-').map(Number);
-    const date = new Date(y, m - 1, d); // Local
-
-    // "Día número de día mes y año" e.g. "Lunes 13 Febrero 2026"
-    // Using simple Intl
-    const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
-    const dayNum = date.getDate();
-    const month = date.toLocaleDateString('es-ES', { month: 'long' });
-    const year = date.getFullYear();
-
-    return `${dayName} ${dayNum} ${month} ${year}`;
+    const parts = dateStr.split('T')[0].split('-');
+    if (parts.length !== 3) return dateStr;
+    const [y, m, d] = parts;
+    return `${d}-${m}-${y}`;
   }
 
-  getDuration(doctorId: string, specialtyId: string): number {
+  getDuration(doctorId: any, specialtyId: any): number {
+    const dIdStr = String(doctorId).trim();
+    const sIdStr = String(specialtyId).trim();
+    
     const assoc = this.doctorSpecialtyService.associations()
-      .find(a => (a.doctorId === doctorId || (a as any).id === doctorId || (a as any).userId === doctorId) && a.specialtyId === specialtyId);
-    return assoc && assoc.durationMinutes > 0 ? assoc.durationMinutes : 30; // Default 30
+      .find(a => {
+        const aDocId = String(a.doctorId || a.doctor_id || '').trim();
+        const aSpecId = String(a.specialtyId || a.specialty_id || '').trim();
+        return aDocId === dIdStr && aSpecId === sIdStr;
+      });
+    return assoc && assoc.durationMinutes > 0 ? assoc.durationMinutes : 20; // Default 20
   }
 
   formatTime12Hour(time: string): string {
@@ -797,6 +1017,13 @@ export class AppointmentsCalendarComponent {
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   }
 
+  getDoctorInitials(id: string) {
+    if (id === 'd-aitor') return 'AM';
+    if (id === 'd-juan') return 'JL';
+    const name = this.getDoctorName(id);
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  }
+
   getDoctorName(id: string) {
     const doctor = this.doctors().find(d =>
       (d as any).id === id ||
@@ -821,6 +1048,14 @@ export class AppointmentsCalendarComponent {
     }
     // Yellow: Pendiente (Default for any booking not paid)
     return 'bg-yellow-100 border-yellow-500 text-yellow-800';
+  }
+
+  getAppointmentBlockClass(app: Appointment): string {
+    if (app.paymentStatus === 'PAID') {
+      return 'bg-emerald-50 border-l-4 border-emerald-500 rounded-r-md hover:shadow-md transition-shadow cursor-pointer';
+    }
+    // Reservada / Pendiente (Amber)
+    return 'bg-amber-50 border-l-4 border-amber-500 rounded-r-md hover:shadow-md transition-shadow cursor-pointer';
   }
 
   openGenericBooking() {
@@ -908,7 +1143,7 @@ export class AppointmentsCalendarComponent {
       // Optimistic update
       const updated = { ...this.selectedAppointment, status: newStatus };
 
-      this.appointments.update(list =>
+      this.appointmentsService.appointments.update(list =>
         list.map(a => a.appointmentId === updated.appointmentId ? updated : a)
       );
       this.selectedAppointment = updated;
@@ -929,7 +1164,7 @@ export class AppointmentsCalendarComponent {
       const updated = { ...this.selectedAppointment, paymentStatus: 'PAID' as const, status: 'CONFIRMADA' as const };
 
       // Update in list
-      this.appointments.update(list =>
+      this.appointmentsService.appointments.update(list =>
         list.map(a => a.appointmentId === updated.appointmentId ? updated : a)
       );
 

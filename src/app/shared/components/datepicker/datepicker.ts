@@ -17,15 +17,7 @@ export interface CalendarDay {
     selector: 'app-datepicker',
     standalone: true,
     imports: [CommonModule, FormsModule, LucideAngularModule],
-    templateUrl: './datepicker.html',
-    styles: [`
-    .dropdown-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 30;
-        background: transparent;
-    }
-  `]
+    templateUrl: './datepicker.html'
 })
 export class DatePickerComponent implements OnInit {
     private static activePicker: DatePickerComponent | null = null;
@@ -103,6 +95,13 @@ export class DatePickerComponent implements OnInit {
     get currentYear() {
         return this.currentMonth().getFullYear();
     }
+
+    displayValue = computed(() => {
+        const val = this.currentValue();
+        if (!val) return '';
+        const [y, m, d] = val.split('-');
+        return `${d}-${m}-${y}`;
+    });
 
     ngOnInit() {
         this.recalculateCalendar();

@@ -6,7 +6,9 @@ import { tap } from 'rxjs';
 export interface DoctorSpecialty {
     doctorSpecialtyId?: string;
     doctorId: string;
+    doctor_id?: string; // Support for snake_case from backend
     specialtyId: string;
+    specialty_id?: string; // Support for snake_case from backend
     cost: number;
     durationMinutes: number;
 }
@@ -25,8 +27,16 @@ export class DoctorSpecialtyService {
     }
 
     refreshAssociations() {
-        this.http.get<DoctorSpecialty[]>(`${this.apiUrl}/doctor-specialties`).subscribe(data => {
-            this.associations.set(data);
+        const params = { page: '0', size: '1000' };
+        this.http.get<any[]>(`${this.apiUrl}/doctor-specialties`, { params }).subscribe(data => {
+            const content = (data as any).content || (Array.isArray(data) ? data : []);
+            const mapped = content.map((a: any) => ({
+                ...a,
+                doctorId: a.doctorId || a.doctor_id,
+                specialtyId: a.specialtyId || a.specialty_id,
+                doctorSpecialtyId: a.doctorSpecialtyId || a.id
+            }));
+            this.associations.set(mapped);
         });
     }
 
@@ -58,7 +68,12 @@ export class DoctorSpecialtyService {
         );
     }
 
-    getSpecialtiesForDoctor(doctorId: string) {
-        return this.associations().filter(a => a.doctorId === doctorId);
+    getSpecialtiesForDoctor(doctorId: any) {
+        if (!doctorId) return [];
+        const idStr = String(doctorId).trim();
+        return this.associations().filter(a => 
+            String(a.doctorId || '').trim() === idStr || 
+            String(a.doctor_id || '').trim() === idStr
+        );
     }
 }

@@ -85,14 +85,14 @@
                             <div class="flex items-center gap-3">
                                 <!-- Avatar -->
                                 <div class="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-xs ring-4 ring-white shadow-sm shrink-0"
-                                    [ngClass]="getAvatarColor(getDoctorName(schedule.doctorId))">
-                                    {{ getInitials(getDoctorName(schedule.doctorId)) }}
+                                    [ngClass]="getAvatarColor(getDoctorName(schedule.doctorId || schedule.doctor_id))">
+                                    {{ getInitials(getDoctorName(schedule.doctorId || schedule.doctor_id)) }}
                                 </div>
                                 <div class="flex flex-col min-w-0">
-                                    <span class="cell-primary text-base font-bold truncate">{{ getDoctorName(schedule.doctorId) }}</span>
+                                    <span class="cell-primary text-base font-bold truncate">{{ getDoctorName(schedule.doctorId || schedule.doctor_id) }}</span>
                                     <span class="text-[12px] text-text-light flex items-center gap-1.5 leading-none mt-1">
                                         <span class="text-accent/40 text-[8px]">•</span>
-                                        {{ getSpecialtyName(schedule.specialtyId) }}
+                                        {{ getSpecialtyName(schedule.specialtyId || schedule.specialty_id) }}
                                     </span>
                                 </div>
                             </div>
@@ -168,7 +168,7 @@
             </div>
 
             <!-- Scrollable Content -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar bg-white">
+            <div class="flex-1 overflow-y-auto custom-scrollbar bg-white pb-32">
                 <div class="p-8 space-y-10 pb-20">
                     <!-- Step 1: Selection -->
                     <div class="space-y-6">
@@ -179,7 +179,7 @@
                         <div class="space-y-4">
                             <!-- Specialist Selector -->
                             <div class="space-y-1.5">
-                                <label class="block text-[13px] font-medium text-gray-700">Especialista <span class="text-red-500">*</span></label>
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Especialista <span class="text-red-500">*</span></label>
                                 <app-doctor-selector class="block w-full" 
                                     [requireSpecialties]="true"
                                     (selectionChanged)="onDoctorSelectionChange($event)"></app-doctor-selector>
@@ -187,7 +187,7 @@
 
                             <!-- Specialty Selector -->
                             <div class="space-y-1.5">
-                                <label class="block text-[13px] font-medium text-gray-700">Especialidad <span class="text-red-500">*</span></label>
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Especialidad <span class="text-red-500">*</span></label>
                                 <app-searchable-select 
                                     [options]="specialtyOptions" 
                                     [value]="formData.specialtyId"
@@ -209,7 +209,7 @@
                         <div class="space-y-6">
                             <!-- Fecha Maestro -->
                             <div class="w-1/2 space-y-1.5">
-                                <label class="block text-[13px] font-medium text-gray-700">Fecha <span class="text-red-500">*</span></label>
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Fecha <span class="text-red-500">*</span></label>
                                 <app-datepicker 
                                     [value]="formData.date"
                                     (valueChange)="formData.date = $event; onDateChange($event)"
@@ -220,49 +220,51 @@
 
                             <!-- Dynamic Time Ranges -->
                             <div class="space-y-5">
-                                <div *ngFor="let range of timeRanges(); let i = index; trackBy: trackByIndex" class="grid grid-cols-12 gap-4 items-end group animate-in slide-in-from-top-2 duration-200">
-                                    <!-- Modalidad -->
-                                    <div class="col-span-5 space-y-1.5">
-                                        <label *ngIf="i === 0" class="block text-[13px] font-medium text-gray-700">Modalidad <span class="text-red-500">*</span></label>
-                                        <div class="relative">
-                                            <select [(ngModel)]="range.modality"
-                                                [disabled]="!selectedDoctorId() || !formData.specialtyId"
-                                                class="w-full h-10 px-3 bg-white border border-gray-300 rounded-lg text-[14px] text-gray-900 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none appearance-none disabled:bg-gray-50 py-0 leading-normal">
-                                                <option value="PRESENCIAL">Presencial</option>
-                                                <option value="VIRTUAL">Virtual</option>
-                                            </select>
-                                            <lucide-icon [img]="icons.ChevronDown" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
+                                <div *ngFor="let range of timeRanges(); let i = index; trackBy: trackByIndex" class="flex items-start gap-4 group animate-in slide-in-from-top-2 duration-200">
+                                    <div class="flex-1 grid grid-cols-3 gap-4">
+                                        <!-- Modalidad -->
+                                        <div class="space-y-1.5">
+                                            <label *ngIf="i === 0" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Modalidad <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <select [(ngModel)]="range.modality"
+                                                    [disabled]="!selectedDoctorId() || !formData.specialtyId"
+                                                    class="w-full h-11 px-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none appearance-none disabled:bg-gray-50 py-0 leading-normal">
+                                                    <option value="PRESENCIAL">Presencial</option>
+                                                    <option value="VIRTUAL">Virtual</option>
+                                                </select>
+                                                <lucide-icon [img]="icons.ChevronDown" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Desde -->
-                                    <div class="col-span-3 space-y-1.5">
-                                        <label *ngIf="i === 0" class="block text-[13px] font-medium text-gray-700">Desde <span class="text-red-500">*</span></label>
-                                        <input [(ngModel)]="range.startTime" (ngModelChange)="onStartTimeChange(i)" type="time"
-                                            [disabled]="!selectedDoctorId() || !formData.specialtyId"
-                                            placeholder="HH:MM"
-                                            class="w-full h-10 px-2 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none disabled:bg-gray-50 py-0">
-                                    </div>
+                                        <!-- Desde -->
+                                        <div class="space-y-1.5">
+                                            <label *ngIf="i === 0" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Desde <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <input [(ngModel)]="range.startTime" (ngModelChange)="onStartTimeChange(i)" type="time"
+                                                    [disabled]="!selectedDoctorId() || !formData.specialtyId"
+                                                    placeholder="HH:MM"
+                                                    class="w-full h-11 pl-3 pr-8 rounded-lg border border-gray-300 bg-white text-sm text-gray-900 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none disabled:bg-gray-50 py-0">
+                                                <lucide-icon [img]="icons.Clock" class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-0"></lucide-icon>
+                                            </div>
+                                        </div>
 
-                                    <!-- Hasta -->
-                                    <div class="col-span-3 space-y-1.5">
-                                        <label *ngIf="i === 0" class="block text-[13px] font-medium text-gray-700">Hasta <span class="text-red-500">*</span></label>
-                                        <div class="relative">
-                                            <select [(ngModel)]="range.endTime"
-                                                [disabled]="!selectedDoctorId() || !formData.specialtyId || range.validEndTimes.length === 0"
-                                                class="w-full h-10 px-2 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none appearance-none disabled:bg-gray-50 py-0 leading-normal">
-                                                <option value="" disabled selected>--:--</option>
-                                                <option *ngFor="let time of range.validEndTimes" [value]="time">{{ time }}</option>
-                                            </select>
-                                            <lucide-icon [img]="icons.ChevronDown" class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></lucide-icon>
+                                        <!-- Hasta -->
+                                        <div class="space-y-1.5">
+                                            <label *ngIf="i === 0" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Hasta <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <input [(ngModel)]="range.endTime" type="time"
+                                                    [disabled]="!selectedDoctorId() || !formData.specialtyId"
+                                                    class="w-full h-11 pl-3 pr-8 rounded-lg border border-gray-300 bg-white text-sm text-gray-900 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none disabled:bg-gray-50 py-0">
+                                                <lucide-icon [img]="icons.Clock" class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-0"></lucide-icon>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <!-- Eliminar -->
-                                    <div class="col-span-1 flex justify-end pb-0.5">
+                                    <div class="shrink-0 flex justify-end" [ngClass]="{'pt-6': i === 0}">
                                         <button (click)="removeTimeRange(i)" 
                                             [disabled]="timeRanges().length === 1"
-                                            class="h-9 w-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all disabled:opacity-0">
+                                            class="h-11 w-11 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all disabled:opacity-0">
                                             <lucide-icon [img]="icons.Trash" class="w-4 h-4"></lucide-icon>
                                         </button>
                                     </div>
@@ -272,9 +274,9 @@
                                 <div class="pt-3 flex items-center justify-between">
                                     <button (click)="addTimeRange()" 
                                         [disabled]="!selectedDoctorId() || !formData.specialtyId || hasOverlap()"
-                                        class="inline-flex items-center gap-2 text-[#4F46E5] hover:text-indigo-800 font-medium text-[13px] px-3 py-1.5 rounded-md hover:bg-indigo-50 transition-all disabled:opacity-50 -ml-2">
+                                        class="bg-transparent text-[#4F46E5] hover:bg-indigo-50 font-medium px-3 py-1.5 rounded-md -ml-3 inline-flex items-center gap-2 transition-all disabled:opacity-50">
                                         <lucide-icon [img]="icons.Plus" class="w-4 h-4"></lucide-icon>
-                                        + Añadir otro horario
+                                        Añadir otro horario
                                     </button>
 
                                     <!-- Overlap Warning -->
@@ -325,7 +327,7 @@
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="block text-[13px] font-medium text-gray-700">Repetir hasta el día <span class="text-red-500">*</span></label>
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Repetir hasta el día <span class="text-red-500">*</span></label>
                                 <app-datepicker 
                                     [value]="repeatEndDate()"
                                     direction="up"

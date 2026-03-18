@@ -12,14 +12,13 @@
       </p>
     </div>
 
-    <div class="flex items-center gap-3 bg-white/60 p-1.5 rounded-3xl border border-white/50 shadow-sm backdrop-blur-2xl relative z-50">
-      <div class="flex items-center gap-3 px-4 py-2 bg-white rounded-2xl shadow-inner border border-gray-100 min-w-[340px] relative">
-        <lucide-icon [img]="icons.CalendarCheck" class="w-4 h-4 text-accent"></lucide-icon>
-        <div class="flex items-center gap-2">
-          <app-datepicker class="w-28" [value]="fromDate" (valueChange)="fromDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true" [maxDate]="toDate" [showIcon]="false"></app-datepicker>
-          <span class="text-gray-300 text-xs font-bold">—</span>
-          <!-- Dynamic alignment for the second picker to prevent it from going off-screen -->
-          <app-datepicker class="w-28" [value]="toDate" (valueChange)="toDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true" [minDate]="fromDate" [showIcon]="false" position="right"></app-datepicker>
+    <div class="flex items-center gap-3 bg-white/40 p-1 rounded-2xl border border-white/30 shadow-sm relative z-50">
+      <div class="flex items-center gap-2 px-3 h-11 bg-white rounded-lg border border-gray-300 min-w-[320px] relative transition-all focus-within:border-[#4F46E5] focus-within:ring-2 focus-within:ring-[#4F46E5]/20">
+        <lucide-icon [img]="icons.CalendarCheck" class="w-4 h-4 text-[#4F46E5] shrink-0"></lucide-icon>
+        <div class="flex flex-1 items-center justify-between gap-1 overflow-hidden whitespace-nowrap">
+          <app-datepicker [value]="fromDate" (valueChange)="fromDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true" [maxDate]="toDate" [showIcon]="false"></app-datepicker>
+          <span class="text-gray-300 text-xs font-black shrink-0 px-1">—</span>
+          <app-datepicker [value]="toDate" (valueChange)="toDate = $event; updateFilters()" [allowPastDates]="true" [borderless]="true" [minDate]="fromDate" [showIcon]="false" position="right"></app-datepicker>
         </div>
       </div>
     </div>

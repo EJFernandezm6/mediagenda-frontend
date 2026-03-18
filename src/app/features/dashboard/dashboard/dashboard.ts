@@ -122,13 +122,13 @@ export class DashboardComponent implements OnInit {
   toDate = '';
 
   ngOnInit() {
-    this.svc.getFirstAppointmentDate().pipe(
-      catchError(() => of(new Date().toISOString().split('T')[0]))
-    ).subscribe(firstDate => {
-      this.fromDate = firstDate;
-      this.toDate = this.today();
-      this.updateFilters();
-    });
+    this.fromDate = this.firstOfMonth();
+    this.toDate = this.today();
+    this.updateFilters();
+    
+    // Optional: Log when first date is fetched for background context, 
+    // but we prioritize "First of current month" per user request
+    this.svc.getFirstAppointmentDate().pipe(catchError(() => of(null))).subscribe();
   }
 
   updateFilters() {
@@ -146,6 +146,13 @@ export class DashboardComponent implements OnInit {
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
+  }
+
+  private firstOfMonth(): string {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}-01`;
   }
 
   setPatientGranularity(g: Granularity) { this.patientGranularity$.next(g); }

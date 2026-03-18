@@ -8,7 +8,9 @@ import { AuthService } from '../auth/auth.service';
 export interface Schedule {
   id?: string;
   doctorId: string;
+  doctor_id?: string; // Support for snake_case from backend
   specialtyId: string;
+  specialty_id?: string; // Support for snake_case from backend
   date: string; // specific date YYYY-MM-DD
   startTime: string; // "09:00"
   endTime: string; // "13:00"
@@ -91,9 +93,16 @@ export class SchedulesService {
     );
   }
 
-  getSchedulesForDoctor(doctorId: string, specialtyId: string) {
-    // We can filter client side or trigger a refresh with params.
-    // Client side filter is instant if we already have data.
-    return this.schedules().filter(s => s.doctorId === doctorId && s.specialtyId === specialtyId);
+  getSchedulesForDoctor(doctorId: any, specialtyId: any) {
+    if (!doctorId || !specialtyId) return [];
+    
+    const dIdStr = String(doctorId).trim();
+    const sIdStr = String(specialtyId).trim();
+
+    return this.schedules().filter(s => {
+      const sDocId = String(s.doctorId || s.doctor_id || '').trim();
+      const sSpecId = String(s.specialtyId || s.specialty_id || '').trim();
+      return sDocId === dIdStr && sSpecId === sIdStr;
+    });
   }
 }

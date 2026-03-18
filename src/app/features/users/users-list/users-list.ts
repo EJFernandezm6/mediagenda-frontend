@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power, Stethoscope } from 'lucide-angular';
+import { LucideAngularModule, Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power, Stethoscope, ChevronDown, ChevronUp } from 'lucide-angular';
 import { UsersService, UserRequest } from '../../../core/services/users';
 import { AuthService, User as AuthUser } from '../../../core/auth/auth.service';
 import { ConfirmModalService } from '../../../core/services/confirm.service';
@@ -25,7 +25,6 @@ import { SearchInputComponent } from '../../../shared/components/ui/search-input
         LucideAngularModule, 
         PaginationComponent, 
         ButtonComponent, 
-        CardComponent,
         SearchableSelectComponent,
         PageHeaderComponent,
         SearchInputComponent
@@ -39,7 +38,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
     private confirmService = inject(ConfirmModalService);
     private doctorsService = inject(DoctorsService);
 
-    readonly Icons = { Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power, Stethoscope };
+    readonly Icons = { Plus, Search, Trash2, Pencil, Mail, BadgeCheck, X, User, Lock, ShieldCheck, Shield, Power, Stethoscope, ChevronDown, ChevronUp };
 
     users = this.usersService.users;
 
@@ -201,8 +200,12 @@ export class UsersListComponent implements OnInit, OnDestroy {
             roles: [],
             roleIds: [],
             phone: '',
+            phonePrefix: '51',
+            documentNumber: '',
+            documentType: 'DNI',
             photoUrl: ''
         };
+        this.showDocTypeDropdown.set(false);
         this.isModalOpen = true;
     }
 
@@ -218,10 +221,60 @@ export class UsersListComponent implements OnInit, OnDestroy {
             phone: user.phone || '',
             phonePrefix: user.phonePrefix || '',
             documentNumber: user.documentNumber || '',
-            documentType: user.documentType || '',
+            documentType: user.documentType || 'DNI',
             photoUrl: user.photoUrl || ''
         };
+        this.showDocTypeDropdown.set(false);
         this.isModalOpen = true;
+    }
+
+    // Dropdown signals
+    showDocTypeDropdown = signal(false);
+
+    toggleDocTypeDropdown(event: Event) {
+        event.stopPropagation();
+        this.showDocTypeDropdown.set(!this.showDocTypeDropdown());
+    }
+
+    selectDocType(type: string, event: Event) {
+        event.stopPropagation();
+        this.formData.documentType = type;
+        this.showDocTypeDropdown.set(false);
+    }
+
+    onDocumentInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        let val = input.value;
+
+        if (this.formData.documentType === 'DNI') {
+            val = val.replace(/\D/g, '');
+            if (val.length > 8) val = val.substring(0, 8);
+        } else if (this.formData.documentType === 'RUC') {
+            val = val.replace(/\D/g, '');
+            if (val.length > 11) val = val.substring(0, 11);
+        } else {
+            val = val.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            if (val.length > 20) val = val.substring(0, 20);
+        }
+
+        if (input.value !== val) input.value = val;
+        this.formData.documentNumber = val;
+    }
+
+    onPhoneInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        let val = input.value.replace(/\D/g, '');
+        if (val.length > 9) val = val.substring(0, 9);
+        if (input.value !== val) input.value = val;
+        this.formData.phone = val;
+    }
+
+    onCountryCodeInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        let val = input.value.replace(/\D/g, '');
+        if (val.length > 4) val = val.substring(0, 4);
+        if (input.value !== val) input.value = val;
+        this.formData.phonePrefix = val;
     }
 
     closeModal() {
@@ -414,7 +467,15 @@ export class UsersListComponent implements OnInit, OnDestroy {
     isValid() {
         if (!this.formData.fullName || !this.formData.email) return false;
         if (!this.isEditing && !this.formData.password) return false;
-        if (this.formData.roles.length === 0) return false; // Must have at least one role
+        if (this.formData.roles.length === 0) return false;
+        
+        // Document validation
+        const docNum = this.formData.documentNumber?.trim() || '';
+        const docValid = this.formData.documentType === 'DNI' ? docNum.length === 8
+            : this.formData.documentType === 'RUC' ? docNum.length === 11
+            : docNum.length >= 4;
+        
+        if (!docValid) return false;
 
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

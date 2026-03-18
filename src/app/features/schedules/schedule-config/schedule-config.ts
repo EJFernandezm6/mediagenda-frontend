@@ -178,8 +178,13 @@ export class ScheduleConfigComponent {
     return simpleDays.find(d => d.id === day)?.name || 'Desconocido';
   }
 
-  getSpecialtyName(id: string) {
-    return this.specialtyService.specialties().find(s => s.specialtyId === id)?.name || '';
+  getSpecialtyName(id: any) {
+    if (!id) return '';
+    const idStr = String(id).trim();
+    const spec = this.specialtyService.specialties().find(s => 
+      String(s.specialtyId || '').trim() === idStr
+    );
+    return spec ? spec.name : '';
   }
 
   formatModality(modality: string): string {
@@ -196,14 +201,27 @@ export class ScheduleConfigComponent {
     return doc ? doc.fullName : 'Especialista';
   });
 
-  getDoctorName(docId: string): string {
-    const doc = this.doctorService.selectableDoctors().find(d => d.id === docId || d.doctorId === docId);
+  getDoctorName(docId: any): string {
+    if (!docId) return 'Desconocido';
+    const idStr = String(docId).trim();
+    
+    // Search in both master list and selectable list for maximum coverage
+    const allDocs = [...this.doctorService.doctors(), ...this.doctorService.selectableDoctors()];
+    
+    const doc = allDocs.find(d => 
+      String(d.id || d.userId || '').trim() === idStr || 
+      String(d.doctorId || d.id || '').trim() === idStr ||
+      String((d as any).userId || '').trim() === idStr
+    );
+    
     return doc ? doc.fullName : 'Desconocido';
   }
 
   getInitials(name: string): string {
+    if (!name || name === 'Desconocido') return '?';
     return name
       .split(' ')
+      .filter(n => n)
       .map(n => n[0])
       .join('')
       .toUpperCase()
@@ -254,7 +272,9 @@ export class ScheduleConfigComponent {
     if (schedule.date) {
       const [y, m, d] = schedule.date.split('-').map(Number);
       const dateObj = new Date(y, m - 1, d);
-      return `${this.getDayName(dateObj.getDay())} ${d}/${m}/${y}`;
+      const dd = String(d).padStart(2, '0');
+      const mm = String(m).padStart(2, '0');
+      return `${this.getDayName(dateObj.getDay())} ${dd}-${mm}-${y}`;
     }
     return `Fecha no válida`;
   }

@@ -163,14 +163,14 @@
 </div>
 
 <!-- Modal Overlay (Edit/New) -->
-<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:py-12">
     <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
 
-    <app-card variant="elevated" [noPadding]="true"
-        class="relative w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl overflow-visible border-none">
+    <!-- Modal Content -->
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-full flex flex-col relative z-10 animate-fade-in-up overflow-hidden border border-gray-100">
         
         <!-- Modal Header -->
-        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-3xl">
+        <div class="shrink-0 px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-3xl">
             <div>
                 <h3 class="text-xl font-bold text-text-main">
                     {{ editingId ? 'Editar' : 'Nuevo' }} especialista
@@ -182,8 +182,8 @@
             </button>
         </div>
 
-        <!-- Modal Content -->
-        <div class="p-8 pt-4">
+        <!-- Modal Content (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-8 pt-4 custom-scrollbar">
             <div class="space-y-6">
                 <!-- Two Column Layout for Main Content -->
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -270,7 +270,7 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Correo electrónico <span class="text-gray-400 font-normal ml-0.5">(Opcional)</span></label>
+                                <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Correo electrónico <span class="text-red-500">*</span></label>
                                 <input [(ngModel)]="form.email" type="email" placeholder="doctor@ejemplo.com"
                                     class="w-full h-11 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none placeholder:text-gray-400"
                                     [class.border-red-500]="form.email && !emailRegex.test(form.email)">
@@ -282,7 +282,7 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="px-8 py-5 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end gap-4">
+        <div class="shrink-0 px-8 py-5 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end gap-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <app-button variant="ghost" (onClick)="closeModal()" 
                 className="!text-[14px] font-semibold"
                 class="!px-6 !h-11 !bg-white border border-gray-300 text-gray-700 hover:!bg-gray-50 !rounded-xl transition-all">
@@ -294,7 +294,7 @@
                 {{ isSaving ? 'Guardando...' : (editingId ? 'Guardar cambios' : 'Crear especialista') }}
             </app-button>
         </div>
-    </app-card>
+    </div>
 </div>
 
 <!-- Specialist Profile Slide-over -->
@@ -465,8 +465,8 @@
 <div *ngIf="isAssignmentModalOpen()" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
     <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm transition-opacity" (click)="closeAssignmentModal()"></div>
 
-    <app-card variant="elevated" [noPadding]="true"
-        class="relative w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 !rounded-3xl overflow-visible border-none text-left">
+    <!-- Modal Content -->
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-full flex flex-col relative z-10 animate-fade-in-up overflow-hidden border border-gray-100 text-left">
         
         <!-- Modal Header -->
         <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-3xl">
@@ -528,7 +528,7 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="px-8 py-5 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end gap-4">
+        <div class="px-8 py-5 border-t border-gray-100 bg-white rounded-b-3xl flex items-center justify-end gap-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <app-button variant="ghost" (onClick)="closeAssignmentModal()" 
                 className="!text-[14px] font-semibold"
                 class="!px-6 !h-11 !bg-white border border-gray-300 text-gray-700 hover:!bg-gray-50 !rounded-xl transition-all">
@@ -540,5 +540,5 @@
                 {{ editingAssignmentId() ? 'Guardar cambios' : 'Asignar' }}
             </app-button>
         </div>
-    </app-card>
+    </div>
 </div>

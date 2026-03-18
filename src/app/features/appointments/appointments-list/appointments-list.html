@@ -85,7 +85,7 @@
                     <!-- Rows -->
                     <tr *ngFor="let app of filteredAppointments()" class="table-v2-row group">
                         <td class="pl-8">
-                            <span class="text-sm font-bold text-text-main">{{ app.appointmentDate }}</span>
+                            <span class="text-sm font-bold text-text-main">{{ app.appointmentDate | date:'dd-MM-yyyy' }}</span>
                         </td>
                         <td>
                             <div class="text-[13px] text-text-muted flex items-center gap-1.5 font-medium">

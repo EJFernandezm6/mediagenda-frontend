@@ -162,43 +162,43 @@
 </div>
 
 <!-- User Modal -->
-<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:py-12">
     <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
 
-    <app-card variant="elevated" [noPadding]="true"
-        class="relative w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200">
+    <!-- Modal Content -->
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-full flex flex-col relative z-10 animate-fade-in-up overflow-hidden border border-gray-100">
         <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-border-soft flex items-center justify-between bg-gray-50/50">
+        <div class="shrink-0 px-8 py-6 border-b border-border-soft flex items-center justify-between bg-white rounded-t-3xl">
             <div>
-                <h3 class="text-base font-bold text-text-main">{{ isEditing ? 'Editar usuario' : 'Nuevo usuario' }}</h3>
-                <p class="text-[10px] text-text-light font-bold mt-0.5">Acceso y seguridad</p>
+                <h3 class="text-xl font-bold text-text-main">{{ isEditing ? 'Editar usuario' : 'Nuevo usuario' }}</h3>
+                <p class="text-xs text-text-light font-medium mt-1">Gestión de acceso y seguridad</p>
             </div>
-            <app-button variant="ghost" size="sm" (onClick)="closeModal()" class="!p-2 !rounded-xl">
-                <lucide-icon [img]="Icons.X" class="w-4 h-4"></lucide-icon>
-            </app-button>
+            <button (click)="closeModal()" class="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-light hover:text-text-main outline-none">
+                <lucide-icon [img]="Icons.X" class="w-5 h-5"></lucide-icon>
+            </button>
         </div>
 
         <!-- Modal Content Scrollable -->
-        <div class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-            <div class="space-y-6">
+        <div class="flex-1 p-8 pt-6 overflow-y-auto custom-scrollbar text-left">
+            <div class="space-y-8">
                 <!-- Roles Selection -->
                 <div>
-                    <label>Asignar roles</label>
-                    <div class="grid grid-cols-2 gap-3 mt-2">
+                    <label class="block text-[13px] font-semibold text-gray-700 mb-3">Asignar roles <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-2 gap-4">
                         <div *ngFor="let role of availableRoles"
-                            class="flex items-center p-3 rounded-xl border transition-all cursor-pointer select-none"
+                            class="flex items-center p-4 rounded-2xl border transition-all cursor-pointer select-none group"
                             [class.border-accent]="isRoleSelected(role) && !isAdminRoleLocked(role)"
-                            [class.bg-accent-soft/30]="isRoleSelected(role) && !isAdminRoleLocked(role)"
-                            [class.border-border-main]="!isRoleSelected(role)"
+                            [class.bg-accent-soft/10]="isRoleSelected(role) && !isAdminRoleLocked(role)"
+                            [class.border-gray-200]="!isRoleSelected(role)"
                             [class.opacity-50]="isAdminRoleLocked(role)"
                             [class.cursor-not-allowed]="isAdminRoleLocked(role)"
                             (click)="!isAdminRoleLocked(role) && toggleRole(role)">
-                            <div class="w-4 h-4 rounded border border-border-main flex items-center justify-center transition-colors"
+                            <div class="w-5 h-5 rounded-lg border border-gray-300 flex items-center justify-center transition-all bg-white"
                                 [class.bg-accent]="isRoleSelected(role)" [class.border-accent]="isRoleSelected(role)">
                                 <lucide-icon *ngIf="isRoleSelected(role)" [img]="Icons.BadgeCheck"
-                                    class="w-3 h-3 text-white"></lucide-icon>
+                                    class="w-3.5 h-3.5 text-white"></lucide-icon>
                             </div>
-                            <span class="ml-3 text-xs font-bold"
+                            <span class="ml-3 text-[14px] font-semibold"
                                 [class.text-accent]="isRoleSelected(role) && !isAdminRoleLocked(role)"
                                 [class.text-text-main]="!isRoleSelected(role)">
                                 {{ role.name }}
@@ -207,54 +207,100 @@
                     </div>
                 </div>
 
-                <!-- Input Groups -->
-                <div class="space-y-4">
+                <!-- Personal Info Grid -->
+                <div class="space-y-6">
                     <div>
-                        <label>Nombre Completo</label>
-                        <div class="relative mt-2">
-                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                <lucide-icon [img]="Icons.User" class="w-4 h-4 text-text-light"></lucide-icon>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Nombre completo <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                <lucide-icon [img]="Icons.User" class="w-4.5 h-4.5 text-text-light"></lucide-icon>
                             </div>
-                            <input type="text" [(ngModel)]="formData.fullName" class="pl-10 w-full"
+                            <input type="text" [(ngModel)]="formData.fullName" class="w-full h-11 pl-11 pr-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none"
                                 placeholder="Ej. Juan Pérez">
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Tipo de documento <span class="text-red-500">*</span></label>
+                            <div (click)="toggleDocTypeDropdown($event)"
+                                 class="w-full h-11 px-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white transition-all focus-within:border-[#4F46E5] focus-within:ring-2 focus-within:ring-[#4F46E5]/20 cursor-pointer">
+                                <span class="text-[14px] font-semibold text-text-main">{{ formData.documentType }}</span>
+                                <lucide-icon [img]="Icons.ChevronDown" class="w-4 h-4 text-text-light"></lucide-icon>
+                            </div>
+                            <!-- Dropdown -->
+                            <div *ngIf="showDocTypeDropdown()"
+                                 class="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-xl border border-border-soft overflow-hidden animate-in fade-in zoom-in duration-100">
+                                <div (click)="selectDocType('DNI', $event)"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">DNI</div>
+                                <div (click)="selectDocType('CE', $event)"       class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">CE</div>
+                                <div (click)="selectDocType('PASAPORTE', $event)" class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">PASAPORTE</div>
+                                <div (click)="selectDocType('PTP', $event)"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">PTP</div>
+                                <div (click)="selectDocType('RUC', $event)"      class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-[14px] font-medium text-text-main">RUC</div>
+                                <div (click)="selectDocType('OTRO', $event)"     class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-[14px] font-medium text-text-main">OTRO</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Número de documento <span class="text-red-500">*</span></label>
+                            <input [ngModel]="formData.documentNumber" (input)="onDocumentInput($event)" type="text"
+                                [placeholder]="formData.documentType === 'DNI' ? '8 dígitos' : 'Número de documento'"
+                                class="w-full h-11 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none placeholder:text-gray-400">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="col-span-1">
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">País</label>
+                            <div class="relative flex items-center">
+                                <span class="absolute left-3 text-[14px] text-gray-400 font-medium">+</span>
+                                <input [ngModel]="formData.phonePrefix" (input)="onCountryCodeInput($event)" type="text"
+                                    class="w-full h-11 pl-6 pr-2 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none">
+                            </div>
+                        </div>
+                        <div class="col-span-3">
+                            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Celular</label>
+                            <input [ngModel]="formData.phone" (input)="onPhoneInput($event)" type="text" placeholder="987654321"
+                                class="w-full h-11 px-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none placeholder:text-gray-400">
+                        </div>
+                    </div>
+
                     <div>
-                        <label>Correo Electrónico</label>
-                        <div class="relative mt-2">
-                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                <lucide-icon [img]="Icons.Mail" class="w-4 h-4 text-text-light"></lucide-icon>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Correo electrónico <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                <lucide-icon [img]="Icons.Mail" class="w-4.5 h-4.5 text-text-light"></lucide-icon>
                             </div>
                             <input type="email" [(ngModel)]="formData.email" [disabled]="isEditing"
-                                class="pl-10 w-full disabled:bg-muted/50" placeholder="usuario@correo.com">
+                                class="w-full h-11 pl-11 pr-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none disabled:bg-gray-100 disabled:text-gray-500" placeholder="usuario@correo.com">
                         </div>
                     </div>
 
                     <div *ngIf="!isEditing">
-                        <label>Contraseña Temporal</label>
-                        <div class="relative mt-2">
-                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                <lucide-icon [img]="Icons.Lock" class="w-4 h-4 text-text-light"></lucide-icon>
+                        <label class="block text-[13px] font-medium text-gray-700 mb-1.5">Contraseña temporal <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                <lucide-icon [img]="Icons.Lock" class="w-4.5 h-4.5 text-text-light"></lucide-icon>
                             </div>
-                            <input type="text" [(ngModel)]="formData.password" class="pl-10 w-full"
-                                placeholder="123456">
+                            <input type="text" [(ngModel)]="formData.password" class="w-full h-11 pl-11 pr-4 rounded-lg border border-gray-300 bg-white text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none"
+                                placeholder="Min. 6 caracteres">
                         </div>
-                        <p class="text-[9px] text-text-light font-bold mt-1 italic">El usuario
-                            deberá cambiarla al ingresar</p>
+                        <p class="text-[11px] text-text-light font-medium mt-1.5 italic px-1 flex items-center gap-1.5">
+                            <lucide-icon [img]="Icons.Power" class="w-3 h-3"></lucide-icon>
+                            El usuario deberá cambiarla al ingresar por primera vez.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Modal Footer -->
-        <div class="px-6 py-4 border-t border-border-soft bg-gray-50/50 flex items-center justify-end gap-3">
-            <app-button variant="ghost" (onClick)="closeModal()">
+        <div class="shrink-0 px-8 py-6 border-t border-border-soft bg-white rounded-b-3xl flex items-center justify-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <app-button variant="ghost" (onClick)="closeModal()" class="!px-6 !h-11 border border-gray-300 !rounded-xl">
                 Cancelar
             </app-button>
-            <app-button variant="accent" (onClick)="saveUser()" [disabled]="!isValid()" class="min-w-[140px]">
+            <app-button variant="accent" (onClick)="saveUser()" [disabled]="!isValid()" class="!px-8 !h-11 !rounded-xl shadow-sm min-w-[160px]">
                 {{ isEditing ? 'Guardar cambios' : 'Crear usuario' }}
             </app-button>
         </div>
-    </app-card>
+    </div>
 </div>

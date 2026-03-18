@@ -49,8 +49,7 @@ export class AppointmentsList implements OnInit {
 
   // Local Pagination & Search State
   currentPage = signal(1);
-  itemsPerPage = 4;
-  totalItems = 0;
+  itemsPerPage = 3;
 
   selectedStatus = signal<string[]>([]);
   selectedDoctorId = signal<string | number>('');
@@ -104,8 +103,8 @@ export class AppointmentsList implements OnInit {
     this.appointmentsService.refreshAppointmentsByRange(from, to);
   }
 
-  // Computed Filtered Data
-  filteredAppointments = computed(() => {
+  // Computed All Filtered Data (without slice)
+  allFilteredAppointments = computed(() => {
     let list = this.allAppointments();
 
     const statusFilter = this.selectedStatus();
@@ -115,7 +114,7 @@ export class AppointmentsList implements OnInit {
 
     const docFilter = this.selectedDoctorId();
     if (docFilter) {
-      list = list.filter(a => a.doctorId === docFilter);
+      list = list.filter(a => String(a.doctorId || '').trim() === String(docFilter).trim());
     }
 
     const specFilter = this.selectedSpecialtyId();
@@ -132,15 +131,18 @@ export class AppointmentsList implements OnInit {
       });
     }
 
-    const sorted = list.sort((a, b) => new Date(b.appointmentDate + 'T' + b.startTime).getTime() - new Date(a.appointmentDate + 'T' + a.startTime).getTime());
-    
-    // Update total items for pagination
-    this.totalItems = sorted.length;
-
-    // Apply pagination
-    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
-    return sorted.slice(startIndex, startIndex + this.itemsPerPage);
+    return list.sort((a, b) => new Date(b.appointmentDate + 'T' + b.startTime).getTime() - new Date(a.appointmentDate + 'T' + a.startTime).getTime());
   });
+
+  filteredAppointments = computed(() => {
+    const list = this.allFilteredAppointments();
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
+    return list.slice(startIndex, startIndex + this.itemsPerPage);
+  });
+
+  get totalItems() {
+    return this.allFilteredAppointments().length;
+  }
 
   onPageChange(page: number) {
     this.currentPage.set(page);

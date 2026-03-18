@@ -61,6 +61,9 @@ module.exports = {
                 md: 'var(--shadow-md)',
                 lg: 'var(--shadow-lg)',
                 accent: 'var(--shadow-accent)',
+            },
+            fontFamily: {
+                sans: ['Roboto', 'sans-serif'],
             }
         },
     },

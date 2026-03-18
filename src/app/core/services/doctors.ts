@@ -56,7 +56,8 @@ export class DoctorsService {
 
     this.http.get<any>(`${this.doctorsUrl}/with-users`, { params }).subscribe({
       next: (data) => {
-        let docs = data.content.map((d: any) => ({
+        const content = data.content || (Array.isArray(data) ? data : []);
+        let docs = content.map((d: any) => ({
           ...d,
           id: d.userId, // Map userId to id for general profile logic
           doctorId: d.doctorId, 
@@ -68,7 +69,7 @@ export class DoctorsService {
 
         this.doctors.set(docs);
       },
-      error: (e) => console.error(e)
+      error: (e) => console.error('Error fetching doctors with users:', e)
     });
   }
 
@@ -86,13 +87,14 @@ export class DoctorsService {
   }
 
   refreshSelectableDoctors() {
-    this.http.get<any[]>(`${this.doctorsUrl}/selectable`).subscribe({
+    this.http.get<any>(`${this.doctorsUrl}/selectable`).subscribe({
       next: (data) => {
-        // Backend maps userId internally but sends it as part of doctor representation? Assuming yes.
-        this.selectableDoctors.set(data.map(d => ({
+        const list = data.content || (Array.isArray(data) ? data : []);
+        this.selectableDoctors.set(list.map((d: any) => ({
           ...d,
-          id: d.userId || d.id, // Ensure ID continuity
-          active: d.isActive ?? d.active
+          id: d.userId || d.id,
+          doctorId: d.doctorId || d.doctor_id, // Match multi-format IDs
+          active: d.isActive ?? d.active ?? true
         })));
       },
       error: (err) => console.error('Error fetching selectable doctors:', err)
