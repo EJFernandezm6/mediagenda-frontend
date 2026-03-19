@@ -63,7 +63,7 @@ export class PatientsListComponent implements OnInit {
   // Local Pagination & Search State
   searchTerm = signal('');
   currentPage = signal(1);
-  itemsPerPage = 3;
+  itemsPerPage = 10;
 
   ngOnInit() {
     // Relying on service entirely for first load via effect

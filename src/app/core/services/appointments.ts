@@ -14,10 +14,10 @@ export interface Appointment {
   appointmentDate: string; // ISO "2025-10-15"
   startTime: string; // "09:00"
   endTime: string; // "09:30"
-  status: 'DISPONIBLE' | 'EN PROCESO DE RESERVA' | 'EN_PROCESO_RESERVA' | 'PROGRAMADA' | 'CONFIRMADA' | 'EN ATENCION' | 'EN ESPERA' | 'ATENDIDA' | 'PERDIDA' | 'CANCELADA';
+  status: 'DISPONIBLE' | 'EN_PROCESO_RESERVA' | 'PROGRAMADA' | 'CONFIRMADA' | 'EN_ATENCION' | 'EN_ESPERA' | 'ATENDIDA' | 'PERDIDA' | 'CANCELADA';
   notes?: string;
-  paymentMethod?: 'CASH' | 'CARD' | 'TRANSFER';
-  paymentStatus?: 'PENDING' | 'PAID';
+  paymentMethod?: 'CASH' | 'CARD' | 'TRANSFER' | 'YAPE' | 'PLIN';
+  paymentStatus?: 'PENDING' | 'PAID' | 'VOIDED';
   paymentProofUrl?: string;
   modality?: 'PRESENCIAL' | 'VIRTUAL' | string;
   appointment_type?: string;
@@ -42,7 +42,14 @@ export class AppointmentsService {
   }
 
   private normalizeAppointment(a: Appointment): Appointment {
-    return { ...a, startTime: this.normalizeTime(a.startTime), endTime: this.normalizeTime(a.endTime) };
+    return { 
+      ...a, 
+      startTime: this.normalizeTime(a.startTime), 
+      endTime: this.normalizeTime(a.endTime),
+      status: String(a.status || '').trim().toUpperCase() as any,
+      paymentStatus: String(a.paymentStatus || '').trim().toUpperCase() as any,
+      paymentMethod: String(a.paymentMethod || '').trim().toUpperCase() as any
+    };
   }
 
   refreshAppointmentsByRange(from: string, to: string) {
@@ -119,7 +126,7 @@ export class AppointmentsService {
     });
   }
 
-  updatePayment(id: string, paymentMethod: string, paymentStatus: 'PENDING' | 'PAID', transactionId?: string) {
+  updatePayment(id: string, paymentMethod: string, paymentStatus: 'PENDING' | 'PAID' | 'VOIDED', transactionId?: string) {
     const body = { paymentMethod, paymentStatus, transactionId };
     this.http.patch(`${this.apiUrl}/${id}/payment`, body).subscribe(() => {
       this.appointments.update(list =>

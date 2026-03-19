@@ -47,7 +47,7 @@ export class DoctorsListComponent implements OnInit {
   searchTerm = signal('');
   statusFilter = signal('');
   currentPage = signal(1);
-  itemsPerPage = 3;
+  itemsPerPage = 10;
 
   statusOptions = signal<SelectOption[]>([
     { id: 'ACTIVE', label: 'Especialistas Activos' },

@@ -89,7 +89,7 @@
 
         <!-- Top Bar Header -->
         <header
-            class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 shrink-0 relative z-40 hidden md:flex">
+            class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 shrink-0 relative z-50 hidden md:flex">
 
             <!-- Welcome / Clinic Info -->
             <div class="flex items-center gap-2">
@@ -117,7 +117,7 @@
                         class="p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center">
                         <h3 class="text-xs font-bold text-gray-500">Validaciones</h3>
                         <span
-                            class="text-[10px] bg-primary text-primary px-2 py-0.5 rounded-full font-bold border border-primary">
+                            class="text-[10px] bg-primary text-white px-2 py-0.5 rounded-full font-bold border border-primary">
                             {{ pendingAppointments().length }} Pendientes
                         </span>
                     </div>
@@ -134,7 +134,7 @@
 
                         <div *ngFor="let app of pendingAppointments()"
                             (click)="navigateToAppointment(app.appointmentId!)"
-                            class="p-4 border-b border-gray-50 hover:bg-primary/50 cursor-pointer transition-colors group flex gap-3 relative overflow-hidden">
+                            class="p-4 border-b border-gray-50 hover:bg-primary/5 cursor-pointer transition-colors group flex gap-3 relative overflow-hidden">
                             <!-- Indicator Stripe -->
                             <div
                                 class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity">

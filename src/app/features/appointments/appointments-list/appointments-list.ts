@@ -49,7 +49,7 @@ export class AppointmentsList implements OnInit {
 
   // Local Pagination & Search State
   currentPage = signal(1);
-  itemsPerPage = 3;
+  itemsPerPage = 10;
 
   selectedStatus = signal<string[]>([]);
   selectedDoctorId = signal<string | number>('');
@@ -71,7 +71,7 @@ export class AppointmentsList implements OnInit {
 
   // Dropdown options
   readonly appointmentStatuses = [
-    'PROGRAMADA', 'CONFIRMADA', 'EN ESPERA', 'EN ATENCION', 'ATENDIDA', 'PERDIDA', 'CANCELADA'
+    'PROGRAMADA', 'CONFIRMADA', 'EN_ESPERA', 'EN_ATENCION', 'ATENDIDA', 'PERDIDA', 'CANCELADA'
   ];
   constructor() {
     effect(() => {
@@ -131,7 +131,7 @@ export class AppointmentsList implements OnInit {
       });
     }
 
-    return list.sort((a, b) => new Date(b.appointmentDate + 'T' + b.startTime).getTime() - new Date(a.appointmentDate + 'T' + a.startTime).getTime());
+    return list.sort((a, b) => new Date(a.appointmentDate + 'T' + a.startTime).getTime() - new Date(b.appointmentDate + 'T' + b.startTime).getTime());
   });
 
   filteredAppointments = computed(() => {
@@ -177,8 +177,8 @@ export class AppointmentsList implements OnInit {
       case 'ATENDIDA': return 'bg-success-soft text-success-hover border-transparent';
       case 'PROGRAMADA': return 'bg-blue-50 text-blue-700 border-transparent';
       case 'CONFIRMADA': return 'bg-emerald-50 text-emerald-700 border-transparent';
-      case 'EN ESPERA': return 'bg-indigo-50 text-indigo-700 border-transparent';
-      case 'EN ATENCION': return 'bg-purple-50 text-purple-700 border-transparent';
+      case 'EN_ESPERA': return 'bg-indigo-50 text-indigo-700 border-transparent';
+      case 'EN_ATENCION': return 'bg-purple-50 text-purple-700 border-transparent';
       case 'PERDIDA': return 'bg-danger-soft text-danger-hover border-transparent';
       case 'CANCELADA': return 'bg-muted text-text-muted border-transparent';
       default: return 'bg-muted text-text-light border-transparent';
@@ -187,6 +187,7 @@ export class AppointmentsList implements OnInit {
 
   formatStatus(status: string | undefined): string {
     if (!status) return 'Agendada';
-    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    const clean = status.replace(/_/g, ' ').toLowerCase();
+    return clean.charAt(0).toUpperCase() + clean.slice(1);
   }
 }

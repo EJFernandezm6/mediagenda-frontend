@@ -30,11 +30,30 @@ export class AppointmentsCalendarComponent {
   protected patientsService = inject(PatientsService);
   protected doctorSpecialtyService = inject(DoctorSpecialtyService);
   protected configService = inject(ConfigurationService);
+  protected readonly String = String;
   private route = inject(ActivatedRoute);
 
   readonly icons = { ChevronLeft, ChevronRight, Calendar, User, Clock, Plus, Search, AlertCircle, CheckCircle, HelpCircle, Stethoscope, Briefcase, Wallet, Check, ChevronDown, XCircle, Users, Flag };
 
   config = this.configService.settings;
+  
+  protected readonly APPOINTMENT_STATUS_UI: Record<string, { label: string, class: string }> = {
+    'PROGRAMADA': { label: 'Programada', class: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+    'CONFIRMADA': { label: 'Confirmada', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    'EN_ESPERA': { label: 'En espera', class: 'bg-amber-50 text-amber-700 border-amber-200' },
+    'EN ESPERA': { label: 'En espera', class: 'bg-amber-50 text-amber-700 border-amber-200' },
+    'EN_ATENCION': { label: 'En atención', class: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+    'ATENDIDA': { label: 'Atendida', class: 'bg-teal-50 text-teal-700 border-teal-200' },
+    'PERDIDA': { label: 'No asistió', class: 'bg-rose-50 text-rose-700 border-rose-200' },
+    'CANCELADA': { label: 'Cancelada', class: 'bg-gray-50 text-gray-500 border-gray-200' }
+  };
+
+  protected readonly PAYMENT_METHOD_UI: Record<string, { label: string, class: string }> = {
+    'CASH': { label: 'Efectivo', class: 'bg-emerald-600 text-white hover:bg-emerald-700 border-transparent' },
+    'YAPE': { label: 'Yape', class: 'bg-[#742880] text-white hover:bg-[#5C1E66] border-transparent shadow-sm' },
+    'PLIN': { label: 'Plin', class: 'bg-[#00D9C5] text-gray-900 hover:bg-[#00BFAE] font-bold border-transparent' },
+    'CARD': { label: 'Tarjeta', class: 'bg-slate-800 text-white hover:bg-slate-900 border-transparent' }
+  };
 
   // Helpers for Template
   isWorkingDay(weekDayIndex: number): boolean {
@@ -995,8 +1014,8 @@ export class AppointmentsCalendarComponent {
         startTime: time,
         endTime: this.addMinutes(time, duration),
         notes: this.modalNotes(),
-        paymentMethod: this.modalPaymentMethod() as any,
-        paymentStatus: this.modalPaymentMethod() === 'CASH' ? 'PENDING' : 'PAID',
+        paymentMethod: (this.modalPaymentMethod() === 'Efectivo' || this.modalPaymentMethod() === 'EFECTIVO' ? 'CASH' : (this.modalPaymentMethod() || 'CASH')).toUpperCase() as any,
+        paymentStatus: (this.modalPaymentMethod() === 'Efectivo' || this.modalPaymentMethod() === 'EFECTIVO' ? 'CASH' : (this.modalPaymentMethod() || 'CASH')).toUpperCase() === 'CASH' ? 'PENDING' : 'PAID',
         transactionId: this.modalTransactionId(),
         paymentProofUrl: this.modalPaymentProof(),
         modality: this.modalModality()
@@ -1064,7 +1083,12 @@ export class AppointmentsCalendarComponent {
   }
 
   openAppointmentDetails(appointment: Appointment) {
-    this.selectedAppointment = appointment;
+    // Normalización forzada de datos brutos del backend para evitar errores de Case Sensitivity y espacios
+    this.selectedAppointment = {
+      ...appointment,
+      status: String(appointment.status || '').trim().toUpperCase() as any,
+      paymentMethod: String(appointment.paymentMethod || '').trim().toUpperCase() as any
+    };
     this.isDetailsModalOpen.set(true);
     this.isRescheduling = false;
   }
@@ -1086,7 +1110,8 @@ export class AppointmentsCalendarComponent {
       this.modalTime.set(this.selectedAppointment.startTime);
       this.modalPatientId.set(this.selectedAppointment.patientId);
       this.modalNotes.set(this.selectedAppointment.notes || '');
-      this.modalPaymentMethod.set(this.selectedAppointment.paymentMethod || 'CASH');
+      const currentMethod = (this.selectedAppointment.paymentMethod || 'CASH').toUpperCase();
+      this.modalPaymentMethod.set(currentMethod === 'EFECTIVO' ? 'CASH' : currentMethod);
       this.modalModality.set((this.selectedAppointment.modality || 'PRESENCIAL') as any);
     }
   }
@@ -1100,10 +1125,27 @@ export class AppointmentsCalendarComponent {
     this.isConfirmingCancel = false;
   }
 
+  updateAppointmentStatus(id: string, newStatus: Appointment['status']) {
+    const normalizedStatus = String(newStatus || '').trim().toUpperCase() as Appointment['status'];
+    
+    // Backend update
+    this.appointmentsService.updatestatus(id, normalizedStatus);
+    
+    // Optimistic update in Signal list
+    this.appointmentsService.appointments.update(list => 
+      list.map(a => a.appointmentId === id ? { ...a, status: normalizedStatus } : a)
+    );
+
+    // Optimistic update in selection if matches
+    if (this.selectedAppointment?.appointmentId === id) {
+      this.selectedAppointment = { ...this.selectedAppointment, status: normalizedStatus };
+    }
+  }
+
   confirmCancel() {
     if (this.selectedAppointment) {
-      this.changeAppointmentStatus('CANCELADA');
-      this.isConfirmingCancel = false;
+      this.updateAppointmentStatus(this.selectedAppointment.appointmentId!, 'CANCELADA');
+      this.closeDetailsModal(); // Close modal after cancelling
     }
   }
 
@@ -1122,7 +1164,7 @@ export class AppointmentsCalendarComponent {
         startTime: this.modalTime(),
         endTime: this.addMinutes(this.modalTime(), duration),
         notes: this.modalNotes(),
-        paymentMethod: this.modalPaymentMethod() as any,
+        paymentMethod: (this.modalPaymentMethod() === 'Efectivo' || this.modalPaymentMethod() === 'EFECTIVO' ? 'CASH' : (this.modalPaymentMethod() || 'CASH')).toUpperCase() as any,
         modality: this.modalModality() as any
       };
 
@@ -1138,47 +1180,53 @@ export class AppointmentsCalendarComponent {
     }
   }
 
-  changeAppointmentStatus(newStatus: Appointment['status']) {
-    if (this.selectedAppointment && this.selectedAppointment.appointmentId) {
-      // Optimistic update
-      const updated = { ...this.selectedAppointment, status: newStatus };
+  // This method is no longer needed as updateAppointmentStatus handles the service call and optimistic update
+  // changeAppointmentStatus(newStatus: Appointment['status']) {
+  //   if (this.selectedAppointment && this.selectedAppointment.appointmentId) {
+  //     // Optimistic update
+  //     const updated = { ...this.selectedAppointment, status: newStatus };
 
-      this.appointmentsService.appointments.update(list =>
-        list.map(a => a.appointmentId === updated.appointmentId ? updated : a)
-      );
-      this.selectedAppointment = updated;
+  //     this.appointmentsService.appointments.update(list =>
+  //       list.map(a => a.appointmentId === updated.appointmentId ? updated : a)
+  //     );
+  //     this.selectedAppointment = updated;
 
-      // Backend update
-      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, newStatus);
+  //     // Backend update
+  //     this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, newStatus);
 
-      // Close modal on final state
-      if (newStatus === 'ATENDIDA' || newStatus === 'PERDIDA' || newStatus === 'CANCELADA') {
-        this.closeDetailsModal();
-      }
-    }
-  }
+  //     // Close modal on final state
+  //     if (newStatus === 'ATENDIDA' || newStatus === 'PERDIDA' || newStatus === 'CANCELADA') {
+  //       this.closeDetailsModal();
+  //     }
+  //   }
+  // }
 
   validatePayment() {
     if (this.selectedAppointment) {
+      const currentStatus = this.selectedAppointment.status;
+      // Only move to CONFIRMADA if it was strictly PROGRAMADA.
+      const targetStatus = currentStatus === 'PROGRAMADA' ? 'CONFIRMADA' : currentStatus;
+
       // Optimistic update
-      const updated = { ...this.selectedAppointment, paymentStatus: 'PAID' as const, status: 'CONFIRMADA' as const };
+      const updated = { ...this.selectedAppointment, paymentStatus: 'PAID' as const, status: targetStatus as any };
 
       // Update in list
       this.appointmentsService.appointments.update(list =>
         list.map(a => a.appointmentId === updated.appointmentId ? updated : a)
       );
 
-      // Update current selection so UI reflects changes immediately (header color, button disappearance)
+      // Update current selection
       this.selectedAppointment = updated;
 
-      // Call service to update payment and status
+      const rawMethod = (this.selectedAppointment.paymentMethod || 'CASH').toUpperCase();
+      const methodToSave = (rawMethod === 'EFECTIVO' ? 'CASH' : rawMethod);
+
+      // Call service to update payment (Backend will auto-advance status to CONFIRMADA if needed)
       this.appointmentsService.updatePayment(
         this.selectedAppointment.appointmentId!,
-        this.selectedAppointment.paymentMethod || 'CASH',
+        methodToSave,
         'PAID'
       );
-      this.appointmentsService.updatestatus(this.selectedAppointment.appointmentId!, 'CONFIRMADA');
-      // ideally we should also update paymentStatus if backend supports it separately, but for now this is the best we can do with current service.
     }
   }
 
@@ -1187,18 +1235,17 @@ export class AppointmentsCalendarComponent {
     return app.paymentStatus === 'PENDING';
   }
 
-  getAppointmentStatusLabel(app: Appointment): string {
-    if (!app.status) return 'Desconocido';
-    const s = app.status;
-    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  getAppointmentStatusLabel(app: Appointment | null): string {
+    if (!app || !app.status) return 'Agendada';
+    const normalizedStatus = app.status.toUpperCase();
+    return this.APPOINTMENT_STATUS_UI[normalizedStatus]?.label || app.status;
   }
 
   getAppointmentStatusVariant(app: Appointment | null): 'primary' | 'success' | 'warning' | 'danger' | 'neutral' {
     if (!app || !app.status) return 'neutral';
     const s = app.status;
     if (['CONFIRMADA', 'ATENDIDA'].includes(s)) return 'success';
-    if (s === 'PROGRAMADA') return 'warning';
-    if (['EN ESPERA', 'EN ATENCION'].includes(s)) return 'primary';
+    if (['EN_ESPERA', 'EN_ATENCION'].includes(s)) return 'warning';
     if (['CANCELADA', 'PERDIDA'].includes(s)) return 'danger';
     return 'neutral';
   }

@@ -121,12 +121,16 @@
                             </span>
                         </td>
                         <td class="pr-8 text-center">
-                            <span *ngIf="app.paymentStatus === 'PAID'"
+                            <span *ngIf="(app.paymentStatus || '').toUpperCase() === 'PAID'"
                                 class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-success-soft text-success-hover">
                                 <lucide-icon [img]="icons.CheckCircle" class="w-3.5 h-3.5"></lucide-icon>
                                 Pagado
                             </span>
-                            <span *ngIf="app.paymentStatus !== 'PAID'"
+                            <span *ngIf="['VOIDED', 'ANULADO'].includes((app.paymentStatus || '').toUpperCase())"
+                                class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                Anulado
+                            </span>
+                            <span *ngIf="['PENDING', 'PENDIENTE', ''].includes((app.paymentStatus || '').toUpperCase())"
                                 class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-warning-soft text-warning-hover">
                                 Pendiente
                             </span>

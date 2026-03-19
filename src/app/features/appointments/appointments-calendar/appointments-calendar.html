@@ -133,48 +133,47 @@
                                 </div>
                             </div>
 
-                            <!-- Events Container -->
-                            <div class="flex flex-col gap-0 h-full w-full">
-                                <div *ngFor="let item of (eventsByDayMapping()[day.iso]?.[hour] || [])" 
-                                    class="w-full rounded shadow-sm p-1 flex flex-col hover:bg-opacity-90 cursor-pointer relative group transition-all shrink-0 overflow-hidden"
-                                    [ngClass]="[
-                                        item.type === 'booked' ? getAppointmentBlockClass(item.appointment) + ' bg-amber-50 border-l-4 border-amber-500' : 'border-2 border-dashed border-blue-300 bg-white text-blue-600',
-                                        item.heightClass
-                                    ]"
-                                    (click)="item.type === 'booked' ? openAppointmentDetails(item.appointment) : (!item.isPast && openBookingModal(day.iso, item.startTime, item.doctorId, item.specialtyId, item.modality))">
-                                
-                                <!-- Content Layer -->
-                                <ng-container *ngIf="item.type === 'booked'">
-                                    <span class="text-xs font-bold truncate pr-6"
-                                        [ngClass]="item.appointment?.paymentStatus === 'PAID' ? 'text-emerald-900' : 'text-amber-900'">
-                                        {{ getPatientName(item.appointment?.patientId) }}
-                                    </span>
-                                    
-                                    <span class="text-[10px] mt-0.5 whitespace-normal leading-tight line-clamp-2"
-                                        [ngClass]="item.appointment?.paymentStatus === 'PAID' ? 'text-emerald-700' : 'text-amber-700'">
-                                        {{ item.startTime }} - {{ item.endTime }} • {{ getSpecialtyName(item.appointment?.specialtyId) }}
-                                    </span>
+                             <!-- Events Container -->
+                             <div class="flex flex-col gap-0 h-full w-full">
+                                 <div *ngFor="let item of (eventsByDayMapping()[day.iso]?.[hour] || [])" 
+                                     class="w-full rounded shadow-sm p-1.5 flex flex-col hover:bg-opacity-95 cursor-pointer relative group transition-all shrink-0 overflow-hidden border-l-4"
+                                     [ngClass]="[
+                                         item.type === 'booked' ? (APPOINTMENT_STATUS_UI[(item.appointment.status || '').toUpperCase()]?.class || 'bg-gray-100 text-gray-500 border-gray-300') : 'border-2 border-dashed border-blue-200 bg-white text-blue-500 hover:border-blue-400 hover:bg-blue-50/30',
+                                         item.heightClass
+                                     ]"
+                                     (click)="item.type === 'booked' ? openAppointmentDetails(item.appointment) : (!item.isPast && openBookingModal(day.iso, item.startTime, item.doctorId, item.specialtyId, item.modality))">
+                                 
+                                     <!-- Content Layer: Cita Reservada -->
+                                     <ng-container *ngIf="item.type === 'booked'">
+                                         <span class="text-[11px] font-bold truncate pr-6 text-gray-900">
+                                             {{ getPatientName(item.appointment?.patientId) }}
+                                         </span>
+                                         
+                                         <span class="text-[9px] font-semibold mt-0.5 whitespace-normal leading-tight line-clamp-1 text-gray-600">
+                                             {{ item.startTime }} - {{ item.endTime }} • {{ getSpecialtyName(item.appointment?.specialtyId) }}
+                                         </span>
 
-                                    <!-- Initials Tag -->
-                                    <div class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-white flex items-center justify-center text-[8px] font-bold shadow-sm"
-                                        [ngClass]="item.appointment?.paymentStatus === 'PAID' ? 'text-emerald-900' : 'text-amber-900'">
-                                        {{ item.doctorInitials }}
-                                    </div>
-                                </ng-container>
-                                <ng-container *ngIf="item.type === 'available'">
-                                    <span class="text-[10px] font-bold truncate pr-6 text-blue-700">Disponible</span>
-                                    <span class="text-[9px] font-medium opacity-80 truncate">{{ item.doctorName }}</span>
-                                    
-                                    <div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-[7px] font-bold shadow-sm text-blue-800">
-                                        {{ item.doctorInitials }}
-                                    </div>
+                                         <!-- Mini Bagde Estado -->
+                                         <div class="mt-auto pt-1 flex items-center justify-between">
+                                             <span class="text-[8px] font-bold uppercase tracking-wider opacity-80">
+                                                 {{ APPOINTMENT_STATUS_UI[item.appointment.status]?.label }}
+                                             </span>
+                                             <span class="text-[8px] font-bold opacity-70">{{ item.doctorInitials }}</span>
+                                         </div>
+                                     </ng-container>
 
-                                    <div class="text-[8px] font-bold mt-auto opacity-70">
-                                        {{ item.startTime }} - {{ item.endTime }}
-                                    </div>
-                                </ng-container>
-                            </div>
-                        </div>
+                                     <!-- Content Layer: Turno Disponible -->
+                                     <ng-container *ngIf="item.type === 'available'">
+                                         <span class="text-[10px] font-bold truncate text-blue-700">Disponible</span>
+                                         <span class="text-[9px] font-medium opacity-80 truncate text-blue-600/80">{{ item.doctorName }}</span>
+                                         
+                                         <div class="mt-auto pt-1 flex items-center justify-between text-blue-400">
+                                             <span class="text-[8px] font-bold uppercase tracking-wider">Turno libre</span>
+                                             <span class="text-[8px] font-bold">{{ item.doctorInitials }}</span>
+                                         </div>
+                                     </ng-container>
+                                 </div>
+                             </div>
                         </td>
                     </tr>
                 </tbody>
@@ -191,7 +190,7 @@
     <!-- Modal Positioner -->
     <div class="flex min-h-full items-center justify-center p-4 sm:p-6 md:py-12 relative pointer-events-none">
         <!-- Modal Content -->
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col items-stretch relative z-10 animate-fade-in-up max-h-full overflow-hidden pointer-events-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-[1100px] flex flex-col items-stretch relative z-10 animate-fade-in-up max-h-[100vh] lg:max-h-[90vh] overflow-visible pointer-events-auto">
             <!-- Modal Header (Fixed) -->
             <div class="bg-primary px-6 py-4 shrink-0 flex items-center justify-between shadow-md z-20 rounded-t-2xl">
                 <div>
@@ -203,180 +202,189 @@
                     <lucide-icon [img]="icons.Plus" class="w-6 h-6 rotate-45"></lucide-icon>
                 </button>
             </div>
-
-            <!-- Modal Body (Scrollable) with massive bottom padding for Datepicker room -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 pb-80">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Left Column: Form Details -->
-                    <div class="space-y-5">
+            <div class="flex-1 overflow-visible flex flex-col">
+                <div class="grid grid-cols-3 gap-6 p-6 bg-white flex-1 overflow-visible">
+                    
+                    <!-- Columna 1: Detalles de la Cita (El Formulario) -->
+                    <div class="col-span-1 flex flex-col gap-5 pr-1">
                         <div>
-                            <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-2">Detalles</h3>
-                            <p class="text-xs text-gray-500">Completa la información requerida</p>
+                            <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-1">Detalles</h3>
+                            <p class="text-[11px] text-gray-400">Información básica de la consulta</p>
                         </div>
 
-                        <!-- Specialty -->
-                        <div class="relative z-40">
-                            <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
-                                Especialidad <span class="text-red-500">*</span>
-                            </label>
-                            <app-searchable-select [options]="modalSpecialtyOptions()" [value]="modalSpecialtyId()"
-                                (valueChange)="modalSpecialtyId.set($event.toString()); modalDoctorId.set(''); modalDate.set('')"
-                                placeholder="Seleccionar especialidad" displayMode="default">
-                            </app-searchable-select>
-                        </div>
-
-                        <!-- Doctor -->
-                        <div class="relative z-30">
-                            <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
-                                Médico <span class="text-red-500">*</span>
-                            </label>
-                            <app-searchable-select [options]="modalDoctorOptions()" [value]="modalDoctorId()"
-                                (valueChange)="modalDoctorId.set($event.toString()); modalDate.set('')"
-                                placeholder="Seleccionar médico" displayMode="default">
-                            </app-searchable-select>
-                        </div>
-
-                        <!-- Modality -->
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
-                                Modalidad <span class="text-red-500">*</span>
-                            </label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button"
-                                    (click)="modalModality.set('PRESENCIAL'); modalDate.set(''); modalTime.set('')"
-                                    [disabled]="!modalDoctorId() || !modalSpecialtyId()" [ngClass]="{
-                                        'bg-blue-50 border-blue-200 text-blue-700 ring-2 ring-blue-500 ring-offset-1': modalModality() === 'PRESENCIAL',
-                                        'bg-white border-gray-200 text-gray-600 hover:bg-gray-50': modalModality() !== 'PRESENCIAL',
-                                        'opacity-50 cursor-not-allowed bg-gray-50': !modalDoctorId() || !modalSpecialtyId()
-                                    }"
-                                    class="flex items-center justify-center gap-2 rounded-xl border py-[10px] px-4 text-sm font-bold transition-all mt-1">
-                                    <lucide-icon [img]="icons.User" class="w-4 h-4"></lucide-icon>
-                                    Presencial
-                                </button>
-                                <button type="button"
-                                    (click)="modalModality.set('VIRTUAL'); modalDate.set(''); modalTime.set('')"
-                                    [disabled]="!modalDoctorId() || !modalSpecialtyId()" [ngClass]="{
-                                        'bg-purple-50 border-purple-200 text-purple-700 ring-2 ring-purple-500 ring-offset-1': modalModality() === 'VIRTUAL',
-                                        'bg-white border-gray-200 text-gray-600 hover:bg-gray-50': modalModality() !== 'VIRTUAL',
-                                        'opacity-50 cursor-not-allowed bg-gray-50': !modalDoctorId() || !modalSpecialtyId()
-                                    }"
-                                    class="flex items-center justify-center gap-2 rounded-xl border py-[10px] px-4 text-sm font-bold transition-all mt-1">
-                                    <lucide-icon [img]="icons.Briefcase" class="w-4 h-4"></lucide-icon>
-                                    Virtual
-                                </button>
+                        <div class="flex flex-col gap-4">
+                            <!-- Specialty -->
+                            <div class="relative z-[100]">
+                                <label class="block text-[11px] font-bold text-gray-500 tracking-wide mb-1.5 uppercase">
+                                    Especialidad <span class="text-red-500">*</span>
+                                </label>
+                                <app-searchable-select [options]="modalSpecialtyOptions()" [value]="modalSpecialtyId()"
+                                    (valueChange)="modalSpecialtyId.set($event.toString()); modalDoctorId.set(''); modalDate.set('')"
+                                    placeholder="Seleccionar especialidad" displayMode="default">
+                                </app-searchable-select>
                             </div>
-                        </div>
 
-                        <!-- Date (Drop-up logic) -->
-                        <div class="relative z-50">
-                            <div class="flex justify-between items-center mb-2">
-                                <label class="block text-xs font-bold text-gray-600 tracking-wide">
+                            <!-- Doctor -->
+                            <div class="relative z-[90]">
+                                <label class="block text-[11px] font-bold text-gray-500 tracking-wide mb-1.5 uppercase">
+                                    Médico <span class="text-red-500">*</span>
+                                </label>
+                                <app-searchable-select [options]="modalDoctorOptions()" [value]="modalDoctorId()"
+                                    (valueChange)="modalDoctorId.set($event.toString()); modalDate.set('')"
+                                    placeholder="Seleccionar médico" displayMode="default">
+                                </app-searchable-select>
+                            </div>
+
+                            <!-- Modality -->
+                            <div class="relative z-[80]">
+                                <label class="block text-[11px] font-bold text-gray-500 tracking-wide mb-1.5 uppercase">
+                                    Modalidad <span class="text-red-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button"
+                                        (click)="modalModality.set('PRESENCIAL'); modalDate.set(''); modalTime.set('')"
+                                        [disabled]="!modalDoctorId() || !modalSpecialtyId()" [ngClass]="{
+                                            'bg-blue-50 border-blue-200 text-blue-700 ring-2 ring-blue-500 ring-offset-1': modalModality() === 'PRESENCIAL',
+                                            'bg-white border-gray-200 text-gray-600 hover:bg-gray-50': modalModality() !== 'PRESENCIAL',
+                                            'opacity-50 cursor-not-allowed bg-gray-50': !modalDoctorId() || !modalSpecialtyId()
+                                        }"
+                                        class="flex items-center justify-center gap-2 rounded-xl border py-2.5 px-3 text-[13px] font-bold transition-all">
+                                        <lucide-icon [img]="icons.User" class="w-4 h-4"></lucide-icon>
+                                        Presencial
+                                    </button>
+                                    <button type="button"
+                                        (click)="modalModality.set('VIRTUAL'); modalDate.set(''); modalTime.set('')"
+                                        [disabled]="!modalDoctorId() || !modalSpecialtyId()" [ngClass]="{
+                                            'bg-purple-50 border-purple-200 text-purple-700 ring-2 ring-purple-500 ring-offset-1': modalModality() === 'VIRTUAL',
+                                            'bg-white border-gray-200 text-gray-600 hover:bg-gray-50': modalModality() !== 'VIRTUAL',
+                                            'opacity-50 cursor-not-allowed bg-gray-50': !modalDoctorId() || !modalSpecialtyId()
+                                        }"
+                                        class="flex items-center justify-center gap-2 rounded-xl border py-2.5 px-3 text-[13px] font-bold transition-all">
+                                        <lucide-icon [img]="icons.Briefcase" class="w-4 h-4"></lucide-icon>
+                                        Virtual
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Fecha -->
+                            <div class="relative z-[70]">
+                                <label class="block text-[11px] font-bold text-gray-500 tracking-wide mb-1.5 uppercase">
                                     Fecha <span class="text-red-500">*</span>
                                 </label>
+                                <app-datepicker [value]="modalDate()" (valueChange)="modalDate.set($event)"
+                                    direction="down"
+                                    [enabledDates]="validDatesForModal()"
+                                    [placeholder]="!modalDoctorId() || !modalSpecialtyId() ? 'Seleccione un médico' : 'Seleccionar fecha...'"
+                                    [disabled]="!modalDoctorId() || !modalSpecialtyId() || !modalModality()">
+                                </app-datepicker>
                             </div>
-                            <app-datepicker [value]="modalDate()" (valueChange)="modalDate.set($event)"
-                                direction="up"
-                                [placeholder]="!modalDoctorId() || !modalSpecialtyId() ? 'Seleccione un médico primero' : 'Seleccionar fecha...'"
-                                [disabled]="!modalDoctorId() || !modalSpecialtyId() || !modalModality()">
-                            </app-datepicker>
-                        </div>
 
-                        <!-- Patient -->
-                        <div class="relative z-20">
-                            <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
-                                Paciente <span class="text-red-500">*</span>
-                            </label>
-                            <app-searchable-select [options]="modalPatientOptions" [value]="modalPatientId()"
-                                (valueChange)="modalPatientId.set($event.toString())" placeholder="Seleccionar paciente"
-                                displayMode="default">
-                            </app-searchable-select>
+                            <!-- Patient -->
+                            <div class="relative z-[60]">
+                                <label class="block text-[11px] font-bold text-gray-500 tracking-wide mb-1.5 uppercase">
+                                    Paciente <span class="text-red-500">*</span>
+                                </label>
+                                <app-searchable-select [options]="modalPatientOptions" [value]="modalPatientId()"
+                                    (valueChange)="modalPatientId.set($event.toString())" placeholder="Seleccionar paciente"
+                                    displayMode="default">
+                                </app-searchable-select>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Right Column: Time Slots -->
-                    <div
-                        class="bg-gradient-to-br from-gray-50 to-gray-200 rounded-2xl p-6 border-2 border-gray-100 flex flex-col h-full min-h-[300px]">
-                        <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-2 text-center">
+                    <!-- Columna 2: Horarios Disponibles (Scroll Aislado) -->
+                    <div class="col-span-1 bg-gray-50 rounded-2xl p-5 border border-gray-100 flex flex-col h-full overflow-hidden">
+                        <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-4 text-center shrink-0">
                             Horarios disponibles
                         </h3>
 
                         <div *ngIf="availableSlotsForModal().length > 0"
-                            class="flex-1 grid grid-cols-3 gap-3 content-start overflow-y-auto pr-1 custom-scrollbar max-h-[300px]">
+                            class="flex-1 overflow-y-auto pr-1 custom-scrollbar grid grid-cols-2 gap-2 content-start">
                             <button *ngFor="let slot of availableSlotsForModal()" (click)="selectTimeSlot(slot)"
-                                [class]="'py-2 px-1 h-10 flex items-center justify-center text-sm font-bold rounded-xl border-2 transition-all duration-200 ' + 
+                                [class]="'py-2.5 px-2 h-10 flex items-center justify-center text-[13px] font-bold rounded-xl border-2 transition-all duration-200 ' + 
                                 (modalTime() === slot 
-                                    ? 'bg-primary border-primary text-white shadow-lg shadow-primary/40 scale-105' 
-                                    : 'bg-white border-gray-200 text-gray-700 hover:border-primary hover:text-primary hover:shadow-md hover:scale-105')">
+                                    ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30' 
+                                    : 'bg-white border-gray-100 text-gray-600 hover:border-primary hover:text-primary hover:bg-gray-50')">
                                 {{ slot }}
                             </button>
                         </div>
 
                         <div *ngIf="availableSlotsForModal().length === 0"
                             class="flex-1 flex flex-col items-center justify-center text-center text-gray-400">
-                            <lucide-icon [img]="icons.Clock" class="w-12 h-12 mb-3 opacity-20"></lucide-icon>
-                            <p class="text-sm font-medium px-4 leading-relaxed">
-                                {{ !modalDoctorId() || !modalDate() ? 'Selecciona médico y fecha para ver horarios.' :
-                                'No hay horarios disponibles para esta fecha.' }}
+                            <lucide-icon [img]="icons.Clock" class="w-10 h-10 mb-3 opacity-20"></lucide-icon>
+                            <p class="text-[12px] font-medium px-6 leading-tight">
+                                {{ !modalDoctorId() || !modalDate() ? 'Selecciona médico y fecha para ver horarios.' : 'No hay horarios disponibles.' }}
                             </p>
                         </div>
                     </div>
-                </div>
 
-                <!-- Payment Method & Notes -->
-                <div class="mt-8 pt-6 border-t border-gray-100 pb-20">
-                    <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-4">Información adicional</h3>
+                    <!-- Columna 3: Información Adicional y Cierre -->
+                    <div class="col-span-1 flex flex-col gap-6 pr-1">
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-700 tracking-wide mb-1">Pago y Notas</h3>
+                            <p class="text-[11px] text-gray-400">Finaliza la configuración de la cita</p>
+                        </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                        <button type="button" (click)="modalPaymentMethod.set('CASH')"
-                            [class]="'flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ' + 
-                            (modalPaymentMethod() === 'CASH' ? 'border-primary bg-primary text-white shadow-md shadow-primary/30' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300')">
-                            <span class="text-xs font-bold">Efectivo</span>
-                        </button>
-                        <button type="button" (click)="modalPaymentMethod.set('YAPE')"
-                            [class]="'flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ' + 
-                            (modalPaymentMethod() === 'YAPE' ? 'border-primary bg-primary text-white shadow-md shadow-primary/30' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300')">
-                            <span class="text-xs font-bold">Yape</span>
-                        </button>
-                        <button type="button" (click)="modalPaymentMethod.set('PLIN')"
-                            [class]="'flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ' + 
-                            (modalPaymentMethod() === 'PLIN' ? 'border-primary bg-primary text-white shadow-md shadow-primary/30' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300')">
-                            <span class="text-xs font-bold">Plin</span>
-                        </button>
-                        <button type="button" (click)="modalPaymentMethod.set('CARD')"
-                            [class]="'flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ' + 
-                            (modalPaymentMethod() === 'CARD' ? 'border-primary bg-primary text-white shadow-md shadow-primary/30' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300')">
-                            <span class="text-xs font-bold">Tarjeta</span>
-                        </button>
-                    </div>
+                        <div class="flex flex-col gap-5">
+                            <!-- Metodo de Pago -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-500 tracking-wide mb-2 uppercase">Método de pago</label>
+                                <div class="grid grid-cols-2 gap-3 mt-2">
+                                    <!-- CASH -->
+                                    <button type="button" (click)="modalPaymentMethod.set('CASH')"
+                                        [class]="'w-full px-4 py-2 text-[12px] font-bold rounded-lg border transition-all shadow-sm ' + 
+                                        (modalPaymentMethod() === 'CASH' ? PAYMENT_METHOD_UI['CASH'].class : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50')">
+                                        Efectivo
+                                    </button>
+                                    
+                                    <!-- YAPE -->
+                                    <button type="button" (click)="modalPaymentMethod.set('YAPE')"
+                                        [class]="'w-full px-4 py-2 text-[12px] font-bold rounded-lg border transition-all shadow-sm ' + 
+                                        (modalPaymentMethod() === 'YAPE' ? PAYMENT_METHOD_UI['YAPE'].class : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50')">
+                                        Yape
+                                    </button>
+                                    
+                                    <!-- PLIN -->
+                                    <button type="button" (click)="modalPaymentMethod.set('PLIN')"
+                                        [class]="'w-full px-4 py-2 text-[12px] font-bold rounded-lg border transition-all shadow-sm ' + 
+                                        (modalPaymentMethod() === 'PLIN' ? PAYMENT_METHOD_UI['PLIN'].class : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50')">
+                                        Plin
+                                    </button>
+                                    
+                                    <!-- CARD -->
+                                    <button type="button" (click)="modalPaymentMethod.set('CARD')"
+                                        [class]="'w-full px-4 py-2 text-[12px] font-bold rounded-lg border transition-all shadow-sm ' + 
+                                        (modalPaymentMethod() === 'CARD' ? PAYMENT_METHOD_UI['CARD'].class : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50')">
+                                        Tarjeta
+                                    </button>
+                                </div>
+                            </div>
 
-                    <div *ngIf="['YAPE', 'PLIN'].includes(modalPaymentMethod())" class="mb-6 animate-fade-in">
-                        <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">
-                            Comprobante de Pago (URL)
-                        </label>
-                        <input type="text" [ngModel]="modalPaymentProof()"
-                            (ngModelChange)="modalPaymentProof.set($event)" placeholder="Pegar enlace de la imagen..."
-                            class="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-sm focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none">
-                    </div>
+                            <div *ngIf="['YAPE', 'PLIN'].includes(modalPaymentMethod())" class="animate-fade-in shrink-0">
+                                <label class="block text-[11px] font-bold text-gray-500 tracking-wide mb-1.5 uppercase">Comprobante (URL)</label>
+                                <input type="text" [ngModel]="modalPaymentProof()" (ngModelChange)="modalPaymentProof.set($event)"
+                                    placeholder="https://..." class="w-full h-10 rounded-lg border border-gray-300 py-2 px-3 text-[13px] focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none">
+                            </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 tracking-wide mb-2">Notas</label>
-                        <textarea [ngModel]="modalNotes()" (ngModelChange)="modalNotes.set($event)"
-                            placeholder="Observaciones..." rows="2"
-                            class="w-full rounded-xl border-2 border-gray-200 py-2 px-4 text-sm focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 outline-none resize-none"></textarea>
+                            <div class="shrink-0">
+                                <label class="block text-[11px] font-bold text-gray-500 tracking-wide mb-1.5 uppercase">Notas internas</label>
+                                <textarea [ngModel]="modalNotes()" (ngModelChange)="modalNotes.set($event)"
+                                    placeholder="Observaciones de la cita..." rows="3"
+                                    class="w-full rounded-lg border border-gray-300 py-2.5 px-3 text-[13px] focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none resize-none"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Modal Footer (Sticky Bottom) -->
-            <div class="px-6 py-4 flex gap-3 border-t border-gray-200 sticky bottom-0 bg-white z-50 rounded-b-2xl">
+            <div class="p-6 flex justify-end gap-3 border-t border-gray-100 bg-white z-[10] rounded-b-2xl">
                 <button (click)="tryCloseBookingModal()" type="button" [disabled]="saving()"
-                    class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all">
+                    class="px-8 py-3 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all text-sm">
                     Cancelar
                 </button>
                 <button (click)="saveAppointment()"
                     [disabled]="saving() || !modalPatientId() || !modalTime() || !modalDoctorId() || !modalModality()"
                     type="button"
-                    class="flex-1 py-3 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all disabled:opacity-50 disabled:shadow-none">
+                    class="px-10 py-3 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold rounded-xl shadow-lg shadow-indigo-100 transition-all disabled:opacity-50 disabled:shadow-none text-sm">
                     <span *ngIf="!saving()">Confirmar cita</span>
                     <span *ngIf="saving()">Guardando...</span>
                 </button>
@@ -411,7 +419,7 @@
             </div>
 
             <!-- Body (Scrollable) -->
-            <div class="p-6 sm:p-7 flex-1 bg-white overflow-y-auto custom-scrollbar pb-64" [ngClass]="{'rounded-b-3xl': isConfirmingCancel}">
+            <div class="p-6 sm:p-7 flex-1 bg-white overflow-y-auto custom-scrollbar pb-10" [ngClass]="{'rounded-b-3xl': isConfirmingCancel}">
 
                 <!-- Standard View -->
                 <div *ngIf="selectedAppointment && !isRescheduling && !isConfirmingCancel" class="space-y-6">
@@ -434,16 +442,14 @@
 
                     <!-- Info Grid (2 Columns with Icons) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-10 px-1">
-                        <!-- Médico -->
+                        <!-- Datos Principales -->
                         <div class="flex items-start gap-4">
-                            <div class="mt-0.5 p-2 bg-blue-50 rounded-lg text-blue-600">
-                                <lucide-icon [img]="icons.Stethoscope" class="w-4 h-4"></lucide-icon>
+                            <div class="mt-0.5 p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                <lucide-icon [img]="icons.User" class="w-4 h-4"></lucide-icon>
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Médico</label>
-                                <p class="text-sm font-bold text-gray-800">{{
-                                    getDoctorName(selectedAppointment.doctorId) }}</p>
+                                <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Médico</p>
+                                <p class="text-sm font-bold text-gray-900">{{ getDoctorName(selectedAppointment.doctorId) }}</p>
                             </div>
                         </div>
 
@@ -453,10 +459,8 @@
                                 <lucide-icon [img]="icons.Briefcase" class="w-4 h-4"></lucide-icon>
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Especialidad</label>
-                                <p class="text-sm font-bold text-gray-800">{{
-                                    getSpecialtyName(selectedAppointment.specialtyId) }}</p>
+                                <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Especialidad</p>
+                                <p class="text-sm font-bold text-gray-900">{{ getSpecialtyName(selectedAppointment.specialtyId) }}</p>
                             </div>
                         </div>
 
@@ -466,18 +470,13 @@
                                 <lucide-icon [img]="icons.Calendar" class="w-4 h-4"></lucide-icon>
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Fecha
-                                    y Modalidad</label>
+                                <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Fecha y Modalidad</p>
                                 <div class="flex items-center gap-2">
-                                    <p class="text-sm font-bold text-gray-800 capitalize">{{
-                                        formatDate(selectedAppointment.appointmentDate) }}</p>
+                                    <p class="text-sm font-bold text-gray-900 capitalize">{{ formatDate(selectedAppointment.appointmentDate) }}</p>
                                     <span class="text-gray-300">|</span>
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-bold border capitalize"
-                                        [ngClass]="(selectedAppointment.modality || selectedAppointment.appointment_type || '').toUpperCase() === 'PRESENCIAL' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'">
-                                        {{ (selectedAppointment.modality || selectedAppointment.appointment_type ||
-                                        'Desconocido') | lowercase }}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-tighter bg-slate-100 text-slate-700 border-slate-300"
+                                        [ngClass]="(selectedAppointment.modality || selectedAppointment.appointment_type || '').toUpperCase() === 'PRESENCIAL' ? '' : 'bg-purple-600 text-white border-purple-600'">
+                                        {{ (selectedAppointment.modality || selectedAppointment.appointment_type || 'Desconocido') }}
                                     </span>
                                 </div>
                             </div>
@@ -489,63 +488,125 @@
                                 <lucide-icon [img]="icons.Clock" class="w-4 h-4"></lucide-icon>
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Horario</label>
-                                <p class="text-sm font-bold text-gray-800">
-                                    {{ formatTime12Hour(selectedAppointment.startTime) }} - {{
-                                    formatTime12Hour(selectedAppointment.endTime) }}
+                                <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Horario de cita</p>
+                                <p class="text-sm font-bold text-gray-900">
+                                    {{ formatTime12Hour(selectedAppointment.startTime) }} - {{ formatTime12Hour(selectedAppointment.endTime) }}
                                 </p>
                             </div>
                         </div>
 
                         <!-- Estado -->
                         <div class="flex items-start gap-4">
-                            <div class="mt-0.5 p-2 bg-gray-50 rounded-lg text-gray-500">
+                            <div class="mt-0.5 p-2 bg-gray-100 rounded-lg text-gray-700 border border-gray-200">
                                 <lucide-icon [img]="icons.AlertCircle" class="w-4 h-4"></lucide-icon>
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Estado</label>
+                                <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Estado actual</p>
                                 <div class="mt-1">
-                                    <app-badge [variant]="getAppointmentStatusVariant(selectedAppointment)"
-                                        [dot]="true">
+                                    <span *ngIf="selectedAppointment.status" 
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm transition-all uppercase tracking-tight"
+                                        [ngClass]="APPOINTMENT_STATUS_UI[(selectedAppointment.status || '').toUpperCase()]?.class || 'bg-gray-100 text-gray-600 border-gray-300'">
                                         {{ getAppointmentStatusLabel(selectedAppointment) }}
-                                    </app-badge>
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Pago -->
                         <div class="flex items-start gap-4">
-                            <div class="mt-0.5 p-2 bg-green-50 rounded-lg text-green-600">
+                            <div class="mt-0.5 p-2 bg-emerald-50 rounded-lg text-emerald-600 border border-emerald-100">
                                 <lucide-icon [img]="icons.Wallet" class="w-4 h-4"></lucide-icon>
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-400 tracking-widest mb-0.5">Método
-                                    de pago</label>
-                                <p class="text-sm font-bold text-gray-800">{{
-                                    getPaymentMethodLabel(selectedAppointment.paymentMethod) }}</p>
+                                <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Método de pago</p>
+                                <div class="mt-1">
+                                    <!-- Yape (Fuerza contraste nativo y case-insensitivity) -->
+                                    <span *ngIf="(selectedAppointment.paymentMethod || '').toUpperCase() === 'YAPE'" 
+                                        class="bg-purple-700 text-white font-bold py-1 px-3 rounded-md text-xs inline-block mt-1 shadow-sm uppercase tracking-wider">
+                                        YAPE
+                                    </span>
+                                    
+                                    <!-- OTROS MÉTODOS -->
+                                    <span *ngIf="selectedAppointment.paymentMethod && (selectedAppointment.paymentMethod || '').toUpperCase() !== 'YAPE'" 
+                                        class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white shadow-sm border-transparent"
+                                        [ngClass]="PAYMENT_METHOD_UI[(selectedAppointment.paymentMethod || '').toUpperCase()]?.class || 'bg-slate-500'">
+                                        {{ getPaymentMethodLabel(selectedAppointment.paymentMethod) }}
+                                    </span>
+
+                                    <span *ngIf="!selectedAppointment.paymentMethod" 
+                                        class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 uppercase">
+                                        POR COBRAR
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Payment Validation Alert -->
-                    <div *ngIf="selectedAppointment.paymentStatus !== 'PAID'"
-                        class="mx-1 animate-fade-in bg-green-50/50 rounded-2xl p-5 border border-green-100 flex gap-4 sm:col-span-2">
-                        <div class="shrink-0 bg-green-100 p-2.5 rounded-xl h-fit">
-                            <lucide-icon [img]="icons.CheckCircle" class="w-5 h-5 text-green-600"></lucide-icon>
+                    <!-- CONTROL DE ASISTENCIA (Smart Panel - Hyper-Resilient Version) -->
+                    <div *ngIf="['PROGRAMADA', 'CONFIRMADA', 'EN ESPERA', 'EN_ESPERA', 'EN ATENCION', 'EN_ATENCION'].includes(String(selectedAppointment.status || '').trim().toUpperCase())" 
+                        class="bg-slate-50 border border-slate-200 rounded-lg p-4 mt-6 flex justify-between items-center mx-1 shadow-sm">
+                        <div class="pr-3">
+                            <p class="font-bold text-slate-800 text-sm">Control de Asistencia</p>
+                            <p class="text-xs text-slate-500 italic">Registrar ingreso a sala.</p>
                         </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-green-900 mb-0.5">Validación de pago requerida</h4>
-                            <p class="text-[11px] leading-relaxed text-green-700 font-medium whitespace-normal">
-                                Esta cita registra un pago pendiente. Presiona el botón <span
-                                    class="font-bold underline text-green-800">"Confirmar
-                                    Pago"</span> para validar la transacción y marcarla como
-                                <span class="bg-green-100 px-1 py-0.5 rounded font-bold">Pagada</span>.
-                            </p>
+                        
+                        <div class="shrink-0">
+                            <!-- Botón de Flujo Dinámico -->
+                            <button *ngIf="['PROGRAMADA', 'CONFIRMADA'].includes(String(selectedAppointment.status || '').trim().toUpperCase())"
+                                (click)="updateAppointmentStatus(selectedAppointment.appointmentId!, 'EN_ESPERA')"
+                                [disabled]="String(selectedAppointment.paymentStatus || '').trim().toUpperCase() !== 'PAID'"
+                                type="button" 
+                                class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md text-sm transition-all shadow-md active:scale-95 disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Ingresar a Sala
+                            </button>
+
+                            <button *ngIf="['EN_ESPERA', 'EN ESPERA'].includes(String(selectedAppointment.status || '').trim().toUpperCase())"
+                                (click)="updateAppointmentStatus(selectedAppointment.appointmentId!, 'EN_ATENCION')"
+                                type="button" 
+                                class="bg-amber-600 text-white font-bold py-2 px-4 rounded-md text-sm transition-all shadow-md active:scale-95">
+                                Iniciar Atención
+                            </button>
+
+                            <button *ngIf="['EN_ATENCION', 'EN ATENCION'].includes(String(selectedAppointment.status || '').trim().toUpperCase())"
+                                (click)="updateAppointmentStatus(selectedAppointment.appointmentId!, 'ATENDIDA')"
+                                type="button" 
+                                class="bg-emerald-600 text-white font-bold py-2 px-4 rounded-md text-sm transition-all shadow-md active:scale-95">
+                                Finalizar Cita
+                            </button>
                         </div>
                     </div>
+
+                    <!-- ALERT BOX -->
+                    <ng-container>
+                        <!-- PENDING ALERT (Warning Semantic) -->
+                        <div *ngIf="String(selectedAppointment.paymentStatus || '').trim().toUpperCase() !== 'PAID'"
+                            class="mx-1 animate-fade-in bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-4 shadow-sm">
+                            <div class="shrink-0 bg-amber-100 p-2.5 rounded-xl h-fit border border-amber-200">
+                                <lucide-icon [img]="icons.AlertCircle" class="w-5 h-5 text-amber-600"></lucide-icon>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-amber-800">Validación de pago requerida</h4>
+                                <p class="text-xs text-amber-700 mt-1 leading-relaxed">
+                                    Esta cita registra un pago pendiente. Presiona el botón <span
+                                        class="font-bold underline uppercase">"Confirmar Pago"</span> para validar la transacción y continuar.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- SUCCESS ALERT (Paid) -->
+                        <div *ngIf="selectedAppointment.paymentStatus === 'PAID'"
+                            class="mx-1 animate-fade-in bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex gap-4 shadow-sm">
+                            <div class="shrink-0 bg-emerald-100 p-2.5 rounded-xl h-fit border border-emerald-200">
+                                <lucide-icon [img]="icons.CheckCircle" class="w-5 h-5 text-emerald-600"></lucide-icon>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-emerald-800 uppercase">Pago Verificado</h4>
+                                <p class="text-xs text-emerald-700 mt-1 leading-relaxed">
+                                    La transacción ha sido validada con éxito. El flujo clínico está habilitado.
+                                </p>
+                            </div>
+                        </div>
+                    </ng-container>
 
                     <!-- Notes -->
                     <div *ngIf="selectedAppointment.notes"
@@ -654,73 +715,38 @@
 
                 <!-- Left: Secondary Actions -->
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <app-button
-                        *ngIf="!isRescheduling && !['CANCELADA', 'PERDIDA', 'ATENDIDA'].includes(selectedAppointment?.status || '')"
-                        variant="ghost" (onClick)="showCancelConfirmation()"
-                        class="!text-danger hover:!bg-danger-soft/10">
+                    <button *ngIf="!isRescheduling && !['CANCELADA', 'PERDIDA', 'ATENDIDA'].includes(selectedAppointment?.status || '')"
+                        (click)="showCancelConfirmation()"
+                        class="text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-rose-50 px-3 py-2 rounded-md transition-colors">
                         Cancelar Cita
-                    </app-button>
-                    <app-button
-                        *ngIf="!isRescheduling && !['CANCELADA', 'PERDIDA', 'ATENDIDA'].includes(selectedAppointment?.status || '')"
-                        variant="ghost" (onClick)="startRescheduling()">
+                    </button>
+                    <button *ngIf="!isRescheduling && !['CANCELADA', 'PERDIDA', 'ATENDIDA'].includes(selectedAppointment?.status || '')"
+                        (click)="startRescheduling()"
+                        class="text-gray-600 hover:text-gray-800 text-sm font-medium hover:bg-gray-100 px-3 py-2 rounded-md transition-colors">
                         Reprogramar
-                    </app-button>
-                    <app-button *ngIf="isRescheduling" variant="ghost" (onClick)="isRescheduling = false">
+                    </button>
+                    <button *ngIf="isRescheduling" (click)="isRescheduling = false"
+                        class="text-gray-600 hover:text-gray-800 text-sm font-medium hover:bg-gray-100 px-3 py-2 rounded-md transition-colors">
                         Volver
-                    </app-button>
+                    </button>
                 </div>
 
                 <!-- Right: Primary Actions -->
                 <div class="flex flex-wrap items-center justify-end gap-3 w-full sm:w-auto">
-                    <ng-container
-                        *ngIf="!isRescheduling && !['CANCELADA', 'PERDIDA', 'ATENDIDA'].includes(selectedAppointment?.status || '')">
-                        <!-- Status Actions -->
-                        <app-button *ngIf="selectedAppointment?.status === 'PROGRAMADA'" variant="primary"
-                            (onClick)="changeAppointmentStatus('CONFIRMADA')" class="min-w-[150px]">
-                            <lucide-icon [img]="icons.CheckCircle" class="w-4 h-4 mr-2"></lucide-icon>
-                            Confirmar Cita
-                        </app-button>
-
-                        <app-button *ngIf="selectedAppointment?.status === 'CONFIRMADA'" variant="ghost"
-                            (onClick)="changeAppointmentStatus('PERDIDA')"
-                            class="!text-danger hover:!bg-danger-soft/10">
-                            <lucide-icon [img]="icons.XCircle" class="w-4 h-4 mr-2"></lucide-icon>
-                            No Asistió
-                        </app-button>
-
-                        <app-button *ngIf="selectedAppointment?.status === 'CONFIRMADA'" variant="accent"
-                            (onClick)="changeAppointmentStatus('EN ESPERA')" class="min-w-[130px]">
-                            <lucide-icon [img]="icons.Users" class="w-4 h-4 mr-2"></lucide-icon>
-                            En Sala
-                        </app-button>
-
-                        <app-button *ngIf="selectedAppointment?.status === 'EN ESPERA'" variant="warning"
-                            (onClick)="changeAppointmentStatus('EN ATENCION')" class="min-w-[130px]">
-                            <lucide-icon [img]="icons.Stethoscope" class="w-4 h-4 mr-2"></lucide-icon>
-                            Atender
-                        </app-button>
-
-                        <app-button *ngIf="selectedAppointment?.status === 'EN ATENCION'" variant="danger"
-                            (onClick)="changeAppointmentStatus('ATENDIDA')" class="min-w-[150px]">
-                            <lucide-icon [img]="icons.Flag" class="w-4 h-4 mr-2"></lucide-icon>
-                            Finalizar
-                        </app-button>
-
-                        <!-- Payment Action (Always Available if Pending) -->
-                        <app-button *ngIf="selectedAppointment?.paymentStatus !== 'PAID'" variant="success"
-                            (onClick)="validatePayment()" class="min-w-[170px] shadow-lg shadow-success/20">
-                            <lucide-icon [img]="icons.Check" class="w-4 h-4 mr-2"></lucide-icon>
-                            Confirmar Pago
-                        </app-button>
-                    </ng-container>
-
                     <!-- Reschedule Save -->
-                    <app-button *ngIf="isRescheduling" (onClick)="saveRescheduledAppointment()"
-                        [disabled]="!modalTime() || !availableSlotsForModal().includes(modalTime())" variant="accent"
-                        class="min-w-[160px]">
-                        <lucide-icon [img]="icons.Check" class="w-4 h-4 mr-2"></lucide-icon>
+                    <button *ngIf="isRescheduling" (click)="saveRescheduledAppointment()"
+                        [disabled]="!modalTime() || !availableSlotsForModal().includes(modalTime())"
+                        class="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium px-6 py-2 rounded-lg shadow-md transition-all">
                         Guardar Cambios
-                    </app-button>
+                    </button>
+
+                    <!-- Payment Action (Only if Pending) -->
+                    <button *ngIf="!isRescheduling && selectedAppointment?.paymentStatus !== 'PAID' && !['CANCELADA', 'PERDIDA'].includes(selectedAppointment?.status || '')" 
+                        (click)="validatePayment()"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm flex items-center gap-2 transition-all">
+                        <lucide-icon [img]="icons.Check" class="w-4 h-4"></lucide-icon>
+                        Confirmar Pago
+                    </button>
                 </div>
             </div>
         </div>

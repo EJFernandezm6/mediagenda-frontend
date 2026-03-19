@@ -28,7 +28,7 @@ export interface Consultation {
   notes: string;
   diagnosis?: string;
   treatment?: string;
-  status: 'DISPONIBLE' | 'EN PROCESO DE RESERVA' | 'PROGRAMADA' | 'CONFIRMADA' | 'EN ATENCION' | 'EN ESPERA' | 'ATENDIDA' | 'PERDIDA' | 'CANCELADA';
+  status: 'DISPONIBLE' | 'EN_PROCESO_DE_RESERVA' | 'PROGRAMADA' | 'CONFIRMADA' | 'EN_ATENCION' | 'EN_ESPERA' | 'ATENDIDA' | 'PERDIDA' | 'CANCELADA';
 }
 
 export interface PaginatedResponse<T> {

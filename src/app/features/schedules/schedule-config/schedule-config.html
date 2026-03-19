@@ -59,6 +59,7 @@
                         <th class="w-[35%] pl-8 bg-transparent text-left text-[12px] font-medium text-gray-500">Especialista</th>
                         <th class="w-[20%] bg-transparent text-left text-[12px] font-medium text-gray-500">Fecha</th>
                         <th class="w-[20%] bg-transparent text-left text-[12px] font-medium text-gray-500">Rango horario</th>
+                        <th class="w-[12%] bg-transparent text-left text-[12px] font-medium text-gray-500">Duración</th>
                         <th class="w-[15%] bg-transparent text-left text-[12px] font-medium text-gray-500">Modalidad</th>
                         <th class="w-[10%] pr-8 bg-transparent text-right text-[12px] font-medium text-gray-500">Acciones</th>
                     </tr>
@@ -111,6 +112,12 @@
                                 <span class="text-[11px] text-text-light/60 font-medium">
                                     ({{ calculateDuration(schedule) }})
                                 </span>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center gap-1.5 text-text-light font-medium text-[13px]">
+                                <lucide-icon [img]="icons.Clock" class="w-3.5 h-3.5 opacity-50"></lucide-icon>
+                                {{ getAppointmentDuration(schedule) }}
                             </div>
                         </td>
                         <td class="py-3">

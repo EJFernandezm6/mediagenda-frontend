@@ -108,7 +108,7 @@
                             {{ patient.documentNumber }}
                         </td>
                         <td *ngIf="columns.phone" class="text-[13px] font-normal text-text-muted">
-                            {{ patient.phone }}
+                            <span *ngIf="patient.phonePrefix" class="tabular-nums">+{{ patient.phonePrefix }} </span>{{ patient.phone }}
                         </td>
                         <td *ngIf="columns.age" class="text-center">
                             <span class="text-[13px] font-medium text-text-muted">
@@ -337,7 +337,9 @@
                     </div>
                     <div>
                         <p class="text-[12px] text-gray-500 font-medium mb-0.5">Teléfono</p>
-                        <p class="text-[14px] text-text-main font-semibold">{{ selectedHistoryPatient.phone }}</p>
+                        <p class="text-[14px] text-text-main font-semibold">
+                            <span *ngIf="selectedHistoryPatient.phonePrefix" class="tabular-nums">+{{ selectedHistoryPatient.phonePrefix }} </span>{{ selectedHistoryPatient.phone }}
+                        </p>
                     </div>
                 </div>
 
@@ -391,10 +393,10 @@
                                         'bg-green-50 text-green-700 border-green-100': record.status === 'ATENDIDA',
                                         'bg-blue-50 text-blue-700 border-blue-100': record.status === 'PROGRAMADA' || record.status === 'CONFIRMADA',
                                         'bg-red-50 text-red-700 border-red-100': record.status === 'CANCELADA' || record.status === 'PERDIDA',
-                                        'bg-orange-50 text-orange-700 border-orange-100': record.status === 'EN ESPERA' || record.status === 'EN ATENCION',
-                                        'bg-gray-50 text-gray-600 border-gray-100': !['ATENDIDA', 'PROGRAMADA', 'CONFIRMADA', 'CANCELADA', 'PERDIDA', 'EN ESPERA', 'EN ATENCION'].includes(record.status)
+                                        'bg-orange-50 text-orange-700 border-orange-100': record.status === 'EN_ESPERA' || record.status === 'EN_ATENCION',
+                                        'bg-gray-50 text-gray-600 border-gray-100': !['ATENDIDA', 'PROGRAMADA', 'CONFIRMADA', 'CANCELADA', 'PERDIDA', 'EN_ESPERA', 'EN_ATENCION'].includes(record.status)
                                     }" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border whitespace-nowrap">
-                                        {{ record.status }}
+                                        {{ record.status.replace('_', ' ') }}
                                     </span>
                                 </td>
                                 <td class="px-3 py-4 text-[13px] text-text-main leading-relaxed min-w-[240px] pr-6">

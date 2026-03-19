@@ -217,6 +217,18 @@ export class ScheduleConfigComponent {
     return doc ? doc.fullName : 'Desconocido';
   }
 
+  getAppointmentDuration(schedule: Schedule): string {
+    const docId = String(schedule.doctorId || schedule.doctor_id || '').trim();
+    const specId = String(schedule.specialtyId || schedule.specialty_id || '').trim();
+    
+    const assoc = this.associationService.associations().find(a => 
+      String(a.doctorId || '').trim() === docId && 
+      String(a.specialtyId || '').trim() === specId
+    );
+    
+    return assoc ? `${assoc.durationMinutes} min` : '-';
+  }
+
   getInitials(name: string): string {
     if (!name || name === 'Desconocido') return '?';
     return name
