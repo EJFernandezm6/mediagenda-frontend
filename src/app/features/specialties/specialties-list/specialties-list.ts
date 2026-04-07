@@ -6,7 +6,6 @@ import { LucideAngularModule, Plus, Search, Pencil, SquarePen, Trash2, Activity,
 import { DoctorsService } from '../../../core/services/doctors';
 import { DoctorSpecialtyService } from '../../doctors/doctor-specialty/doctor-specialty.service';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { CardComponent } from '../../../shared/components/ui/card/card.component';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
@@ -22,7 +21,6 @@ import { SearchInputComponent } from '../../../shared/components/ui/search-input
     LucideAngularModule, 
     PaginationComponent, 
     ButtonComponent, 
-    CardComponent, 
     SearchableSelectComponent,
     PageHeaderComponent,
     SearchInputComponent

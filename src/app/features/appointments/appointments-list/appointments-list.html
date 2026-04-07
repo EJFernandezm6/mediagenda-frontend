@@ -63,7 +63,8 @@
                         <th class="bg-transparent">Paciente</th>
                         <th class="bg-transparent">Especialista</th>
                         <th class="bg-transparent">Estado de cita</th>
-                        <th class="pr-8 text-center bg-transparent">Cobranza</th>
+                        <th class="text-center bg-transparent">Cobranza</th>
+                        <th class="pr-8 text-center bg-transparent">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border-soft">
@@ -135,6 +136,12 @@
                                 Pendiente
                             </span>
                         </td>
+                        <td class="pr-8 text-center">
+                            <button (click)="openDetails(app)" 
+                                class="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-primary hover:bg-primary/5 transition-all">
+                                <lucide-icon [img]="icons.Eye" class="w-4.5 h-4.5"></lucide-icon>
+                            </button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -149,6 +156,252 @@
                 itemLabel="citas"
                 (pageChange)="onPageChange($event)">
             </app-pagination>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal (Reusable from Calendar) -->
+<div *ngIf="isDetailsModalOpen()" class="fixed inset-0 z-50 overflow-y-auto">
+    <!-- Backdrop with click to close -->
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" (click)="closeDetails()"></div>
+
+    <!-- Modal Positioner -->
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6 md:py-12 relative pointer-events-none">
+        <!-- Modal Content -->
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl flex flex-col relative z-10 animate-fade-in-up max-h-full overflow-hidden pointer-events-auto">
+
+            <!-- Header (Fixed - Professional White) -->
+            <div
+                class="bg-white px-6 py-4 shrink-0 flex items-center justify-between border-b border-gray-100 z-20 rounded-t-3xl">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900 leading-tight">Detalles de la cita</h2>
+                    <p class="text-gray-400 text-[10px] font-semibold tracking-wider mt-0.5 uppercase">Información Completa</p>
+                </div>
+                <button (click)="closeDetails()"
+                    class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all">
+                    <lucide-icon [img]="icons.X" class="w-5 h-5"></lucide-icon>
+                </button>
+            </div>
+
+            <!-- Body (Scrollable) -->
+            <div class="p-6 sm:p-7 flex-1 bg-white overflow-y-auto custom-scrollbar pb-10" [ngClass]="{'rounded-b-3xl': isConfirmingCancel()}">
+
+                <!-- Standard View -->
+                <div *ngIf="selectedAppointment() as appointment" class="space-y-6">
+                    <div *ngIf="!isConfirmingCancel()">
+                        <!-- Patient Card (Dark Contrast) -->
+                        <div class="bg-[#1a1c23] rounded-2xl p-4 flex items-center gap-5 shadow-lg border border-gray-800 mb-6">
+                            <div
+                                class="bg-gray-700 p-3 rounded-xl flex items-center justify-center text-white shadow-inner">
+                                <lucide-icon [img]="icons.User" class="w-6 h-6"></lucide-icon>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white tracking-tight">{{ getPatientName(appointment.patientId) }}</h3>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="bg-blue-900/40 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-md tracking-widest border border-blue-800/50 uppercase">Paciente</span>
+                                    <span class="text-gray-500 text-[11px] font-medium">DNI: {{ getPatientDni(appointment.patientId) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Grid (2 Columns with Icons) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-10 px-1">
+                            <!-- Datos Principales -->
+                            <div class="flex items-start gap-4">
+                                <div class="mt-0.5 p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                    <lucide-icon [img]="icons.User" class="w-4 h-4"></lucide-icon>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Médico</p>
+                                    <p class="text-sm font-bold text-gray-900">{{ getDoctorName(appointment.doctorId) }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Especialidad -->
+                            <div class="flex items-start gap-4">
+                                <div class="mt-0.5 p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                    <lucide-icon [img]="icons.FileText" class="w-4 h-4"></lucide-icon>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Especialidad</p>
+                                    <p class="text-sm font-bold text-gray-900">{{ getSpecialtyName(appointment.specialtyId) }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Fecha & Modalidad -->
+                            <div class="flex items-start gap-4">
+                                <div class="mt-0.5 p-2 bg-orange-50 rounded-lg text-orange-600">
+                                    <lucide-icon [img]="icons.Calendar" class="w-4 h-4"></lucide-icon>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Fecha y Modalidad</p>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-sm font-bold text-gray-900 capitalize">{{ formatDate(appointment.appointmentDate) }}</p>
+                                        <span class="text-gray-300">|</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-tighter"
+                                            [ngClass]="(appointment.modality || '').toUpperCase() === 'PRESENCIAL' ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-purple-600 text-white border-purple-600'">
+                                            {{ appointment.modality || 'PRESENCIAL' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Horario -->
+                            <div class="flex items-start gap-4">
+                                <div class="mt-0.5 p-2 bg-amber-50 rounded-lg text-amber-600">
+                                    <lucide-icon [img]="icons.Clock" class="w-4 h-4"></lucide-icon>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Horario de cita</p>
+                                    <p class="text-sm font-bold text-gray-900">
+                                        {{ formatTime12Hour(appointment.startTime) }} - {{ formatTime12Hour(appointment.endTime) }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Estado -->
+                            <div class="flex items-start gap-4">
+                                <div class="mt-0.5 p-2 bg-gray-100 rounded-lg text-gray-700 border border-gray-200">
+                                    <lucide-icon [img]="icons.AlertCircle" class="w-4 h-4"></lucide-icon>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Estado actual</p>
+                                    <div class="mt-1">
+                                        <span 
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm transition-all uppercase tracking-tight"
+                                            [ngClass]="APPOINTMENT_STATUS_UI[(appointment.status || '').toUpperCase()]?.class || 'bg-gray-100 text-gray-600 border-gray-300'">
+                                            {{ getAppointmentStatusLabel(appointment) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pago -->
+                            <div class="flex items-start gap-4">
+                                <div class="mt-0.5 p-2 bg-emerald-50 rounded-lg text-emerald-600 border border-emerald-100">
+                                    <lucide-icon [img]="icons.Wallet" class="w-4 h-4"></lucide-icon>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-1">Método de pago</p>
+                                    <div class="mt-1">
+                                        <span *ngIf="appointment.paymentMethod" 
+                                            class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold shadow-sm border-transparent"
+                                            [ngClass]="PAYMENT_METHOD_UI[(appointment.paymentMethod || '').toUpperCase()]?.class || 'bg-slate-500 text-white'">
+                                            {{ getPaymentMethodLabel(appointment.paymentMethod) }}
+                                        </span>
+
+                                        <span *ngIf="!appointment.paymentMethod" 
+                                            class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 uppercase">
+                                            POR COBRAR
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CONTROL DE ASISTENCIA -->
+                        <div *ngIf="['PROGRAMADA', 'CONFIRMADA', 'EN_ESPERA', 'EN_ATENCION'].includes(String(appointment.status || '').trim().toUpperCase())" 
+                            class="bg-slate-50 border border-slate-200 rounded-lg p-4 mt-6 flex justify-between items-center mx-1 shadow-sm">
+                            <div class="pr-3">
+                                <p class="font-bold text-slate-800 text-sm">Control de Asistencia</p>
+                                <p class="text-xs text-slate-500 italic">Registrar flujo de atención.</p>
+                            </div>
+                            
+                            <div class="shrink-0">
+                                <button *ngIf="['PROGRAMADA', 'CONFIRMADA'].includes(String(appointment.status || '').trim().toUpperCase())"
+                                    (click)="updateAppointmentStatus(appointment.appointmentId!, 'EN_ESPERA')"
+                                    [disabled]="String(appointment.paymentStatus || '').trim().toUpperCase() !== 'PAID'"
+                                    type="button" 
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-all shadow-md active:scale-95 disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-50">
+                                    Ingresar a Sala
+                                </button>
+
+                                <button *ngIf="['EN_ESPERA'].includes(String(appointment.status || '').trim().toUpperCase())"
+                                    (click)="updateAppointmentStatus(appointment.appointmentId!, 'EN_ATENCION')"
+                                    type="button" 
+                                    class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-all shadow-md active:scale-95">
+                                    Iniciar Atención
+                                </button>
+
+                                <button *ngIf="['EN_ATENCION'].includes(String(appointment.status || '').trim().toUpperCase())"
+                                    (click)="updateAppointmentStatus(appointment.appointmentId!, 'ATENDIDA')"
+                                    type="button" 
+                                    class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-all shadow-md active:scale-95">
+                                    Finalizar Cita
+                                </button>
+                            </div>
+                        </div>
+
+                         <!-- PENDING ALERT (Warning Semantic) -->
+                         <div *ngIf="String(appointment.paymentStatus || '').trim().toUpperCase() !== 'PAID' && !['CANCELADA', 'PERDIDA'].includes((appointment.status || '').toUpperCase())"
+                         class="mx-1 mt-6 animate-fade-in bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-4 shadow-sm">
+                            <div class="shrink-0 bg-amber-100 p-2.5 rounded-xl h-fit border border-amber-200">
+                                <lucide-icon [img]="icons.AlertCircle" class="w-5 h-5 text-amber-600"></lucide-icon>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-amber-800">Validación de pago requerida</h4>
+                                <p class="text-xs text-amber-700 mt-1 leading-relaxed">
+                                    Esta cita registra un pago pendiente. Valide la transacción para habilitar el ingreso a sala.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div *ngIf="appointment.notes"
+                            class="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 mx-1 mt-6">
+                            <label
+                                class="block text-[10px] font-bold text-gray-400 tracking-widest mb-1 uppercase">Observaciones</label>
+                            <p class="text-xs text-gray-600 italic leading-relaxed">"{{ appointment.notes }}"</p>
+                        </div>
+                    </div>
+
+                    <!-- Cancel Confirmation -->
+                    <div *ngIf="isConfirmingCancel()" class="text-center py-12 px-6">
+                        <div
+                            class="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-100 shadow-sm animate-bounce-subtle">
+                            <lucide-icon [img]="icons.AlertCircle" class="w-10 h-10"></lucide-icon>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2 tracking-tight">¿Seguro que deseas cancelar?</h3>
+                        <p class="text-gray-500 text-sm mb-10 max-w-xs mx-auto leading-relaxed">Esta acción anulará la cita de forma permanente.</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button (click)="cancelCancelConfirmation()"
+                                class="flex-1 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-all">Regresar</button>
+                            <button (click)="confirmCancel()"
+                                class="flex-1 py-4 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 shadow-xl shadow-red-200 transition-all">Confirmar Cancelación</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div *ngIf="!isConfirmingCancel() && selectedAppointment() as appointment"
+                class="bg-gray-50 px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 shrink-0 rounded-b-3xl">
+                
+                <!-- Left: Secondary Actions -->
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button *ngIf="!['CANCELADA', 'PERDIDA', 'ATENDIDA'].includes((appointment.status || '').toUpperCase())"
+                        (click)="showCancelConfirmation()"
+                        class="text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-rose-50 px-3 py-2 rounded-md transition-colors">
+                        Cancelar Cita
+                    </button>
+                </div>
+
+                <!-- Right: Primary Actions -->
+                <div class="flex flex-wrap items-center justify-end gap-3 w-full sm:w-auto">
+                    <!-- Payment Action (Only if Pending) -->
+                    <button *ngIf="appointment.paymentStatus !== 'PAID' && !['CANCELADA', 'PERDIDA'].includes((appointment.status || '').toUpperCase())" 
+                        (click)="validatePayment()"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm flex items-center gap-2 transition-all">
+                        <lucide-icon [img]="icons.Check" class="w-4 h-4"></lucide-icon>
+                        Confirmar Pago
+                    </button>
+                    
+                    <button (click)="closeDetails()" 
+                        class="px-6 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition-all text-sm">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

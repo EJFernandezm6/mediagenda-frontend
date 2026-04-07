@@ -5,7 +5,7 @@ import { DoctorsService } from '../../../core/services/doctors';
 import { SpecialtiesService } from '../../../core/services/specialties';
 import { PatientsService } from '../../../core/services/patients';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Search, Filter, Calendar, User, CheckCircle, Clock, AlertCircle, FileSpreadsheet, Plus, X, Columns, SquarePen, FileText } from 'lucide-angular';
+import { LucideAngularModule, Search, Filter, Calendar, User, CheckCircle, Clock, AlertCircle, FileSpreadsheet, Plus, X, Columns, SquarePen, FileText, Eye, Wallet, Check } from 'lucide-angular';
 import { DashboardAppService } from '../../dashboard/dashboard-app.service';
 import { DatePickerComponent } from '../../../shared/components/datepicker/datepicker';
 import { SearchableSelectComponent, SelectOption } from '../../../shared/components/searchable-select/searchable-select';
@@ -33,7 +33,7 @@ export class AppointmentsList implements OnInit {
 
   // Icons
   readonly icons = {
-    Search, Filter, Calendar, User, CheckCircle, Clock, AlertCircle, FileSpreadsheet, Plus, X, Columns, SquarePen, FileText
+    Search, Filter, Calendar, User, CheckCircle, Clock, AlertCircle, FileSpreadsheet, Plus, X, Columns, SquarePen, FileText, Eye, Wallet, Check
   };
 
 
@@ -73,6 +73,33 @@ export class AppointmentsList implements OnInit {
   readonly appointmentStatuses = [
     'PROGRAMADA', 'CONFIRMADA', 'EN_ESPERA', 'EN_ATENCION', 'ATENDIDA', 'PERDIDA', 'CANCELADA'
   ];
+
+  // UI helpers for status and payment mapping (aligned with Calendar)
+  protected readonly APPOINTMENT_STATUS_UI: Record<string, { label: string, class: string }> = {
+    'PROGRAMADA': { label: 'Programada', class: 'bg-blue-50 text-blue-700 border-blue-200' },
+    'CONFIRMADA': { label: 'Confirmada', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    'EN_ESPERA': { label: 'En espera', class: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+    'EN_ATENCION': { label: 'En atención', class: 'bg-purple-50 text-purple-700 border-purple-200' },
+    'ATENDIDA': { label: 'Atendida', class: 'bg-success-soft text-success-hover border-transparent' },
+    'PERDIDA': { label: 'No asistió', class: 'bg-danger-soft text-danger-hover border-transparent' },
+    'CANCELADA': { label: 'Cancelada', class: 'bg-muted text-text-muted border-transparent' }
+  };
+
+  protected readonly PAYMENT_METHOD_UI: Record<string, { label: string, class: string }> = {
+    'CASH': { label: 'Efectivo', class: 'bg-emerald-600 text-white border-transparent shadow-sm' },
+    'YAPE': { label: 'Yape', class: 'bg-[#742880] text-white border-transparent shadow-sm' },
+    'PLIN': { label: 'Plin', class: 'bg-[#00D9C5] text-gray-900 font-bold border-transparent' },
+    'CARD': { label: 'Tarjeta', class: 'bg-slate-800 text-white border-transparent' }
+  };
+
+  // Detail Modal State
+  isDetailsModalOpen = signal(false);
+  selectedAppointment = signal<Appointment | null>(null);
+  isConfirmingCancel = signal(false);
+  saving = signal(false);
+
+  protected readonly String = String;
+
   constructor() {
     effect(() => {
       // Trigger update when dates or the service's refreshTrigger change
@@ -189,5 +216,88 @@ export class AppointmentsList implements OnInit {
     if (!status) return 'Agendada';
     const clean = status.replace(/_/g, ' ').toLowerCase();
     return clean.charAt(0).toUpperCase() + clean.slice(1);
+  }
+
+  // --- Modal Logic ---
+
+  openDetails(app: Appointment) {
+    this.selectedAppointment.set(app);
+    this.isDetailsModalOpen.set(true);
+    this.isConfirmingCancel.set(false);
+  }
+
+  closeDetails() {
+    this.isDetailsModalOpen.set(false);
+    this.selectedAppointment.set(null);
+  }
+
+  updateAppointmentStatus(id: string, status: Appointment['status']) {
+    this.saving.set(true);
+    this.appointmentsService.updatestatus(id, status);
+    // Local update to reflect changes in modal immediately
+    const current = this.selectedAppointment();
+    if (current && current.appointmentId === id) {
+      this.selectedAppointment.set({ ...current, status });
+    }
+    this.saving.set(false);
+  }
+
+  validatePayment() {
+    const app = this.selectedAppointment();
+    if (!app || !app.appointmentId) return;
+
+    this.saving.set(true);
+    const method = app.paymentMethod || 'CASH';
+    this.appointmentsService.updatePayment(app.appointmentId, method, 'PAID');
+    this.selectedAppointment.set({ ...app, paymentStatus: 'PAID', paymentMethod: method as any });
+    this.saving.set(false);
+  }
+
+  showCancelConfirmation() {
+    this.isConfirmingCancel.set(true);
+  }
+
+  cancelCancelConfirmation() {
+    this.isConfirmingCancel.set(false);
+  }
+
+  confirmCancel() {
+    const app = this.selectedAppointment();
+    if (!app || !app.appointmentId) return;
+
+    this.saving.set(true);
+    this.appointmentsService.cancelAppointment(app.appointmentId);
+    this.closeDetails();
+    this.saving.set(false);
+  }
+
+  // --- Formatting Helpers (Sync with Calendar) ---
+
+  formatDate(isoDate: string): string {
+    if (!isoDate) return '';
+    const date = new Date(isoDate + 'T12:00:00'); // Use noon to avoid timezone shifts
+    return date.toLocaleDateString('es-ES', { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long' 
+    });
+  }
+
+  formatTime12Hour(time: string): string {
+    if (!time) return '';
+    const [h, m] = time.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+  }
+
+  getAppointmentStatusLabel(app: Appointment): string {
+    const status = (app.status || '').toUpperCase();
+    return this.APPOINTMENT_STATUS_UI[status]?.label || status;
+  }
+
+  getPaymentMethodLabel(method?: string): string {
+    const m = (method || '').toUpperCase();
+    return this.PAYMENT_METHOD_UI[m]?.label || m || 'Por cobrar';
   }
 }
